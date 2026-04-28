@@ -10,12 +10,12 @@ Belangrijke functionaliteiten zijn onder andere:
 - Grote wendbaarheid om snel te kunnen inspelen op beleidswijzigingen.
 
 ## Mappenstructuur
-- `/code` - Bevat de broncode van de applicatie.
-- `/docs` - Bevat ondersteunende documenten, waaronder het ERD (Entity Relationship Diagram) en ontwerpschema's.
+- `/src` - Bevat de broncode van de applicatie.
+- `/documentatie` - Bevat ondersteunende documenten, waaronder het ERD (Entity Relationship Diagram) en ontwerpschema's.
 
 ## Gebruikte Bronnen en Tools
 * **Projectmanagement:** Trello, GitHub, MS Teams
-* **Frontend:** [Vul hier in, bijv. React, HTML/CSS/JS]
-* **Backend:** [Vul hier in, bijv. Node.js, C#, PHP]
-* **Database:** [Vul hier in, bijv. MySQL, MongoDB]
-* **Overige bronnen:** [Vul hier evt. links in naar documentatie of tutorials die jullie gebruiken]
+* **Frontend:** 
+* **Backend:** 
+* **Database:** 
+* **Overige bronnen:** 
