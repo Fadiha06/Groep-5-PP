@@ -1,0 +1,212 @@
+{
+	"info": {
+		"name": "Stagebeheer API",
+		"description": "Postman collectie om alle huidige endpoints van de Stagebeheer API te testen.",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Systeem",
+			"item": [
+				{
+					"name": "Health Check (Database Test)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:3000/api/health",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "3000",
+							"path": [
+								"api",
+								"health"
+							]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Gebruikers",
+			"item": [
+				{
+					"name": "GET Alle Gebruikers",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:3000/api/gebruikers",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "3000",
+							"path": [
+								"api",
+								"gebruikers"
+							]
+						}
+					}
+				},
+				{
+					"name": "GET Gebruiker by ID",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:3000/api/gebruikers/1",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "3000",
+							"path": [
+								"api",
+								"gebruikers",
+								"1"
+							]
+						}
+					}
+				},
+				{
+					"name": "POST Nieuwe Gebruiker",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"naam\": \"Test Gebruiker\",\n    \"email\": \"test@test.nl\",\n    \"wachtwoord\": \"geheim123\",\n    \"rol\": \"student\"\n}"
+						},
+						"url": {
+							"raw": "http://localhost:3000/api/gebruikers",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "3000",
+							"path": [
+								"api",
+								"gebruikers"
+							]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Bedrijven",
+			"item": [
+				{
+					"name": "GET Alle Bedrijven",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:3000/api/bedrijven",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "3000",
+							"path": [
+								"api",
+								"bedrijven"
+							]
+						}
+					}
+				},
+				{
+					"name": "POST Nieuw Bedrijf",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"naam\": \"Tech Bedrijf BV\",\n    \"adres\": \"Techstraat 1\",\n    \"stad\": \"Amsterdam\",\n    \"btw_nummer\": \"NL123456789B01\",\n    \"telefoon\": \"0201234567\",\n    \"email\": \"info@techbedrijf.nl\",\n    \"sector\": \"IT\"\n}"
+						},
+						"url": {
+							"raw": "http://localhost:3000/api/bedrijven",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "3000",
+							"path": [
+								"api",
+								"bedrijven"
+							]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Stages",
+			"item": [
+				{
+					"name": "GET Alle Stages",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:3000/api/stages",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "3000",
+							"path": [
+								"api",
+								"stages"
+							]
+						}
+					}
+				},
+				{
+					"name": "POST Nieuwe Stage",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"student_id\": 1,\n    \"titel\": \"Frontend Developer Stagiair\",\n    \"omschrijving\": \"Meewerken aan de nieuwe webapplicatie met React en Node.js.\",\n    \"startdatum\": \"2024-09-01\",\n    \"einddatum\": \"2025-01-31\"\n}"
+						},
+						"url": {
+							"raw": "http://localhost:3000/api/stages",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "3000",
+							"path": [
+								"api",
+								"stages"
+							]
+						}
+					}
+				}
+			]
+		}
+	]
+}
