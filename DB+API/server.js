@@ -6,11 +6,10 @@ require('dotenv').config();
 const app = express();
 const port = process.env.PORT || 3000;
 
-// Middleware
 app.use(cors());
 app.use(express.json());
 
-// Database connectie pool
+// connectie pool
 const pool = mysql.createPool({
   host: process.env.DB_HOST || 'localhost',
   user: process.env.DB_USER || 'root',
@@ -21,7 +20,7 @@ const pool = mysql.createPool({
   queueLimit: 0
 });
 
-// Test database connectie
+// test
 app.get('/api/health', async (req, res) => {
     try {
         const connection = await pool.getConnection();
@@ -32,9 +31,8 @@ app.get('/api/health', async (req, res) => {
     }
 });
 
-// --- API ROUTES VOOR GEBRUIKER ---
+// API user
 
-// Get all users
 app.get('/api/gebruikers', async (req, res) => {
     try {
         const [rows] = await pool.query('SELECT id, naam, email, rol FROM GEBRUIKER');
@@ -44,7 +42,6 @@ app.get('/api/gebruikers', async (req, res) => {
     }
 });
 
-// Get user by ID
 app.get('/api/gebruikers/:id', async (req, res) => {
     try {
         const [rows] = await pool.query('SELECT id, naam, email, rol FROM GEBRUIKER WHERE id = ?', [req.params.id]);
@@ -55,73 +52,18 @@ app.get('/api/gebruikers/:id', async (req, res) => {
     }
 });
 
-// Create user
 app.post('/api/gebruikers', async (req, res) => {
     const { naam, email, wachtwoord, rol } = req.body;
     try {
         const [result] = await pool.query(
             'INSERT INTO GEBRUIKER (naam, email, wachtwoord, rol) VALUES (?, ?, ?, ?)',
-            [naam, email, wachtwoord, rol] // Opmerking: In productie wachtwoord hashen!
+            [naam, email, wachtwoord, rol]
         );
         res.status(201).json({ id: result.insertId, naam, email, rol });
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
 });
-
-// --- API ROUTES VOOR BEDRIJF ---
-
-// Get all companies
-app.get('/api/bedrijven', async (req, res) => {
-    try {
-        const [rows] = await pool.query('SELECT * FROM BEDRIJF');
-        res.json(rows);
-    } catch (err) {
-        res.status(500).json({ error: err.message });
-    }
-});
-
-// Create company
-app.post('/api/bedrijven', async (req, res) => {
-    const { naam, adres, stad, btw_nummer, telefoon, email, sector } = req.body;
-    try {
-        const [result] = await pool.query(
-            'INSERT INTO BEDRIJF (naam, adres, stad, btw_nummer, telefoon, email, sector) VALUES (?, ?, ?, ?, ?, ?, ?)',
-            [naam, adres, stad, btw_nummer, telefoon, email, sector]
-        );
-        res.status(201).json({ id: result.insertId, naam, adres, stad });
-    } catch (err) {
-        res.status(500).json({ error: err.message });
-    }
-});
-
-
-// --- API ROUTES VOOR STAGE ---
-
-// Get all internships
-app.get('/api/stages', async (req, res) => {
-    try {
-        const [rows] = await pool.query('SELECT * FROM STAGE');
-        res.json(rows);
-    } catch (err) {
-        res.status(500).json({ error: err.message });
-    }
-});
-
-// Create internship
-app.post('/api/stages', async (req, res) => {
-    const { student_id, titel, omschrijving, startdatum, einddatum } = req.body;
-    try {
-        const [result] = await pool.query(
-            'INSERT INTO STAGE (student_id, titel, omschrijving, startdatum, einddatum) VALUES (?, ?, ?, ?, ?)',
-            [student_id, titel, omschrijving, startdatum, einddatum]
-        );
-        res.status(201).json({ id: result.insertId, student_id, titel });
-    } catch (err) {
-        res.status(500).json({ error: err.message });
-    }
-});
-
 
 app.listen(port, () => {
   console.log(`Server is running on http://localhost:${port}`);
