@@ -69,58 +69,6 @@ app.post('/api/gebruikers', async (req, res) => {
     }
 });
 
-// --- API ROUTES VOOR BEDRIJF ---
-
-// Get all companies
-app.get('/api/bedrijven', async (req, res) => {
-    try {
-        const [rows] = await pool.query('SELECT * FROM BEDRIJF');
-        res.json(rows);
-    } catch (err) {
-        res.status(500).json({ error: err.message });
-    }
-});
-
-// Create company
-app.post('/api/bedrijven', async (req, res) => {
-    const { naam, adres, stad, btw_nummer, telefoon, email, sector } = req.body;
-    try {
-        const [result] = await pool.query(
-            'INSERT INTO BEDRIJF (naam, adres, stad, btw_nummer, telefoon, email, sector) VALUES (?, ?, ?, ?, ?, ?, ?)',
-            [naam, adres, stad, btw_nummer, telefoon, email, sector]
-        );
-        res.status(201).json({ id: result.insertId, naam, adres, stad });
-    } catch (err) {
-        res.status(500).json({ error: err.message });
-    }
-});
-
-
-// --- API ROUTES VOOR STAGE ---
-
-// Get all internships
-app.get('/api/stages', async (req, res) => {
-    try {
-        const [rows] = await pool.query('SELECT * FROM STAGE');
-        res.json(rows);
-    } catch (err) {
-        res.status(500).json({ error: err.message });
-    }
-});
-
-// Create internship
-app.post('/api/stages', async (req, res) => {
-    const { student_id, titel, omschrijving, startdatum, einddatum } = req.body;
-    try {
-        const [result] = await pool.query(
-            'INSERT INTO STAGE (student_id, titel, omschrijving, startdatum, einddatum) VALUES (?, ?, ?, ?, ?)',
-            [student_id, titel, omschrijving, startdatum, einddatum]
-        );
-        res.status(201).json({ id: result.insertId, student_id, titel });
-    } catch (err) {
-        res.status(500).json({ error: err.message });
-    }
-});
 
 
 app.listen(port, () => {

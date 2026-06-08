@@ -19,8 +19,10 @@ async function initDB() {
         const dbName = process.env.DB_NAME || 'stagebeheer';
 
         // Stap 2: Maak de database aan als deze niet bestaat
-        console.log(`Database '${dbName}' aanmaken (als deze niet bestaat)...`);
-        await connection.query(`CREATE DATABASE IF NOT EXISTS \`${dbName}\`;`);
+        console.log(`Database '${dbName}' verwijderen als deze bestaat (voor schone lei)...`);
+        await connection.query(`DROP DATABASE IF EXISTS \`${dbName}\`;`);
+        console.log(`Database '${dbName}' aanmaken...`);
+        await connection.query(`CREATE DATABASE \`${dbName}\`;`);
         console.log(`Database '${dbName}' is gereed.`);
 
         // Stap 3: Selecteer de database
