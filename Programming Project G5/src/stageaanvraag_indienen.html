@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Stageaanvraag indienen — EhB StageTool</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="stageaanvraag_indienen_stijl.css">
+</head>
+<body>
+
+<nav class="sidebar">
+  <div class="sb-logo">
+    <div class="sb-logo-title">EhB StageTool</div>
+    <div class="sb-logo-sub">Toegepaste Informatica</div>
+  </div>
+  <div class="sb-nav">
+    <a class="sb-item active" href="#">Mijn stageaanvraag</a>
+  </div>
+  <div class="sb-footer">Ingelogd als Student</div>
+</nav>
+
+<div class="main">
+  <div>
+    <div class="page-title">Stageaanvraag indienen</div>
+    <div class="page-sub">Vul onderstaand formulier in om een stagevoorstel in te dienen bij de stagecommissie.</div>
+  </div>
+
+  <div class="card">
+    <div class="section-title">Studentgegevens</div>
+    <div class="grid-4">
+      <div class="field">
+        <label>Studentennummer</label>
+        <input type="text" placeholder="Bijv. S123456">
+      </div>
+      <div class="field">
+        <label>Naam</label>
+        <input type="text" value="Jan De Backer" readonly>
+      </div>
+      <div class="field">
+        <label>E-mailadres</label>
+        <input type="email" value="jan.debacker@student.ehb.be" readonly>
+      </div>
+      <div class="field">
+        <label>Telefoonnummer</label>
+        <input type="tel" placeholder="+32 478 12 34 56">
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="section-title">Bedrijfsgegevens</div>
+    <div class="grid-4">
+      <div class="field">
+        <label>Bedrijfsnaam</label>
+        <input type="text" placeholder="Bijv. Microsoft Belgium">
+      </div>
+      <div class="field">
+        <label>Contactpersoon / Mentor</label>
+        <input type="text" placeholder="Naam van de stagementor">
+      </div>
+      <div class="field">
+        <label>E-mailadres mentor</label>
+        <input type="email" placeholder="contact@bedrijf.be">
+      </div>
+      <div class="field">
+        <label>Telefoonnummer</label>
+        <input type="tel" placeholder="+32 2 123 45 67">
+      </div>
+      <div class="field span-2">
+        <label>Adres</label>
+        <input type="text" placeholder="Straatnaam 123, 1000 Brussel">
+      </div>
+      <div class="field">
+        <label>Sector</label>
+        <select>
+          <option value="">Selecteer een sector</option>
+          <option>IT & Software</option>
+          <option>Financiën & Bankwezen</option>
+          <option>Consultancy</option>
+          <option>Overheid</option>
+          <option>Gezondheidszorg</option>
+          <option>Onderwijs</option>
+          <option>Andere</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Afdeling (optioneel)</label>
+        <input type="text" placeholder="Bijv. Digital Solutions">
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="section-title">Stageperiode</div>
+    <div class="grid-3">
+      <div class="field">
+        <label>Startdatum</label>
+        <input type="date">
+      </div>
+      <div class="field">
+        <label>Einddatum</label>
+        <input type="date">
+      </div>
+      <div class="field">
+        <label>Aantal uren per week</label>
+        <input type="number" placeholder="40" min="1" max="40">
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="section-title">Stageopdracht</div>
+    <div class="grid-1">
+      <div class="field">
+        <label>Titel van de opdracht</label>
+        <input type="text" placeholder="Bijv. Ontwikkeling van een webapplicatie">
+      </div>
+      <div class="field">
+        <label>Omschrijving van de opdracht</label>
+        <textarea placeholder="Beschrijf de taken, leerdoelen en verwachte resultaten van de stage..."></textarea>
+      </div>
+      <div class="field">
+        <label>Leerdoelen</label>
+        <textarea placeholder="Wat wil je leren tijdens deze stage?"></textarea>
+      </div>
+    </div>
+  </div>
+
+  <div class="footer-btns">
+    <button class="btn-primary" onclick="window.location.href='confirmatie_popup.html'">Stageaanvraag indienen</button>
+    <button class="btn-secondary" onclick="history.back()">Annuleren</button>
+  </div>
+</div>
+
+</body>
+</html>
