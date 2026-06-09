@@ -1,0 +1,64 @@
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Inter',system-ui,sans-serif;background:#F9FAFB;min-height:100vh;display:flex}
+.root{display:flex;width:100%;min-height:100vh}
+
+.sidebar{width:240px;flex-shrink:0;background:#1F2937;display:flex;flex-direction:column;min-height:100vh}
+.sb-logo{padding:20px 20px 16px;border-bottom:1px solid rgba(255,255,255,0.08)}
+.sb-logo-title{color:white;font-size:16px;font-weight:700}
+.sb-logo-sub{color:#6B7280;font-size:12px;margin-top:2px}
+.sb-nav{padding:12px 0;flex:1}
+.sb-item{display:flex;align-items:center;gap:10px;padding:10px 16px;font-size:14px;color:#9CA3AF;cursor:pointer;text-decoration:none}
+.sb-item.active{background:#D1193E;color:white;font-weight:500}
+.sb-item:not(.active):hover{background:rgba(255,255,255,0.05)}
+.sb-footer{padding:14px 16px;border-top:1px solid rgba(255,255,255,0.08);font-size:12px;color:#6B7280;margin-top:auto}
+
+.main{flex:1;padding:28px;display:flex;flex-direction:column;gap:16px;overflow:auto}
+.page-title{font-size:26px;font-weight:700;color:#111827}
+.page-sub{font-size:14px;color:#6B7280;margin-top:6px}
+
+.info-banner{background:#EFF6FF;border:0.8px solid #BFDBFE;border-radius:8px;padding:14px 18px;font-size:14px;font-weight:500;color:#1E40AF;display:flex;align-items:flex-start;gap:10px}
+
+.card{background:white;border-radius:12px;border:0.8px solid #D1D5DB;box-shadow:0 4px 6px -1px rgba(0,0,0,0.05);overflow:hidden}
+
+.contract-section{padding:28px 40px;border-bottom:0.8px solid #E5E7EB}
+.contract-section:last-child{border-bottom:none}
+.contract-section-title{font-size:18px;font-weight:700;color:#111827;padding-bottom:12px;border-bottom:1.6px solid #D1D5DB;margin-bottom:20px}
+
+.info-rows{display:flex;flex-direction:column;gap:10px}
+.info-row{display:flex;align-items:center;gap:16px;padding:6px 0;border-bottom:0.8px solid #F3F4F6}
+.info-row:last-child{border-bottom:none}
+.info-row-label{width:200px;flex-shrink:0;font-size:14px;color:#6B7280}
+
+.info-input{flex:1;font-size:15px;font-weight:500;color:#111827;border:none;background:transparent;font-family:inherit;padding:4px 8px;border-radius:6px}
+.info-input:hover{background:#F9FAFB}
+.info-input:focus{outline:none;background:#F0F9FF;border:0.8px solid #93C5FD;padding:4px 8px}
+
+.verplichting-title{font-size:15px;font-weight:600;color:#111827;margin-bottom:8px}
+.verplichting-tekst{font-size:14px;color:#475569;line-height:1.7;margin-bottom:20px}
+.verplichting-tekst:last-child{margin-bottom:0}
+
+.sign-box{background:#F0F9FF;border:0.8px solid #93C5FD;border-radius:8px;padding:20px}
+.sign-name{font-size:15px;font-weight:700;color:#111827}
+.sign-role{font-size:12px;color:#6B7280;margin-top:2px;text-transform:uppercase;letter-spacing:0.5px}
+.sign-label{font-size:13px;color:#3B82F6;margin:12px 0 8px;cursor:pointer}
+
+.sign-canvas-wrap{background:white;border:1.6px solid #CBD5E1;border-radius:6px;overflow:hidden;width:100%}
+canvas{display:block;cursor:crosshair;touch-action:none}
+
+.sign-actions{display:flex;gap:10px;margin-top:12px}
+.btn-wis{padding:8px 20px;border-radius:4px;border:none;background:#FEE2E2;color:#B91C1C;font-size:12px;font-weight:500;cursor:pointer}
+.btn-bevestig{padding:8px 20px;border-radius:4px;border:none;background:#D1FAE5;color:#065F46;font-size:12px;font-weight:500;cursor:pointer}
+
+.sign-confirmed{background:#E1F5EE;border-radius:6px;padding:14px;text-align:center;font-size:13px;font-weight:600;color:#085041;display:none;margin-top:12px}
+
+.sign-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:16px}
+.sign-other{background:#F9FAFB;border:0.8px solid #E5E7EB;border-radius:8px;padding:16px}
+.sign-other-name{font-size:14px;font-weight:600;color:#111827}
+.sign-other-role{font-size:12px;color:#6B7280;margin-top:2px;text-transform:uppercase;letter-spacing:0.5px}
+.sign-other-status{font-size:12px;color:#9CA3AF;margin-top:10px;font-style:italic}
+.sign-placeholder{background:#F3F4F6;border-radius:6px;height:60px;margin-top:10px;display:flex;align-items:center;justify-content:center;font-size:12px;color:#9CA3AF}
+
+.card-footer{padding:20px 40px;border-top:0.8px solid #D1D5DB;display:flex;justify-content:flex-end}
+.btn-primary{padding:10px 24px;border-radius:6px;border:none;background:#D1193E;color:white;font-size:14px;font-weight:600;cursor:pointer}
+.btn-primary:hover{background:#B01530}
+.btn-primary:disabled{opacity:0.45;cursor:not-allowed}

@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Stagecontract — EhB StageTool</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/VITE/src/CSS/contract.css">
+</head>
+<body>
+<div class="root">
+
+  <nav class="sidebar">
+    <div class="sb-logo">
+      <div class="sb-logo-title">EhB StageTool</div>
+      <div class="sb-logo-sub">Toegepaste Informatica</div>
+    </div>
+    <div class="sb-nav">
+      <a class="sb-item" href="#">Dashboard</a>
+      <a class="sb-item" href="#">Mijn stage</a>
+      <a class="sb-item" href="#">Logboek</a>
+      <a class="sb-item active" href="#">Contract</a>
+      <a class="sb-item" href="#">Evaluaties</a>
+    </div>
+    <div class="sb-footer">Ingelogd als Student</div>
+  </nav>
+
+  <div class="main">
+    <div>
+      <div class="page-title">Stagecontract</div>
+      <div class="page-sub">Lees het contract, zet je handtekening onderaan en dien in. Het contract wordt automatisch gearchiveerd.</div>
+    </div>
+
+    <div class="info-banner">
+      <span>ℹ️</span>
+      <span>Jouw handtekening is vereist. Na jouw ondertekening wordt het contract automatisch doorgestuurd naar je stagementor en daarna de verantwoordelijke docent.</span>
+    </div>
+
+    <div class="card">
+
+      <!-- Contractinhoud: Partijen -->
+      <div class="contract-section">
+        <div class="contract-section-title">Contractinhoud</div>
+        <div style="font-size:15px;font-weight:600;color:#111827;margin-bottom:14px">Partijen</div>
+        <div class="info-rows">
+          <div class="info-row">
+            <span class="info-row-label">Student</span>
+            <input class="info-input" type="text" value="Maxwell Dubois — TI3 Toegepaste Informatica">
+          </div>
+          <div class="info-row">
+            <span class="info-row-label">Studentnummer</span>
+            <input class="info-input" type="text" value="s123456">
+          </div>
+          <div class="info-row">
+            <span class="info-row-label">Bedrijf</span>
+            <input class="info-input" type="text" value="Cronos Group NV — Digital Solutions">
+          </div>
+          <div class="info-row">
+            <span class="info-row-label">Stagementor</span>
+            <input class="info-input" type="text" value="Jonas Declercq — j.declercq@cronos.be">
+          </div>
+          <div class="info-row">
+            <span class="info-row-label">Verantwoordelijk docent</span>
+            <input class="info-input" type="text" value="Prof. An Vermeersch">
+          </div>
+        </div>
+      </div>
+
+      <!-- Stagegegevens -->
+      <div class="contract-section">
+        <div class="contract-section-title">Stagegegevens</div>
+        <div class="info-rows">
+          <div class="info-row">
+            <span class="info-row-label">Titel</span>
+            <input class="info-input" type="text" value="Ontwikkeling van een intern ticketingsysteem">
+          </div>
+          <div class="info-row">
+            <span class="info-row-label">Periode</span>
+            <input class="info-input" type="text" value="2 september 2025 – 28 november 2025">
+          </div>
+          <div class="info-row">
+            <span class="info-row-label">Werkregeling</span>
+            <input class="info-input" type="text" value="Voltijds, 40u/week — ma–vr 9u–17u">
+          </div>
+          <div class="info-row">
+            <span class="info-row-label">Totaal uren</span>
+            <input class="info-input" type="text" value="480 uur">
+          </div>
+        </div>
+      </div>
+
+      <!-- Verplichtingen -->
+      <div class="contract-section">
+        <div class="contract-section-title">Verplichtingen</div>
+        <div class="verplichting-title">Verplichtingen student</div>
+        <div class="verplichting-tekst">De student verbindt zich ertoe wekelijks een logboek bij te houden, aanwezig te zijn conform de werkregeling, en de interne regels van het bedrijf te respecteren. Afwezigheid dient tijdig gemeld te worden aan zowel de stagementor als de verantwoordelijke docent.</div>
+        <div class="verplichting-title">Verplichtingen bedrijf</div>
+        <div class="verplichting-tekst">Het bedrijf stelt een werkplek en de nodige middelen ter beschikking, wijst een stagementor aan en verbindt zich tot een tussentijdse en finale evaluatie van de student.</div>
+      </div>
+
+      <!-- Handtekeningen -->
+      <div class="contract-section">
+        <div class="contract-section-title">Handtekeningen</div>
+
+        <div class="sign-box">
+          <div class="sign-name">Maxwell Dubois</div>
+          <div class="sign-role">Student</div>
+          <div class="sign-label">✎ Teken hieronder met je muis of vinger</div>
+          <div class="sign-canvas-wrap" id="canvas-wrap">
+            <canvas id="sig-canvas"></canvas>
+          </div>
+          <div class="sign-actions" id="sign-actions">
+            <button class="btn-wis" id="btn-wis">Wissen</button>
+            <button class="btn-bevestig" id="btn-bevestig">Bevestigen</button>
+          </div>
+          <div class="sign-confirmed" id="sign-confirmed">✓ Handtekening bevestigd</div>
+        </div>
+
+        <div class="sign-grid">
+          <div class="sign-other">
+            <div class="sign-other-name">Jonas Declercq</div>
+            <div class="sign-other-role">Stagementor</div>
+            <div class="sign-other-status">Wacht op handtekening student</div>
+            <div class="sign-placeholder">Nog niet beschikbaar</div>
+          </div>
+          <div class="sign-other">
+            <div class="sign-other-name">Prof. An Vermeersch</div>
+            <div class="sign-other-role">Verantwoordelijk docent</div>
+            <div class="sign-other-status">Wacht op handtekening mentor</div>
+            <div class="sign-placeholder">Nog niet beschikbaar</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card-footer">
+        <button class="btn-primary" id="btn-indienen" disabled onclick="window.location.href='confirmatie_popup.html'">Indienen ter ondertekening</button>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script>
+const canvas = document.getElementById('sig-canvas');
+const ctx = canvas.getContext('2d');
+
+function resizeCanvas() {
+  const wrap = document.getElementById('canvas-wrap');
+  const ratio = window.devicePixelRatio || 1;
+  const w = wrap.clientWidth;
+  const h = 150;
+  canvas.width = w * ratio;
+  canvas.height = h * ratio;
+  canvas.style.width = w + 'px';
+  canvas.style.height = h + 'px';
+  ctx.scale(ratio, ratio);
+  ctx.strokeStyle = '#1E40AF';
+  ctx.lineWidth = 2;
+  ctx.lineCap = 'round';
+  ctx.lineJoin = 'round';
+}
+
+resizeCanvas();
+window.addEventListener('resize', resizeCanvas);
+
+let drawing = false;
+let hasSig = false;
+
+function getPos(e) {
+  const r = canvas.getBoundingClientRect();
+  const src = e.touches ? e.touches[0] : e;
+  return { x: src.clientX - r.left, y: src.clientY - r.top };
+}
+
+canvas.addEventListener('mousedown', e => { drawing = true; const p = getPos(e); ctx.beginPath(); ctx.moveTo(p.x, p.y); });
+canvas.addEventListener('mousemove', e => { if (!drawing) return; const p = getPos(e); ctx.lineTo(p.x, p.y); ctx.stroke(); hasSig = true; });
+canvas.addEventListener('mouseup', () => drawing = false);
+canvas.addEventListener('mouseleave', () => drawing = false);
+canvas.addEventListener('touchstart', e => { e.preventDefault(); drawing = true; const p = getPos(e); ctx.beginPath(); ctx.moveTo(p.x, p.y); }, {passive:false});
+canvas.addEventListener('touchmove', e => { e.preventDefault(); if (!drawing) return; const p = getPos(e); ctx.lineTo(p.x, p.y); ctx.stroke(); hasSig = true; }, {passive:false});
+canvas.addEventListener('touchend', () => drawing = false);
+
+document.getElementById('btn-wis').addEventListener('click', () => {
+  resizeCanvas();
+  hasSig = false;
+  document.getElementById('btn-indienen').disabled = true;
+  document.getElementById('sign-confirmed').style.display = 'none';
+  document.getElementById('canvas-wrap').style.display = 'block';
+  document.getElementById('sign-actions').style.display = 'flex';
+});
+
+document.getElementById('btn-bevestig').addEventListener('click', () => {
+  if (!hasSig) return;
+  document.getElementById('canvas-wrap').style.display = 'none';
+  document.getElementById('sign-actions').style.display = 'none';
+  document.getElementById('sign-confirmed').style.display = 'block';
+  document.getElementById('btn-indienen').disabled = false;
+});
+</script>
+</body>
+</html>
