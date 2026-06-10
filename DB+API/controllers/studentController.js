@@ -26,11 +26,6 @@ class StudentController {
                 notificaties
             });
 
-
-            const stats = await StudentModel.getDashboardStats(student.student_id);
-
-            res.json({ student, stats });
-
         } catch (err) {
             console.error(err);
             res.status(500).json({ error: 'Serverfout bij ophalen dashboard' });
