@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>EhB StageTool — Wachtwoord vergeten</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="src/CSS/wachtwoordvergeten.CSS" />
+</head>
+<body>
+  <div class="page">
+ 
+    
+    <header class="branding">
+      <img class="branding__logo" src="src/Images/EhB-logo-transparant.png" alt="img1" />
+      
+    </header>
+ 
+    
+    <main class="card">
+ 
+      
+      <div class="card__header">
+        <h1 class="card__title">Wachtwoord vergeten</h1>
+        <p class="card__desc">Vul je e-mailadres in. We sturen je een resetlink.</p>
+      </div>
+ 
+      <!-- Stappen-indicator -->
+      <nav class="steps" aria-label="Stappenindicator">
+        <div class="step step--active">
+          <span class="step__number" aria-hidden="true">1</span>
+          <span class="step__label">E-mail</span>
+        </div>
+        <div class="steps__divider" aria-hidden="true"></div>
+        <div class="step">
+          <span class="step__number" aria-hidden="true">2</span>
+          <span class="step__label">Controleer inbox</span>
+        </div>
+        <div class="steps__divider" aria-hidden="true"></div>
+        <div class="step">
+          <span class="step__number" aria-hidden="true">3</span>
+          <span class="step__label">Nieuw wachtwoord</span>
+        </div>
+      </nav>
+ 
+      <!-- Formulier -->
+      <div class="card__body">
+        <div class="field">
+          <label class="field__label" for="email">E-mailadres</label>
+          <input
+            class="field__input"
+            type="email"
+            id="email"
+            name="email"
+            placeholder="voornaam.naam@student.ehb.be of je@bedrijf.be"
+            autocomplete="email"
+          />
+          <span class="field__hint">Zowel EhB-adressen als externe mentoraccounts worden ondersteund.</span>
+        </div>
+ 
+        <button class="btn btn--primary" type="button">Resetlink versturen</button>
+        <button class="btn btn--secondary" type="button" onclick="window.location.href='login.html'">← Terug naar inloggen</button>
+      </div>
+ 
+    </main>
+ 
+    <a class="back-link" href="login.html">← Terug naar inloggen</a>
+  </div>
+</body>
+</html>
