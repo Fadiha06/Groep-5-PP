@@ -11,6 +11,22 @@ class StudentController {
                 return res.status(404).json({ error: 'Studentprofiel niet gevonden' });
             }
 
+            const [stats, stageproces, logboek, notificaties] = await Promise.all([
+                StudentModel.getDashboardStats(student.student_id),
+                StudentModel.getStageproces(student.student_id),
+                StudentModel.getLogboekDezeWeek(student.student_id),
+                StudentModel.getNotificaties(gebruikerId)
+            ]);
+
+            res.json({
+                student,
+                stats,
+                stageproces,
+                logboekDezeWeek: logboek,
+                notificaties
+            });
+
+
             const stats = await StudentModel.getDashboardStats(student.student_id);
 
             res.json({ student, stats });
