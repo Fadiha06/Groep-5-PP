@@ -147,5 +147,17 @@ static async getLogboekDezeWeek(student_id) {
     return rows;
 }
 
+static async getNotificaties(gebruiker_id) {
+    const [rows] = await pool.query(
+        `SELECT notificatie_id, titel, bericht, type, stage_id
+         FROM NOTIFICATIE
+         WHERE gebruiker_id = ?
+         ORDER BY notificatie_id DESC
+         LIMIT 5`,
+        [gebruiker_id]
+    );
+    return rows;
+}
+
 }
 module.exports = StudentModel;
