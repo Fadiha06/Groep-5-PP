@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Stagecontract — EhB StageTool</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="/VITE/src/CSS/contract.css">
+<link rel="stylesheet" href="src/css/contract.css">
 </head>
 <body>
 <div class="root">
@@ -195,6 +195,73 @@ document.getElementById('btn-bevestig').addEventListener('click', () => {
   document.getElementById('sign-actions').style.display = 'none';
   document.getElementById('sign-confirmed').style.display = 'block';
   document.getElementById('btn-indienen').disabled = false;
+});
+
+document.getElementById('btn-indienen').addEventListener('click', async () => {
+  const signatureBase64 = canvas.toDataURL('image/png');
+  
+  // Omdat we nog geen login scherm in de frontend hebben, halen we hier 
+  // "onder water" even snel een geldig studenten-token op voor test-doeleinden.
+  // We registreren of loggen in als de test-student:
+  let token = "";
+  try {
+      // Probeer in te loggen
+      let loginRes = await fetch('http://localhost:3000/api/gebruikers/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email: "teststudent@ehb.be", wachtwoord: "test1234" })
+      });
+      
+      let loginData = await loginRes.json();
+      token = loginData.token;
+
+      // Zodra we een token hebben, sturen we de handtekening naar contract ID 1
+      if(token) {
+          const saveRes = await fetch('http://localhost:3000/api/contracten/1/tekenen', {
+              method: 'POST',
+              headers: {
+                  'Content-Type': 'application/json',
+                  'Authorization': `Bearer ${token}`
+              },
+              body: JSON.stringify({ signature: signatureBase64 })
+          });
+          const saveData = await saveRes.json();
+          
+          if(saveRes.ok) {
+              alert("Succes! Je handtekening is opgeslagen in de database!");
+              window.location.href = 'confirmatie_popup.html';
+          } else {
+              alert("Fout bij opslaan: " + saveData.message);
+          }
+      } else {
+          alert("Kon geen test-token genereren. Run seed.js via de console eerst!");
+      }
+
+  } catch(e) {
+      alert("Netwerkfout. Is de server gestart?");
+  }
+});
+
+// Mentor Link Genereren
+document.getElementById('btn-mentor-link').addEventListener('click', async () => {
+    try {
+        const response = await fetch('http://localhost:3000/api/contracten/1/mentor-link');
+        const data = await response.json();
+        
+        if(response.ok) {
+            // Laat de link aan de student zien
+            document.getElementById('mentor-link-container').innerHTML = `
+                <div style="font-size: 12px; color: #059669; font-weight: 600; margin-bottom: 4px;">Link gegenereerd!</div>
+                <input type="text" value="${data.link}" style="width: 100%; padding: 4px; font-size: 11px; border: 1px solid #d1d5db; border-radius: 4px;" readonly onclick="this.select(); document.execCommand('copy'); alert('Link gekopieerd!');">
+                <div style="font-size: 10px; color: #6b7280; margin-top: 4px;">Klik op de link om te kopiëren en stuur deze naar je mentor.</div>
+            `;
+            document.getElementById('mentor-status').innerText = "Wacht op handtekening mentor";
+        } else {
+            alert("Fout bij genereren: " + data.message);
+        }
+    } catch(e) {
+        alert("Netwerkfout bij genereren link.");
+    }
 });
 </script>
 </body>
