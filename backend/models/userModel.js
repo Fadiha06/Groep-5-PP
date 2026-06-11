@@ -1,30 +1,44 @@
-const pool = require('../config/db');
+const db = require('../config/db');
 
-// Zoek een gebruiker op via email (gebruikt door login én register)
-const findByEmail = async (email) => {
-    const [rows] = await pool.query(
-        'SELECT * FROM GEBRUIKER WHERE email = ?',
-        [email]
-    );
-    return rows[0]; // undefined als niet gevonden
-};
+class UserModel {
+    static async findByEmail(email) {
+        const [rows] = await db.query('SELECT * FROM GEBRUIKER WHERE email = ?', [email]);
+        return rows;
+    }
 
-// Zoek een gebruiker op via id (voor /me) — zonder wachtwoord
-const findById = async (id) => {
-    const [rows] = await pool.query(
-        'SELECT id, naam, email, rol FROM GEBRUIKER WHERE id = ?',
-        [id]
-    );
-    return rows[0];
-};
+    static async findById(id) {
+        const [rows] = await db.query('SELECT * FROM GEBRUIKER WHERE id = ?', [id]);
+        return rows;
+    }
 
-// Maak een nieuwe gebruiker aan (voor register)
-const create = async (naam, email, wachtwoordHash, rol) => {
-    const [result] = await pool.query(
-        'INSERT INTO GEBRUIKER (naam, email, wachtwoord, rol) VALUES (?, ?, ?, ?)',
-        [naam, email, wachtwoordHash, rol]
-    );
-    return result.insertId;
-};
+    static async createUser(naam, email, wachtwoord, rol) {
+        const [result] = await db.query(
+            'INSERT INTO GEBRUIKER (naam, email, wachtwoord, rol) VALUES (?, ?, ?, ?)',
+            [naam, email, wachtwoord, rol]
+        );
+        return result.insertId;
+    }
 
-module.exports = { findByEmail, findById, create };
+    // Profiel creatie gebeurt nu in de specifieke modellen (StudentModel, DocentModel, etc.)
+
+    static async getAllUsers() {
+        // Zorg dat we ook rollen netjes formateren
+        const [rows] = await db.query('SELECT id, naam, email, rol FROM GEBRUIKER ORDER BY id DESC');
+        return rows.map(u => ({
+            id: u.id,
+            naam: u.naam,
+            email: u.email,
+            rol: u.rol.charAt(0).toUpperCase() + u.rol.slice(1),
+            status: 'Actief' // Dummy status, kan later uit DB komen indien nodig
+        }));
+    }
+
+    static async deleteUser(id) {
+        // Door ON DELETE CASCADE in de database (aangepast via fix-db.js), 
+        // verwijdert dit ook automatisch de rijen in STUDENT, DOCENT, STAGE, etc.
+        const [result] = await db.query('DELETE FROM GEBRUIKER WHERE id = ?', [id]);
+        return result.affectedRows > 0;
+    }
+}
+
+module.exports = UserModel;

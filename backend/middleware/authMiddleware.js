@@ -1,33 +1,22 @@
 const jwt = require('jsonwebtoken');
 
-const verifyToken = (req, res, next) => {
-    const authHeader = req.headers['authorization'];
-    const token = authHeader && authHeader.split(' ')[1];
-
-    if (!token) {
-        return res.status(401).json({ error: 'Geen token meegegeven' });
+module.exports = (req, res, next) => {
+    
+    const authHeader = req.headers.authorization;
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+        return res.status(401).json({ error: 'Geen toegang (Geen geldige token)' });
     }
+
+    const token = authHeader.split(' ')[1];
 
     try {
-        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        
+        const decoded = jwt.verify(token, process.env.JWT_SECRET || 'supersecretjwtkey_12345');
+        
+        
         req.user = decoded;
         next();
-    }
-    catch (err) {
-        return res.status(403).json({ error: 'Ongeldig of verlopen token' });
+    } catch (err) {
+        return res.status(401).json({ error: 'Geen toegang (Token verlopen of ongeldig)' });
     }
 };
-
-const requireRole = (...roles) => {
-    return (req, res, next) => {
-        if (!req.user) {
-            return res.status(401).json({ error: 'Niet ingelogd' });
-        }
-        if (!roles.includes(req.user.rol)) {
-            return res.status(403).json({ error: 'Geen toegang voor jouw rol' });
-        }
-        next();
-    };
-};
-
-module.exports = { verifyToken, requireRole };

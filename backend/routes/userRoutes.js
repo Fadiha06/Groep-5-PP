@@ -1,15 +1,14 @@
 const express = require('express');
 const router = express.Router();
-const { login, register, me } = require('../controllers/userController');
-const { verifyToken } = require('../middleware/authMiddleware');
+const userController = require('../controllers/userController');
 
-// POST /api/auth/login
-router.post('/login', login);
+// Alle gebruikers ophalen
+router.get('/', userController.getUsers);
 
-// POST /api/auth/register
-router.post('/register', register);
+// Account aanmaken door Admin
+router.post('/', userController.createAccount);
 
-// GET /api/auth/me (vereist login)
-router.get('/me', verifyToken, me);
+// Gebruiker verwijderen
+router.delete('/:id', userController.deleteUser);
 
 module.exports = router;
