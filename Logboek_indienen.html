@@ -316,23 +316,53 @@
   </div>
 
   <script>
-    function slaOp() {
-      // Valideer verplichte velden
-      const datum = document.getElementById('datum');
-      const taken = document.getElementById('taken');
-      const reflectie = document.getElementById('reflectie');
-      const problemen = document.getElementById('problemen');
-      const uren = document.getElementById('uren');
+  async function slaOp() {
+    const datum = document.getElementById('datum');
+    const taken = document.getElementById('taken');
+    const reflectie = document.getElementById('reflectie');
+    const problemen = document.getElementById('problemen');
+    const uren = document.getElementById('uren');
 
-      if (!datum.value || !taken.value || !reflectie.value || !problemen.value || !uren.value) {
+    if (!datum.value || !taken.value || !reflectie.value || !problemen.value || !uren.value) {
         alert('Alle velden zijn verplicht! Vul aub alle velden in.');
         return;
-      }
-
-      const feedback = document.getElementById('feedback-box');
-      feedback.style.display = 'block';
-      setTimeout(() => feedback.style.display = 'none', 3000);
     }
+
+    const token = localStorage.getItem('token');
+    if (!token) {
+        alert('Je bent niet ingelogd.');
+        return;
+    }
+
+    const data = {
+        datum: datum.value,
+        taken_beschrijving: taken.value,
+        reflectie: reflectie.value,
+        leerpunten: problemen.value,
+        uren: uren.value
+    };
+
+    try {
+        const res = await fetch('http://localhost:3000/api/student/logboek', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer ' + token
+            },
+            body: JSON.stringify(data)
+        });
+        const result = await res.json();
+        if (res.ok) {
+            const feedback = document.getElementById('feedback-box');
+            feedback.style.display = 'block';
+            setTimeout(() => feedback.style.display = 'none', 3000);
+        } else {
+            alert(result.error || 'Er ging iets mis');
+        }
+    } catch (err) {
+        alert('Kan geen verbinding maken met de server');
+    }
+}
 
     function toggleFeedback() {
       const fb = document.getElementById('feedback-box');
