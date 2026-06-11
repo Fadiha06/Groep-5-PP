@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard — EhB StageTool</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/VITE/src/CSS/student_dashboard.css">
+</head>
+<body>
+<div class="root">
+
+  <nav class="sidebar">
+    <div class="sb-logo">
+      <div class="sb-logo-title">EhB StageTool</div>
+      <div class="sb-logo-sub">Toegepaste Informatica</div>
+    </div>
+    <div class="sb-nav">
+      <a class="sb-item active" href="student_dashboard.html">Dashboard</a>
+      <a class="sb-item" href="logboek.html">Logboek</a>
+      <a class="sb-item" href="evaluaties.html">Evaluaties</a>
+    </div>
+    <div class="sb-footer">Ingelogd als Student</div>
+  </nav>
+
+  <div class="main">
+
+    <div class="page-header">
+      <div class="page-title">Welkom, John</div>
+      <button class="btn-uitloggen">Uitloggen</button>
+    </div>
+
+    <div class="next-banner">
+      <div class="next-banner-title">Volgende stap: logboek week 4 indienen</div>
+      <div class="next-banner-sub">Deadline vrijdag 7 juni — 3 dagen resterend</div>
+    </div>
+
+    <div class="metrics">
+      <div class="metric-card">
+        <div class="metric-label">Stagedagen</div>
+        <div class="metric-value">38/60</div>
+        <div class="metric-bar-wrap"><div class="metric-bar bar-blue" style="width:63%"></div></div>
+        <div class="metric-sub">63% voltooid</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-label">Uren deze week</div>
+        <div class="metric-value">26/40</div>
+        <div class="metric-bar-wrap"><div class="metric-bar bar-orange" style="width:65%"></div></div>
+        <div class="metric-sub">14u resterend</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-label">Logboeken</div>
+        <div class="metric-value">3/12</div>
+        <div class="metric-sub">Weken ingediend</div>
+      </div>
+    </div>
+
+    <div class="bottom-grid">
+
+      <!-- Stageproces -->
+      <div class="card">
+        <div class="card-title">Stageproces</div>
+        <div class="timeline">
+          <div class="tl-item">
+            <div class="tl-dot done"></div>
+            <div class="tl-title">Voorstel ingediend</div>
+            <div class="tl-sub">Goedgekeurd op 10 januari</div>
+          </div>
+          <div class="tl-item">
+            <div class="tl-dot done"></div>
+            <div class="tl-title">Contract opgemaakt</div>
+            <div class="tl-sub">Wacht op handtekening mentor</div>
+          </div>
+          <div class="tl-item">
+            <div class="tl-dot active"></div>
+            <div class="tl-title active">Stage lopende</div>
+            <div class="tl-sub">Week 4 op 12</div>
+          </div>
+          <div class="tl-item">
+            <div class="tl-dot"></div>
+            <div class="tl-title">Tussentijdse evaluatie</div>
+            <div class="tl-sub">Week 6</div>
+          </div>
+          <div class="tl-item">
+            <div class="tl-dot"></div>
+            <div class="tl-title">Finale evaluatie</div>
+            <div class="tl-sub">Na afloop</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Logboek deze week -->
+      <div class="card">
+        <div class="card-title">Logboek deze week</div>
+        <table class="logboek-table">
+          <tr>
+            <td>
+              <div class="dag-naam">Maandag 3 maart</div>
+              <div class="dag-taak">API-integratie uitgewerkt</div>
+            </td>
+            <td class="badge-col"><span class="badge badge-ok">Ok</span></td>
+          </tr>
+          <tr>
+            <td>
+              <div class="dag-naam">Dinsdag 4 maart</div>
+              <div class="dag-taak">Meeting + documentatie</div>
+            </td>
+            <td class="badge-col"><span class="badge badge-ok">Ok</span></td>
+          </tr>
+          <tr>
+            <td>
+              <div class="dag-naam">Woensdag 5 maart</div>
+              <div class="dag-taak">Testing & bugfixes</div>
+            </td>
+            <td class="badge-col"><span class="badge badge-ok">Ok</span></td>
+          </tr>
+          <tr>
+            <td>
+              <div class="dag-naam">Donderdag 6 maart</div>
+              <div class="dag-taak">Nog niet ingevuld</div>
+            </td>
+            <td class="badge-col"><span class="badge badge-open">Openstaand</span></td>
+          </tr>
+          <tr>
+            <td>
+              <div class="dag-naam">Vrijdag 7 maart</div>
+              <div class="dag-taak">Nog niet ingevuld</div>
+            </td>
+            <td class="badge-col"><span class="badge badge-open">Openstaand</span></td>
+          </tr>
+        </table>
+      </div>
+
+    </div>
+  </div>
+</div>
+</body>
+</html>
