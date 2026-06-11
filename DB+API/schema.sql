@@ -131,8 +131,11 @@ CREATE TABLE CONTRACT (
     aangemaakt_op DATETIME DEFAULT CURRENT_TIMESTAMP,
     inhoud TEXT,
     student_getekend BOOLEAN DEFAULT FALSE,
+    student_handtekening LONGTEXT,
     mentor_getekend BOOLEAN DEFAULT FALSE,
+    mentor_handtekening LONGTEXT,
     leerkracht_getekend BOOLEAN DEFAULT FALSE,
+    leerkracht_handtekening LONGTEXT,
     getekend_op DATETIME,
     FOREIGN KEY (stage_id) REFERENCES STAGE(stage_id) ON DELETE CASCADE
 );
