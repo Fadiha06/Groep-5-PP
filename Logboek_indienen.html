@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>EhB StageTool — Logboek</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/VITE/src/CSS/logboek_indienen.css" />
+</head>
+<body>
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sidebar__brand">
+      <span class="sidebar__brand-name">EhB StageTool</span>
+      <span class="sidebar__brand-sub">Toegepaste Informatica</span>
+    </div>
+    <nav class="sidebar__nav">
+      <a href="#" class="nav-item"><span class="nav-item__icon"></span> Dashboard</a>
+      <a href="#" class="nav-item active"><span class="nav-item__icon"></span> Logboek</a>
+      <a href="#" class="nav-item"><span class="nav-item__icon"></span> Evaluaties</a>
+      
+    </nav>
+  </aside>
+
+  <!-- MAIN CONTENT -->
+  <main class="main">
+
+    <div class="page-header">
+      <h1>Dagelijks Logboek</h1>
+      <p>Vul hier je dagelijkse reflecties en activiteiten in</p>
+    </div>
+
+    <div class="card">
+      <div class="stage-info">
+        <div>
+          <div class="stage-info__title">Stage bij Microsoft Belgium</div>
+          <div class="stage-meta">
+            <div class="stage-meta__item">📅 <span>Periode: <strong>15 mei 2024 – 15 augustus 2024</strong></span></div>
+            <div class="stage-meta__item">👤 <span>Stagementor: <strong>Dhr. Van Dijk</strong></span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="content-grid">
+
+      <div class="form-section">
+
+        <div class="card">
+          <div class="form-group">
+            <label for="datum">Datum <span class="required">*</span></label>
+            <input type="date" id="datum" value="2024-05-20" required />
+          </div>
+          <br />
+          <div class="form-group">
+            <label for="taken">Uitgevoerde taken <span class="required">*</span></label>
+            <textarea id="taken" rows="4" placeholder="Beschrijf de taken die je vandaag hebt uitgevoerd..." required></textarea>
+          </div>
+          <br />
+          <div class="form-group">
+            <label for="reflectie">Reflectie <span class="required">*</span></label>
+            <textarea id="reflectie" rows="4" placeholder="Wat heb je geleerd? Wat vond je moeilijk? Hoe voel je je over je voortgang?" required></textarea>
+          </div>
+          <br />
+          <div class="form-group">
+            <label for="problemen">Problemen of uitdagingen <span class="required">*</span></label>
+            <textarea id="problemen" rows="3" placeholder="Meld eventuele problemen, technische uitdagingen of vragen die je hebt..." required></textarea>
+          </div>
+          <br />
+          <div class="form-group">
+            <label for="uren">Aantal gewerkte uren <span class="required">*</span></label>
+            <input type="number" id="uren" placeholder="Bijv. 6" min="0" max="24" style="max-width:160px;" required />
+          </div>
+          <br />
+          <div class="form-actions">
+            <button class="btn btn-primary" onclick="slaOp()">Logboek opslaan</button>
+            <button class="btn btn-secondary">Annuleren</button>
+            <button class="btn-link" onclick="toggleFeedback()">Feedback weergeven</button>
+          </div>
+          <div id="feedback-box" class="feedback-box">
+            ✅ Logboek succesvol opgeslagen!
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card__title">Competenties
+            <button class="toggle-rubriek" onclick="openModal()">📋 Toon rubriek</button>
+          </div>
+          <div id="rubriek-content">
+            <table class="rubriek-table">
+              <thead>
+                <tr>
+                  <th>Competentie</th>
+                  <th>Beschrijving</th>
+                  <th>Gewicht</th>
+                  <th>Acties</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>Programmeren en softwareontwikkeling</td>
+                  <td>Kan zelfstandig software ontwikkelen volgens specificaties en best practices.</td>
+                  <td><span class="badge">30%</span></td>
+                  <td><div class="action-btns"><button class="btn-edit" onclick="openModal()">Bewerken</button></div></td>
+                </tr>
+                <tr>
+                  <td>Probleemoplossend vermogen</td>
+                  <td>Kan complexe problemen analyseren en effectieve oplossingen bedenken.</td>
+                  <td><span class="badge">25%</span></td>
+                  <td><div class="action-btns"><button class="btn-edit" onclick="openModal()">Bewerken</button></div></td>
+                </tr>
+                <tr>
+                  <td>Teamwerk en communicatie</td>
+                  <td>Kan effectief samenwerken in een team en helder communiceren.</td>
+                  <td><span class="badge">20%</span></td>
+                  <td><div class="action-btns"><button class="btn-edit" onclick="openModal()">Bewerken</button></div></td>
+                </tr>
+                <tr>
+                  <td>Technische documentatie</td>
+                  <td>Kan technische documentatie schrijven en onderhouden.</td>
+                  <td><span class="badge">15%</span></td>
+                  <td><div class="action-btns"><button class="btn-edit" onclick="openModal()">Bewerken</button></div></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="right-col">
+        <div class="card">
+          <div class="card__title">Laatste logboek</div>
+          <div class="last-entry__date">19 mei 2024</div>
+          <div class="last-entry__body">
+            <div class="last-entry__row"><strong>Uitgevoerde taken</strong>Vandaag heb ik gewerkt aan de frontend van de nieuwe klantportal. Ik heb een dashboardcomponent gebouwd met React en TypeScript.</div>
+            <div class="last-entry__row"><strong>Reflectie</strong>Ik vond het leuk om met TypeScript te werken, maar ik had wat moeite met de state management. Ik heb veel geleerd over hooks en context API.</div>
+            <div class="last-entry__row"><strong>Problemen</strong>Er was een conflict tussen twee libraries die ik moest oplossen. Gelukkig kon ik het vinden met de hulp van mijn stagementor.</div>
+            <div class="last-entry__row"><strong>Gewerkte uren</strong>7 uur</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="status-banner">
+      <span class="status-banner__label">Status van je stage:</span>
+      <div class="status-pill">
+        <div class="status-dot">✓</div>
+        <span class="status-text">Actieve stage (Week 1 van 12)</span>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- RUBRIEK MODAL -->
+  <div class="modal-overlay" id="rubriek-modal">
+    <div class="modal">
+      <button class="modal__close" onclick="sluitModal()">✕</button>
+      <div class="modal__title">Rubriek — Vul je scores in</div>
+
+      <div class="rubriek-row">
+        <div class="rubriek-row__naam">
+          <span class="rubriek-row__naam-title">Programmeren en software</span>
+          <span class="rubriek-row__naam-codes">D5, D6, D7, D9</span>
+        </div>
+        <div class="rubriek-row__scores">
+          <div class="score-cel score-cel--blauw">
+            <span class="score-cel__punten">5 ptn</span>
+            <span class="score-cel__label">Volledige score</span>
+            <span class="score-cel__desc">Uitstekende duidelijkheid; het prototype is goed gestructureerd en gemakkelijk te begrijpen.</span>
+          </div>
+          <div class="score-cel score-cel--oranje">
+            <span class="score-cel__punten">3 ptn</span>
+            <span class="score-cel__label">Goede Score</span>
+            <span class="score-cel__desc">Goede duidelijkheid; goed georganiseerde structuur maar kan worden verfijnd.</span>
+          </div>
+          <div class="score-cel score-cel--rood">
+            <span class="score-cel__punten">0 ptn</span>
+            <span class="score-cel__label">Geen score</span>
+            <span class="score-cel__desc">Het prototype ontbreekt of is zeer onduidelijk.</span>
+          </div>
+        </div>
+        <div class="rubriek-row__score">
+          <input class="score-input" type="number" id="score-1" min="0" max="5" placeholder="—" oninput="updateTotaal()" />
+          <span class="score-max">/5</span>
+        </div>
+      </div>
+
+      <div class="rubriek-row">
+        <div class="rubriek-row__naam">
+          <span class="rubriek-row__naam-title">Probleemoplossend vermogen</span>
+          <span class="rubriek-row__naam-codes">D2.5, D5, D6, D7, D9</span>
+        </div>
+        <div class="rubriek-row__scores">
+          <div class="score-cel score-cel--blauw">
+            <span class="score-cel__punten">5 ptn</span>
+            <span class="score-cel__label">Volledige score</span>
+            <span class="score-cel__desc">Uitstekend UI-ontwerp; doordacht, intuïtief en een zeer goede gebruikerservaring.</span>
+          </div>
+          <div class="score-cel score-cel--oranje">
+            <span class="score-cel__punten">3 ptn</span>
+            <span class="score-cel__label">Goede score</span>
+            <span class="score-cel__desc">Goed UI-ontwerp; gebruiksvriendelijk met ruimte voor kleine verbeteringen.</span>
+          </div>
+          <div class="score-cel score-cel--rood">
+            <span class="score-cel__punten">0 ptn</span>
+            <span class="score-cel__label">Geen score</span>
+            <span class="score-cel__desc">UI is slecht ontworpen en getuigt van minimale inspanning.</span>
+          </div>
+        </div>
+        <div class="rubriek-row__score">
+          <input class="score-input" type="number" id="score-2" min="0" max="5" placeholder="—" oninput="updateTotaal()" />
+          <span class="score-max">/5</span>
+        </div>
+      </div>
+
+      <div class="rubriek-row">
+        <div class="rubriek-row__naam">
+          <span class="rubriek-row__naam-title">Teamwerk en communicatie</span>
+          <span class="rubriek-row__naam-codes">D2.5, D5, D6, D7, D9</span>
+        </div>
+        <div class="rubriek-row__scores">
+          <div class="score-cel score-cel--groen">
+            <span class="score-cel__punten">5 ptn</span>
+            <span class="score-cel__label">Volledige score</span>
+            <span class="score-cel__desc">Uitstekende gebruikersstroom; de interacties zijn duidelijk en verbeteren de UX.</span>
+          </div>
+          <div class="score-cel score-cel--blauw">
+            <span class="score-cel__punten">3 ptn</span>
+            <span class="score-cel__label">Goede score</span>
+            <span class="score-cel__desc">Goede gebruikersstroom; interacties zijn logisch en goed afgestemd.</span>
+          </div>
+          <div class="score-cel score-cel--rood">
+            <span class="score-cel__punten">0 ptn</span>
+            <span class="score-cel__label">Geen score</span>
+            <span class="score-cel__desc">Onvoldoende of ontbrekende gebruikersstroom.</span>
+          </div>
+        </div>
+        <div class="rubriek-row__score">
+          <input class="score-input" type="number" id="score-3" min="0" max="5" placeholder="—" oninput="updateTotaal()" />
+          <span class="score-max">/5</span>
+        </div>
+      </div>
+
+      <div class="rubriek-row">
+        <div class="rubriek-row__naam">
+          <span class="rubriek-row__naam-title">Technische aspecten</span>
+          <span class="rubriek-row__naam-codes">D5, D6, D7, D9</span>
+        </div>
+        <div class="rubriek-row__scores">
+          <div class="score-cel score-cel--groen">
+            <span class="score-cel__punten">5 ptn</span>
+            <span class="score-cel__label">Volledige score</span>
+            <span class="score-cel__desc">Uitstekende aansluiting op de verwachtingen.</span>
+          </div>
+          <div class="score-cel score-cel--blauw">
+            <span class="score-cel__punten">3 ptn</span>
+            <span class="score-cel__label">Goede score</span>
+            <span class="score-cel__desc">Goede aansluiting; meeste projectvereisten ingevuld.</span>
+          </div>
+          <div class="score-cel score-cel--rood">
+            <span class="score-cel__punten">0 ptn</span>
+            <span class="score-cel__label">Geen score</span>
+            <span class="score-cel__desc">Voldoet niet aan projectvereisten.</span>
+          </div>
+        </div>
+        <div class="rubriek-row__score">
+          <input class="score-input" type="number" id="score-4" min="0" max="5" placeholder="—" oninput="updateTotaal()" />
+          <span class="score-max">/5</span>
+        </div>
+      </div>
+
+      <div class="rubriek-row">
+        <div class="rubriek-row__naam">
+          <span class="rubriek-row__naam-title">Presentatie en toelichting</span>
+          <span class="rubriek-row__naam-codes">D6, D9</span>
+        </div>
+        <div class="rubriek-row__scores">
+          <div class="score-cel score-cel--groen">
+            <span class="score-cel__punten">5 ptn</span>
+            <span class="score-cel__label">Volledige score</span>
+            <span class="score-cel__desc">Uitstekende presentatie; uitleg is helder.</span>
+          </div>
+          <div class="score-cel score-cel--blauw">
+            <span class="score-cel__punten">3 ptn</span>
+            <span class="score-cel__label">Goede score</span>
+            <span class="score-cel__desc">Goede presentatie; duidelijke toelichting.</span>
+          </div>
+          <div class="score-cel score-cel--rood">
+            <span class="score-cel__punten">0 ptn</span>
+            <span class="score-cel__label">Geen score</span>
+            <span class="score-cel__desc">Geen of onvoldoende presentatie.</span>
+          </div>
+        </div>
+        <div class="rubriek-row__score">
+          <input class="score-input" type="number" id="score-5" min="0" max="5" placeholder="—" oninput="updateTotaal()" />
+          <span class="score-max">/5</span>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <div class="totaal-box">
+          <span class="totaal-label">Totaal</span>
+          <span class="totaal-score"><span id="totaal-score">0</span> / 25</span>
+        </div>
+        <button class="btn btn-primary" onclick="slaScoresOp()">Scores opslaan</button>
+      </div>
+
+      <div id="score-feedback" class="score-feedback" style="display:none;">
+        ✅ Scores opgeslagen!
+      </div>
+
+    </div>
+  </div>
+
+  <script>
+    function slaOp() {
+      // Valideer verplichte velden
+      const datum = document.getElementById('datum');
+      const taken = document.getElementById('taken');
+      const reflectie = document.getElementById('reflectie');
+      const problemen = document.getElementById('problemen');
+      const uren = document.getElementById('uren');
+
+      if (!datum.value || !taken.value || !reflectie.value || !problemen.value || !uren.value) {
+        alert('Alle velden zijn verplicht! Vul aub alle velden in.');
+        return;
+      }
+
+      const feedback = document.getElementById('feedback-box');
+      feedback.style.display = 'block';
+      setTimeout(() => feedback.style.display = 'none', 3000);
+    }
+
+    function toggleFeedback() {
+      const fb = document.getElementById('feedback-box');
+      fb.style.display = fb.style.display === 'none' ? 'block' : 'none';
+    }
+
+    function openModal() {
+      document.getElementById('rubriek-modal').classList.add('open');
+      document.body.style.overflow = 'hidden';
+    }
+
+    function sluitModal() {
+      document.getElementById('rubriek-modal').classList.remove('open');
+      document.body.style.overflow = '';
+    }
+
+    function updateTotaal() {
+      let totaal = 0;
+      for (let i = 1; i <= 5; i++) {
+        const val = parseInt(document.getElementById('score-' + i).value) || 0;
+        totaal += Math.min(val, 5);
+      }
+      document.getElementById('totaal-score').textContent = totaal;
+    }
+
+    function slaScoresOp() {
+      // Valideer scores (max 5)
+      for (let i = 1; i <= 5; i++) {
+        const input = document.getElementById('score-' + i);
+        if (input.value !== '' && (parseInt(input.value) < 0 || parseInt(input.value) > 5)) {
+          alert('Scores moeten tussen 0 en 5 liggen.');
+          input.focus();
+          return;
+        }
+      }
+
+      const fb = document.getElementById('score-feedback');
+      fb.style.display = 'block';
+      setTimeout(() => fb.style.display = 'none', 3000);
+    }
+
+    // Voorkom dat scores boven 5 komen
+    document.querySelectorAll('.score-input').forEach(input => {
+      input.addEventListener('input', function() {
+        if (this.value !== '' && parseInt(this.value) > 5) {
+          this.value = 5;
+        }
+      });
+    });
+
+    document.getElementById('rubriek-modal').addEventListener('click', function(e) {
+      if (e.target === this) sluitModal();
+    });
+
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape') sluitModal();
+    });
+  </script>
+
+</body>
+</html>
