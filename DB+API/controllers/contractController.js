@@ -12,14 +12,12 @@ class ContractController {
                 return res.status(404).json({ message: 'Contract niet gevonden.' });
             }
 
-            // Genereer een speciaal token voor de mentor, geldig voor 7 dagen
             const token = jwt.sign(
                 { id: `mentor_${contractId}`, rol: 'mentor', contractId: contractId },
                 process.env.JWT_SECRET || 'geheim_sleutel_123',
                 { expiresIn: '7d' }
             );
 
-            // Stel dat de VITE frontend draait op dezelfde localhost of een specifiek domein
             const mentorLink = `http://localhost:3000/VITE/mentor-tekenen.html?token=${token}`;
 
             res.json({ 
@@ -36,9 +34,9 @@ class ContractController {
     static async signContract(req, res) {
         try {
             const contractId = req.params.id;
-            const { signature } = req.body; // Dit moet de Base64 string zijn
+            const { signature } = req.body; 
             
-            // Haal de rol van de ingelogde gebruiker op
+        
             const rol = req.user.rol;
 
             if (!signature || !signature.startsWith('data:image/')) {
@@ -50,7 +48,7 @@ class ContractController {
                 return res.status(404).json({ message: 'Contract niet gevonden.' });
             }
 
-            // Bepaal welke kolom geüpdatet moet worden op basis van de rol
+         
             if (rol === 'student') {
                 await ContractModel.signAsStudent(contractId, signature);
                 return res.json({ message: 'Contract succesvol getekend door student.' });
