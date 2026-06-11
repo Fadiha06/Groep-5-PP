@@ -19,6 +19,25 @@ class ContractModel{
         await this.checkAllSigned(contractId);
     }
 
+    static async signAsMentor(contractId, signatureBase64) {
+        await pool.query(
+            `UPDATE CONTRACT 
+             SET mentor_getekend = TRUE, mentor_handtekening = ?
+             WHERE contract_id = ?`,
+            [signatureBase64, contractId]
+        );
+        await this.checkAllSigned(contractId);
+    }
+
+    static async checkAllSigned(contractId) {
+        const contract = await this.getById(contractId);
+        if (contract && contract.student_getekend && contract.mentor_getekend) {
+            await pool.query(
+                `UPDATE CONTRACT SET getekend_op = CURRENT_TIMESTAMP WHERE contract_id = ?`,
+                [contractId]
+            );
+        }
+    }
 
 }
 
