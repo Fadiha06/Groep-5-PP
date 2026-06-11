@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link href="https://fonts.googleapis.com/css?family=42dot+Sans&display=swap" rel="stylesheet">
+  <link href="src/CSS/admin_dashboard.css" rel="stylesheet">
+  <title>EhB StageTool - Dashboard</title>
+</head>
+<body>
+  <!-- Sidebar -->
+  <div class="sidebar">
+    <div class="sidebar-brand">
+      <div class="sidebar-brand-title">EhB StageTool</div>
+      <div class="sidebar-brand-subtitle">Toegepaste Informatica</div>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-item active">
+        
+        <span class="nav-item-text">Dashboard</span>
+      </div>
+      <div class="nav-item">
+       
+        <span class="nav-item-text">Overeenkomsten</span>
+      </div>
+      <div class="nav-item">
+        
+        <span class="nav-item-text">Rapporten</span>
+      </div>
+      <div class="nav-item">
+       
+        <span class="nav-item-text">Competenties </span>
+      </div>
+      
+      <div class="nav-item">
+        
+        <span class="nav-item-text">Gebruikers</span>
+      </div>
+    </nav>
+  </div>
+
+  <!-- Main Content -->
+  <main class="main">
+    <!-- Header -->
+    <header class="header">
+      <div class="header-title">Hi, Admin (Administratie)</div>
+      <div class="header-subtitle">3 zaken vereisen jouw actie vandaag — 2 contracten wachten op controle, 1 juridisch probleem.</div>
+      <button class="logout-btn">Logout</button>
+    </header>
+
+    <!-- Stats Cards -->
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-label">Totale Studenten</div>
+        <div class="stat-value">45</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Contracten te reviewen</div>
+        <div class="stat-value">2</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Juridisch te controleren</div>
+        <div class="stat-value">1</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Verlengingen actief</div>
+        <div class="stat-value">1</div>
+      </div>
+    </div>
+
+    <!-- Contracts Section -->
+    <section class="section">
+      <div class="section-header">
+        <h2 class="section-title">Overeenkomsten - Actie Vereist (Inline Review)</h2>
+        <span class="section-badge">2 Wachtend</span>
+      </div>
+      <div class="contract-card">
+        <div class="contract-header">
+          <h3 class="contract-title">TechCorp BV - Stageovereenkomst</h3>
+          <span class="contract-date">Ingediend: 18-05-2025</span>
+        </div>
+        <div class="contract-details">
+          <p><strong>Student:</strong> Alex Janssens (Toegepaste Informatica)</p>
+          <p><strong>Risicoanalyse:</strong> ✓ Geüpload en in orde</p>
+          <p><strong>Handtekening Mentor:</strong> ✓ Getekend</p>
+          <p><strong>Handtekening Student:</strong> ✓ Getekend</p>
+          <p><strong>Verzekeringsdossier:</strong> Compleet. Klaar voor finale EhB goedkeuring.</p>
+        </div>
+        <button class="action-btn">Check contract</button>
+      </div>
+    </section>
+
+    <!-- Activity Section -->
+    <section class="section">
+      <div class="section-header">
+        <h2 class="section-title">Recente Activiteit</h2>
+      </div>
+      <div class="activity-list">
+        <div class="activity-item">
+          <div class="activity-content">
+            <h4>DataSystems Contract verzonden</h4>
+            <span class="activity-time">1 dag geleden door Systeem</span>
+          </div>
+        </div>
+        <div class="activity-item">
+          <div class="activity-content">
+            <h4>Risicoanalyse goedgekeurd (Maria)</h4>
+            <span class="activity-time">2 dagen geleden</span>
+          </div>
+        </div>
+        <div class="activity-item">
+          <div class="activity-content">
+            <p>Stagevoorstel Alex goedgekeurd<br>3 dagen geleden door Stagecommissie</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Contracts Table -->
+    <section class="section">
+      <div class="section-header">
+        <h2 class="section-title">Lopende Contracten & Statussen</h2>
+        <button class="export-btn">Exporteer Lijst (CSV)</button>
+      </div>
+      <div class="contracts-table">
+        <div class="table-header">
+          <div class="table-cell">Student</div>
+          <div class="table-cell">Opleiding</div>
+          <div class="table-cell">Bedrijf</div>
+          <div class="table-cell">Aanvraag Status</div>
+          <div class="table-cell">Contract Ingediend</div>
+          <div class="table-cell">Actie</div>
+        </div>
+        <div class="table-row">
+          <div class="table-cell">Alex Janssens</div>
+          <div class="table-cell">Toegepaste Info.</div>
+          <div class="table-cell">TechCorp BV</div>
+          <div class="table-cell"><span class="status-badge approved">Goedgekeurd</span></div>
+          <div class="table-cell"><span class="status-badge in-review">In Review</span></div>
+          <div class="table-cell"><button class="view-btn">Bekijk / Edit</button></div>
+        </div>
+        <div class="table-row">
+          <div class="table-cell">Maria Devos</div>
+          <div class="table-cell">Toegepaste Info.</div>
+          <div class="table-cell">DataSystems</div>
+          <div class="table-cell"><span class="status-badge approved">Goedgekeurd</span></div>
+          <div class="table-cell"><span class="status-badge sent">Verzonden</span></div>
+          <div class="table-cell"><button class="view-btn">Bekijk / Edit</button></div>
+        </div>
+        <div class="table-row">
+          <div class="table-cell">Jonas Peeters</div>
+          <div class="table-cell">Toegepaste Info.</div>
+          <div class="table-cell">Initech Belgium</div>
+          <div class="table-cell"><span class="status-badge pending">In Afwachting</span></div>
+          <div class="table-cell"><span class="status-badge not-sent">Nog niet</span></div>
+          <div class="table-cell"><button class="view-btn">Bekijk / Edit</button></div>
+        </div>
+        <div class="table-row">
+          <div class="table-cell">Sarah Smits</div>
+          <div class="table-cell">Toegepaste Info.</div>
+          <div class="table-cell">CloudSolutions</div>
+          <div class="table-cell"><span class="status-badge approved">Goedgekeurd</span></div>
+          <div class="table-cell"><span class="status-badge completed">Voltooid</span></div>
+          <div class="table-cell"><button class="view-btn">Bekijk Dossier</button></div>
+        </div>
+      </div>
+    </section>
+  </main>
+</body>
+</html>
