@@ -159,5 +159,43 @@ static async getNotificaties(gebruiker_id) {
     return rows;
 }
 
+static async getLogboekStageInfo(student_id) {
+    const [rows] = await pool.query(
+        `SELECT st.stage_id, st.startdatum, st.einddatum,
+                b.naam AS bedrijf_naam,
+                g.naam AS mentor_naam,
+                CONCAT('Week ', CEIL(DATEDIFF(CURDATE(), st.startdatum) / 7)) AS huidige_week,
+                CEIL(DATEDIFF(st.einddatum, st.startdatum) / 7) AS totaal_weken
+         FROM STAGE st
+         LEFT JOIN BEDRIJF b ON st.bedrijf_id = b.bedrijf_id
+         LEFT JOIN STAGEMENTOR sm ON st.mentor_id = sm.mentor_id
+         LEFT JOIN GEBRUIKER g ON sm.mentor_id = g.id
+         WHERE st.student_id = ?
+         ORDER BY st.stage_id DESC LIMIT 1`,
+        [student_id]
+    );
+    return rows[0] || null;
+}
+
+static async getLaatsteLogboekDag(student_id) {
+    const [stages] = await pool.query(
+        `SELECT stage_id FROM STAGE WHERE student_id = ? ORDER BY stage_id DESC LIMIT 1`,
+        [student_id]
+    );
+    if (!stages.length) return null;
+
+    const [rows] = await pool.query(
+        `SELECT ld.dag_id, ld.datum, ld.uren, ld.taken_beschrijving,
+                ld.reflectie, ld.leerpunten
+         FROM LOGBOEK_DAG ld
+         WHERE ld.stage_id = ?
+         ORDER BY ld.datum DESC
+         LIMIT 1`,
+        [stages[0].stage_id]
+    );
+    return rows[0] || null;
+}
+
+
 }
 module.exports = StudentModel;
