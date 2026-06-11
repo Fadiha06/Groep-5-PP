@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gebruikersbeheer — EhB StageTool</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/VITE/src/CSS/admin_gebruikersbeheer.css">
+</head>
+<body>
+<div class="root">
+
+  <nav class="sidebar">
+    <div class="sb-logo">
+      <div class="sb-logo-title">EhB StageTool</div>
+      <div class="sb-logo-sub">Administratie</div>
+    </div>
+    <div class="sb-nav">
+      <a class="sb-item" href="#">Dashboard</a>
+      <a class="sb-item" href="#">Overeenkomsten</a>
+      <a class="sb-item" href="#">Competenties (Config)</a>
+      <a class="sb-item" href="#">Rapporten</a>
+      <a class="sb-item active" href="#">Gebruikers</a>
+    </div>
+    <div class="sb-footer">Ingelogd als Administrator</div>
+  </nav>
+
+  <div class="main">
+    <div>
+      <div class="page-title">Gebruikersbeheer</div>
+      <div class="page-sub">Beheer accounts, rollen en toegangsrechten. Alleen administrators kunnen accounts deactiveren of rollen wijzigen.</div>
+    </div>
+
+    <div class="card">
+      <div class="toolbar">
+        <div class="search-wrap">
+          <span>🔍</span>
+          <input class="search" type="text" placeholder="Zoek op naam of e-mail..." oninput="filterTable()">
+        </div>
+        <select class="filter-select" id="filter-rol" onchange="filterTable()">
+          <option value="">Alle rollen</option>
+          <option>Administrator</option>
+          <option>Student</option>
+          <option>Docent</option>
+          <option>Mentor</option>
+          <option>Stagecommissie</option>
+        </select>
+        <select class="filter-select" id="filter-status" onchange="filterTable()">
+          <option value="">Alle statussen</option>
+          <option>Actief</option>
+          <option>Inactief</option>
+        </select>
+        <span class="count-label" id="count-label">6 gebruikers gevonden</span>
+        <button class="btn-new" onclick="openModal()">+ Nieuw account</button>
+      </div>
+
+      <div class="table-header-row">
+        <div class="th">Naam</div>
+        <div class="th">E-mailadres</div>
+        <div class="th">Systeem Rol</div>
+        <div class="th">Status</div>
+        <div class="th">Acties</div>
+      </div>
+
+      <div class="table-body" id="table-body"></div>
+    </div>
+  </div>
+</div>
+
+<!-- Nieuw account modal -->
+<div class="modal-overlay" id="modal">
+  <div class="modal">
+    <div>
+      <div class="modal-title">Nieuw account aanmaken</div>
+      <div class="modal-sub">Vul de gegevens in. De gebruiker ontvangt een e-mail met inloggegevens.</div>
+    </div>
+    <div class="modal-grid">
+      <div class="field">
+        <label>Voornaam</label>
+        <input type="text" placeholder="Jan" id="inp-voornaam">
+      </div>
+      <div class="field">
+        <label>Achternaam</label>
+        <input type="text" placeholder="Peeters" id="inp-achternaam">
+      </div>
+      <div class="field modal-grid-full">
+        <label>E-mailadres</label>
+        <input type="email" placeholder="naam@ehb.be of naam@bedrijf.be" id="inp-email">
+      </div>
+      <div class="field">
+        <label>Rol</label>
+        <select id="inp-rol">
+          <option value="">Selecteer een rol</option>
+          <option>Student</option>
+          <option>Docent</option>
+          <option>Mentor</option>
+          <option>Stagecommissie</option>
+          <option>Administrator</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Status</label>
+        <select id="inp-status">
+          <option>Actief</option>
+          <option>Inactief</option>
+        </select>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancel" onclick="closeModal()">Annuleren</button>
+      <button class="btn-create" onclick="createAccount()">Account aanmaken</button>
+    </div>
+  </div>
+</div>
+
+<!-- Bevestiging -->
+<div class="confirm-overlay" id="confirm">
+  <div class="confirm-box">
+    <div class="confirm-icon">✓</div>
+    <div class="confirm-title" id="confirm-title">Account aangemaakt</div>
+    <div class="confirm-sub" id="confirm-sub">Het account is aangemaakt en de gebruiker is verwittigd.</div>
+    <button class="btn-ok" onclick="closeConfirm()">OK</button>
+  </div>
+</div>
+
+<script>
+let gebruikers = [
+  { naam: 'Kristof Vandevelde', email: 'kristof.vandevelde@ehb.be', rol: 'Administrator', status: 'Actief' },
+  { naam: 'Alex Janssens',      email: 'alex.janssens@student.ehb.be', rol: 'Student', status: 'Actief' },
+  { naam: 'Maria Devos',        email: 'maria.devos@student.ehb.be', rol: 'Student', status: 'Inactief' },
+  { naam: 'Sarah Peeters',      email: 's.peeters@techcorp.be', rol: 'Mentor', status: 'Actief' },
+  { naam: 'Steve Maertens',     email: 'steve.maertens@ehb.be', rol: 'Docent', status: 'Actief' },
+  { naam: 'Bill Lumbergh',      email: 'blumbergh@initech.be', rol: 'Mentor', status: 'Inactief' },
+];
+
+const ROLLEN = ['Student','Docent','Mentor','Stagecommissie','Administrator'];
+
+function renderTable(data) {
+  const tbody = document.getElementById('table-body');
+  document.getElementById('count-label').textContent = data.length + ' gebruiker' + (data.length !== 1 ? 's' : '') + ' gevonden';
+  tbody.innerHTML = data.map((g, idx) => {
+    const actief = g.status === 'Actief';
+    const rolOpties = ROLLEN.map(r => `<option${r === g.rol ? ' selected' : ''}>${r}</option>`).join('');
+    return `
+    <div class="table-row">
+      <div class="td td-name">${g.naam}</div>
+      <div class="td td-email">${g.email}</div>
+      <div class="td">
+        <select class="role-select" onchange="wijzigRol(${idx}, this.value)">${rolOpties}</select>
+      </div>
+      <div class="td">
+        <span class="status-badge">
+          <span class="status-dot ${actief ? 'dot-actief' : 'dot-inactief'}"></span>
+          <span class="${actief ? 'text-actief' : 'text-inactief'}">${g.status}</span>
+        </span>
+      </div>
+      <div class="td">
+        <div class="actions">
+          <button class="btn-bekijk">Bekijk</button>
+          ${actief
+            ? `<button class="btn-deactiveer" onclick="toggleStatus(${idx})">Deactiveer</button>`
+            : `<button class="btn-activeer"   onclick="toggleStatus(${idx})">Activeer</button>`
+          }
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function filterTable() {
+  const q = document.querySelector('.search').value.toLowerCase();
+  const rol = document.getElementById('filter-rol').value;
+  const status = document.getElementById('filter-status').value;
+  const gefilterd = gebruikers.filter(g =>
+    (!q || g.naam.toLowerCase().includes(q) || g.email.toLowerCase().includes(q)) &&
+    (!rol || g.rol === rol) &&
+    (!status || g.status === status)
+  );
+  renderTable(gefilterd);
+}
+
+function toggleStatus(idx) {
+  gebruikers[idx].status = gebruikers[idx].status === 'Actief' ? 'Inactief' : 'Actief';
+  filterTable();
+  const actie = gebruikers[idx].status === 'Actief' ? 'geactiveerd' : 'gedeactiveerd';
+  showConfirm('Account ' + actie, gebruikers[idx].naam + ' is succesvol ' + actie + '.');
+}
+
+function wijzigRol(idx, nieuweRol) {
+  gebruikers[idx].rol = nieuweRol;
+  showConfirm('Rol gewijzigd', 'De rol van ' + gebruikers[idx].naam + ' is gewijzigd naar ' + nieuweRol + '.');
+}
+
+function openModal() {
+  document.getElementById('modal').classList.add('open');
+}
+function closeModal() {
+  document.getElementById('modal').classList.remove('open');
+  ['inp-voornaam','inp-achternaam','inp-email'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('inp-rol').value = '';
+  document.getElementById('inp-status').value = 'Actief';
+}
+function createAccount() {
+  const voornaam = document.getElementById('inp-voornaam').value.trim();
+  const achternaam = document.getElementById('inp-achternaam').value.trim();
+  const email = document.getElementById('inp-email').value.trim();
+  const rol = document.getElementById('inp-rol').value;
+  const status = document.getElementById('inp-status').value;
+  if (!voornaam || !achternaam || !email || !rol) {
+    alert('Vul alle verplichte velden in.');
+    return;
+  }
+  gebruikers.unshift({ naam: voornaam + ' ' + achternaam, email, rol, status });
+  filterTable();
+  closeModal();
+  showConfirm('Account aangemaakt', voornaam + ' ' + achternaam + ' is toegevoegd als ' + rol + '.');
+}
+
+function showConfirm(title, sub) {
+  document.getElementById('confirm-title').textContent = title;
+  document.getElementById('confirm-sub').textContent = sub;
+  document.getElementById('confirm').classList.add('open');
+}
+function closeConfirm() {
+  document.getElementById('confirm').classList.remove('open');
+}
+
+// Init
+renderTable(gebruikers);
+</script>
+</body>
+</html>
