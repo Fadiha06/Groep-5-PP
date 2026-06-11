@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Evaluaties — EhB StageTool</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/VITE/src/CSS/evaluaties.css">
+</head>
+<body>
+<div class="root">
+
+  <nav class="sidebar">
+    <div class="sb-logo">
+      <div class="sb-logo-title">EhB StageTool</div>
+      <div class="sb-logo-sub">Toegepaste Informatica</div>
+    </div>
+    <div class="sb-nav">
+      <a class="sb-item" href="student_dashboard.html">Dashboard</a>
+      <a class="sb-item" href="logboek.html">Logboek</a>
+      <a class="sb-item active" href="evaluaties.html">Evaluaties</a>
+    </div>
+    <div class="sb-footer">Ingelogd als Student</div>
+  </nav>
+
+  <div class="main">
+    <div>
+      <div class="page-title">Evaluaties & feedback</div>
+      <div class="page-sub">Overzicht van alle beoordelingen van je stage door docent en stagementor.</div>
+    </div>
+
+    <!-- Tabs -->
+    <div class="tabs">
+      <div class="tab active" onclick="switchTab('tussent', this)">Tussentijdse evaluatie</div>
+      <div class="tab" onclick="switchTab('finaal', this)">Finale evaluatie</div>
+    </div>
+
+    <!-- Tussentijdse evaluatie -->
+    <div class="tab-content active" id="tab-tussent">
+
+      <!-- Metric cards -->
+      <div class="metrics">
+        <div class="metric-card">
+          <div class="metric-label">Beoordeling Docent</div>
+          <div class="metric-row">
+            <div class="metric-value">Goed</div>
+            <div class="metric-sub">14/20</div>
+          </div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-label">Beoordeling Mentor</div>
+          <div class="metric-value" style="color:#5A6A7E;font-size:20px">Wacht nog</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-label">Competenties beoordeeld</div>
+          <div class="metric-value">6 / 8</div>
+        </div>
+      </div>
+
+      <!-- Docent evaluatie -->
+      <div class="eval-card">
+        <div class="eval-header">
+          <div style="display:flex;align-items:center">
+            <div class="eval-avatar avatar-blauw">AV</div>
+            <div style="margin-left:12px">
+              <div class="eval-naam">Prof. An Vermeersch</div>
+              <div class="eval-rol">Verantwoordelijk docent — Ingediend op 15 mei 2025</div>
+            </div>
+          </div>
+          <span class="badge-ontvangen">✓ Ontvangen</span>
+        </div>
+        <div class="eval-body">
+          <div class="feedback-quote">
+            John toont een sterke technische basis en neemt initiatief. De communicatie met de mentor kan nog proactief verbeterd worden — wacht niet tot het wekelijks overleg maar stel vragen zodra ze zich stellen. De logboeken zijn zeer goed en consistent bijgehouden.
+          </div>
+
+          <div class="competenties-label">Gedetailleerde competentiescores</div>
+
+          <div>
+            <div class="competentie-rij">
+              <div>
+                <div class="comp-naam">Technische uitvoering</div>
+                <div class="comp-comment">"Solide implementatie, weinig bijsturing nodig."</div>
+              </div>
+              <div class="comp-score-wrap">
+                <div class="comp-score score-5">5</div>
+                <div class="score-bar-wrap"><div class="score-bar bar-groen" style="width:100%"></div></div>
+              </div>
+            </div>
+            <div class="competentie-rij">
+              <div>
+                <div class="comp-naam">Zelfstandigheid</div>
+                <div class="comp-comment">"Werkt goed zelfstandig, vraagt hulp op het juiste moment."</div>
+              </div>
+              <div class="comp-score-wrap">
+                <div class="comp-score score-5">5</div>
+                <div class="score-bar-wrap"><div class="score-bar bar-groen" style="width:100%"></div></div>
+              </div>
+            </div>
+            <div class="competentie-rij">
+              <div>
+                <div class="comp-naam">Communicatie</div>
+                <div class="comp-comment">"Kan proactief meer communiceren met de mentor. Soms te afwachtend."</div>
+              </div>
+              <div class="comp-score-wrap">
+                <div class="comp-score score-2">2</div>
+                <div class="score-bar-wrap"><div class="score-bar bar-blauw" style="width:40%"></div></div>
+              </div>
+            </div>
+            <div class="competentie-rij">
+              <div>
+                <div class="comp-naam">Professionele houding</div>
+                <div class="comp-comment">"Punctueel, betrokken, neemt altijd verantwoordelijkheid."</div>
+              </div>
+              <div class="comp-score-wrap">
+                <div class="comp-score score-5">5</div>
+                <div class="score-bar-wrap"><div class="score-bar bar-groen" style="width:100%"></div></div>
+              </div>
+            </div>
+            <div class="competentie-rij">
+              <div>
+                <div class="comp-naam">Probleemoplossend denken</div>
+                <div class="comp-comment">"Goede aanpak bij bugs, zoekt zelf naar structurele oplossingen."</div>
+              </div>
+              <div class="comp-score-wrap">
+                <div class="comp-score score-5">5</div>
+                <div class="score-bar-wrap"><div class="score-bar bar-groen" style="width:100%"></div></div>
+              </div>
+            </div>
+            <div class="competentie-rij">
+              <div>
+                <div class="comp-naam">Rapportering & logboek</div>
+                <div class="comp-comment">"Logboeken zijn correct en tijdig ingediend."</div>
+              </div>
+              <div class="comp-score-wrap">
+                <div class="comp-score score-2">2</div>
+                <div class="score-bar-wrap"><div class="score-bar bar-blauw" style="width:40%"></div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Mentor evaluatie -->
+      <div class="eval-card">
+        <div class="eval-header">
+          <div style="display:flex;align-items:center">
+            <div class="eval-avatar avatar-grijs">JD</div>
+            <div style="margin-left:12px">
+              <div class="eval-naam">Jonas Declercq</div>
+              <div class="eval-rol">Stagementor</div>
+            </div>
+          </div>
+          <span class="badge-wacht">Nog niet ingediend</span>
+        </div>
+        <div class="eval-body">
+          <div class="wacht-state">
+            <div class="wacht-icon">⏳</div>
+            <div>
+              <div class="wacht-titel">Jonas Declercq heeft nog niet geëvalueerd.</div>
+              <div class="wacht-sub">De mentor ontvangt automatisch een herinnering op vrijdag 6 juni. Je krijgt een melding zodra de evaluatie beschikbaar is.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Finale evaluatie -->
+    <div class="tab-content" id="tab-finaal">
+      <div class="eval-card">
+        <div class="eval-body" style="padding:40px;text-align:center;align-items:center">
+          <div style="font-size:40px">📋</div>
+          <div style="font-size:16px;font-weight:700;color:#1A3C6E">Finale evaluatie nog niet beschikbaar</div>
+          <div style="font-size:13px;color:#5A6A7E;max-width:380px;line-height:1.7">De finale evaluatie wordt ingevuld na afloop van je stage. Je ontvangt een melding zodra ze beschikbaar is.</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+function switchTab(id, el) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('tab-' + id).classList.add('active');
+}
+</script>
+</body>
+</html>
