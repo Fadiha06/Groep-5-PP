@@ -3,8 +3,9 @@ const argon2 = require('argon2');
 
 class UserModel {
     static async create(userData) {
-        const { naam, email, wachtwoord, rol, studentnummer, opleiding, afdeling, bevoegdheidsniveau } = userData;
+        const { naam, email, wachtwoord, rol, status, studentnummer, opleiding, afdeling, bevoegdheidsniveau } = userData;
         const hashedWachtwoord = await argon2.hash(wachtwoord);
+        const finalStatus = status || 'Actief';
         
         const connection = await pool.getConnection();
         try {
@@ -12,8 +13,8 @@ class UserModel {
             
             // 1. Voeg basisgegevens toe aan GEBRUIKER tabel
             const [userResult] = await connection.query(
-                'INSERT INTO GEBRUIKER (naam, email, wachtwoord, rol) VALUES (?, ?, ?, ?)',
-                [naam, email, hashedWachtwoord, rol]
+                'INSERT INTO GEBRUIKER (naam, email, wachtwoord, rol, status) VALUES (?, ?, ?, ?, ?)',
+                [naam, email, hashedWachtwoord, rol, finalStatus]
             );
             const gebruikerId = userResult.insertId;
             
@@ -41,7 +42,7 @@ class UserModel {
             }
             
             await connection.commit();
-            return { id: gebruikerId, naam, email, rol };
+            return { id: gebruikerId, naam, email, rol, status: finalStatus };
         } catch (error) {
             await connection.rollback();
             throw error;
@@ -53,7 +54,7 @@ class UserModel {
     static async findById(id) {
         const query = `
             SELECT 
-                g.id, g.naam, g.email, g.rol,
+                g.id, g.naam, g.email, g.rol, g.status,
                 s.studentnummer, s.opleiding,
                 d.afdeling AS docent_afdeling,
                 a.bevoegdheidsniveau AS admin_bevoegdheidsniveau
@@ -67,10 +68,16 @@ class UserModel {
         return rows[0] || null;
     }
 
+    static async findByEmail(email) {
+        const query = 'SELECT * FROM GEBRUIKER WHERE email = ?';
+        const [rows] = await pool.query(query, [email]);
+        return rows[0] || null;
+    }
+
     static async findAll() {
         const query = `
             SELECT 
-                g.id, g.naam, g.email, g.rol,
+                g.id, g.naam, g.email, g.rol, g.status,
                 s.studentnummer, s.opleiding,
                 d.afdeling AS docent_afdeling,
                 a.bevoegdheidsniveau AS admin_bevoegdheidsniveau
@@ -85,16 +92,17 @@ class UserModel {
     }
 
     static async update(id, userData) {
-        const { naam, email, rol, studentnummer, opleiding, afdeling, bevoegdheidsniveau } = userData;
-        
+        const { naam, email, rol, status, studentnummer, opleiding, afdeling, bevoegdheidsniveau } = userData;
+        const finalStatus = status || 'Actief';
+
         const connection = await pool.getConnection();
         try {
             await connection.beginTransaction();
             
             // 1. Update GEBRUIKER tabel
             await connection.query(
-                'UPDATE GEBRUIKER SET naam = ?, email = ?, rol = ? WHERE id = ?',
-                [naam, email, rol, id]
+                'UPDATE GEBRUIKER SET naam = ?, email = ?, rol = ?, status = ? WHERE id = ?',
+                [naam, email, rol, finalStatus, id]
             );
             
             // 2. Verwijder eventuele oude rolspecifieke records (als de rol is gewijzigd)
@@ -127,7 +135,7 @@ class UserModel {
             }
             
             await connection.commit();
-            return { id, naam, email, rol };
+            return { id, naam, email, rol, status: finalStatus };
         } catch (error) {
             await connection.rollback();
             throw error;
@@ -137,8 +145,6 @@ class UserModel {
     }
 
     static async delete(id) {
-        // Door ON DELETE CASCADE in de database-tabellen verwijdert dit automatisch 
-        // de gekoppelde records in STUDENT, DOCENT, STAGECOMMISSIE en ADMINISTRATIE.
         const [result] = await pool.query('DELETE FROM GEBRUIKER WHERE id = ?', [id]);
         return result.affectedRows > 0;
     }

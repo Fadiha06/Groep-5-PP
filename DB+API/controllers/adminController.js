@@ -23,7 +23,7 @@ class AdminController {
     }
 
     static async createUser(req, res) {
-        const { email, rol, naam, wachtwoord, studentnummer, opleiding, afdeling, bevoegdheidsniveau } = req.body;
+        const { email, rol, status, naam, wachtwoord, studentnummer, opleiding, afdeling, bevoegdheidsniveau } = req.body;
         
         if (!email || !rol) {
             return res.status(400).json({ error: 'Email en rol zijn verplicht.' });
@@ -38,6 +38,7 @@ class AdminController {
                 email,
                 wachtwoord: finalWachtwoord,
                 rol,
+                status,
                 studentnummer,
                 opleiding,
                 afdeling,
@@ -51,7 +52,7 @@ class AdminController {
     }
 
     static async updateUser(req, res) {
-        const { naam, email, rol, studentnummer, opleiding, afdeling, bevoegdheidsniveau } = req.body;
+        const { naam, email, rol, status, studentnummer, opleiding, afdeling, bevoegdheidsniveau } = req.body;
         
         if (!naam || !email || !rol) {
             return res.status(400).json({ error: 'Naam, email en rol zijn verplicht.' });
@@ -62,6 +63,7 @@ class AdminController {
                 naam,
                 email,
                 rol,
+                status,
                 studentnummer,
                 opleiding,
                 afdeling,
