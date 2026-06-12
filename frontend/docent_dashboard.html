@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Docent Dashboard — EhB StageTool</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/frontend/src/CSS/docent_dashboard.css">
+</head>
+<body>
+<div class="root">
+
+  <nav class="sidebar">
+    <div class="sb-logo">
+      <div class="sb-logo-title">EhB StageTool</div>
+      <div class="sb-logo-sub">Toegepaste Informatica</div>
+    </div>
+    <div class="sb-nav">
+      <a class="sb-item active" href="/frontend/docent_dashboard.html">Docent Dashboard</a>
+      <a class="sb-item" href="/frontend/overzicht_studenten.html">Overzicht Studenten</a>
+      <a class="sb-item" href="/frontend/docent_logboeken.html">Logboeken</a>
+      <a class="sb-item" href="/frontend/docent_evaluaties.html">Evaluaties</a>
+    </div>
+    <div class="sb-footer">Ingelogd als Docent</div>
+  </nav>
+
+  <div class="main">
+    <div class="page-header">
+      <div>
+        <div class="page-title">Goedenavond, <span id="docent-naam">laden...</span></div>
+        <div class="page-sub">Bekijk hier de voortgang en score-aggregatie van jouw studenten.</div>
+      </div>
+      <button class="btn-uitloggen" onclick="logout()">Uitloggen</button>
+    </div>
+
+    <div class="next-banner">
+      <div class="next-banner-left">
+        <div class="next-label">Volgende taak</div>
+        <div class="next-title" id="volgende-taak">laden...</div>
+      </div>
+      <div class="deadline-badge">⏰ Deadline: deze week</div>
+    </div>
+
+    <div class="two-col">
+      <div class="left-col">
+
+        <div class="card">
+          <div class="card-title">Logboek Controle — Week 4</div>
+          <table>
+            <thead>
+              <tr>
+                <th>Student</th>
+                <th>Bedrijf</th>
+                <th>Status Logboek</th>
+                <th>Actie</th>
+              </tr>
+            </thead>
+            <tbody id="logboek-tbody"></tbody>
+          </table>
+        </div>
+
+        <div class="card">
+          <div class="card-title">Tussentijdse Punten Aggregatie (Competenties)</div>
+          <div style="padding:10px 22px 6px;font-size:12px;color:#6B7280">Vergelijking van de zelfevaluatie van de student en de score van de stagementor.</div>
+          <table>
+            <thead>
+              <tr>
+                <th>Student</th>
+                <th>Competentie</th>
+                <th>Score Student</th>
+                <th>Score Mentor</th>
+                <th>Verschil</th>
+              </tr>
+            </thead>
+            <tbody id="punten-tbody"></tbody>
+          </table>
+        </div>
+
+      </div>
+
+      <div class="right-col">
+
+        <div class="card">
+          <div class="card-title">Recente activiteit</div>
+          <div class="activity-list" id="activiteit-list">
+            <div style="padding:16px 20px;font-size:13px;color:#9CA3AF">Laden...</div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">Voortgang & Milestones</div>
+          <div class="milestone-list" id="milestone-list">
+            <div style="padding:16px 20px;font-size:13px;color:#9CA3AF">Laden...</div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="/frontend/src/JS/api.js"></script>
+<script src="/frontend/src/JS/docent_dashboard.js"></script>
+</body>
+</html>

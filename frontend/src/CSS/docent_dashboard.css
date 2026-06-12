@@ -1,0 +1,77 @@
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Inter',system-ui,sans-serif;background:#F9FAFB;min-height:100vh;display:flex}
+.root{display:flex;width:100%;min-height:100vh}
+
+/* Sidebar */
+.sidebar{width:240px;flex-shrink:0;background:#1F2937;display:flex;flex-direction:column;min-height:100vh}
+.sb-logo{padding:20px 20px 16px;border-bottom:1px solid rgba(255,255,255,0.08)}
+.sb-logo-title{color:white;font-size:16px;font-weight:700}
+.sb-logo-sub{color:#6B7280;font-size:12px;margin-top:2px}
+.sb-nav{padding:12px 0;flex:1}
+.sb-item{display:flex;align-items:center;gap:10px;padding:10px 16px;font-size:14px;color:#9CA3AF;cursor:pointer;text-decoration:none;border-radius:6px;margin:0 8px}
+.sb-item.active{background:#D1193E;color:white;font-weight:500}
+.sb-item:not(.active):hover{background:rgba(255,255,255,0.05)}
+.sb-footer{padding:14px 16px;border-top:1px solid rgba(255,255,255,0.08);font-size:12px;color:#6B7280;margin-top:auto}
+
+/* Main */
+.main{flex:1;padding:28px;display:flex;flex-direction:column;gap:16px;overflow:auto}
+.page-header{display:flex;align-items:flex-start;justify-content:space-between}
+.page-title{font-size:26px;font-weight:700;color:#111827}
+.page-sub{font-size:13px;color:#6B7280;margin-top:4px}
+.btn-uitloggen{padding:8px 16px;border-radius:6px;border:0.8px solid #E5E7EB;background:white;font-size:13px;font-weight:500;color:#111827;cursor:pointer;white-space:nowrap}
+.btn-uitloggen:hover{background:#F9FAFB}
+
+/* Next task banner */
+.next-banner{background:white;border-radius:12px;border:0.8px solid #E5E7EB;box-shadow:0 1px 3px rgba(0,0,0,0.05);padding:20px 24px;display:flex;align-items:center;justify-content:space-between}
+.next-banner-left .next-label{font-size:12px;font-weight:600;color:#6B7280;text-transform:uppercase;letter-spacing:0.4px;margin-bottom:4px}
+.next-banner-left .next-title{font-size:17px;font-weight:700;color:#111827}
+.deadline-badge{background:#FEF3C7;color:#F59E0B;font-size:13px;font-weight:600;padding:5px 14px;border-radius:8px;white-space:nowrap}
+
+/* Two col layout */
+.two-col{display:grid;grid-template-columns:1fr 420px;gap:16px}
+.left-col{display:flex;flex-direction:column;gap:16px}
+.right-col{display:flex;flex-direction:column;gap:16px}
+
+/* Cards */
+.card{background:white;border-radius:12px;border:0.8px solid #E5E7EB;box-shadow:0 1px 3px rgba(0,0,0,0.05);overflow:hidden}
+.card-title{font-size:16px;font-weight:600;color:#111827;padding:18px 22px;border-bottom:0.8px solid #F3F4F6}
+
+/* Table */
+table{width:100%;border-collapse:collapse}
+th{font-size:13px;font-weight:500;color:#6B7280;text-align:left;padding:10px 16px;background:#F9FAFB;border-bottom:0.8px solid #E5E7EB}
+td{font-size:13px;padding:13px 16px;border-bottom:0.8px solid #F3F4F6;color:#111827;vertical-align:middle}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:#FAFAFA}
+.td-name{font-weight:700}
+
+/* Badges */
+.badge{font-size:11px;font-weight:500;padding:4px 10px;border-radius:4px;display:inline-block}
+.badge-groen{background:#EEFBF6;color:#10B981}
+.badge-rood{background:#FDF2F2;color:#EF4444}
+.badge-grijs{background:#F3F4F6;color:#6B7280}
+
+/* Actie links */
+.link-actie{font-size:13px;color:#D1193E;cursor:pointer;font-weight:500}
+.link-actie:hover{text-decoration:underline}
+
+/* Verschil kleuren */
+.diff-oranje{color:#F59E0B;font-weight:700}
+.diff-rood{color:#EF4444;font-weight:700}
+.diff-groen{color:#10B981;font-weight:700}
+.diff-sub{color:#111827;font-size:12px;margin-left:4px}
+
+/* Activiteit items */
+.activity-list{padding:8px 0}
+.activity-item{padding:14px 20px;border-bottom:0.8px solid #F3F4F6}
+.activity-item:last-child{border-bottom:none}
+.activity-title{font-size:13px;font-weight:600;color:#111827}
+.activity-time{font-size:12px;color:#9CA3AF;margin-top:3px}
+
+/* Milestones */
+.milestone-list{padding:8px 0}
+.milestone-item{padding:14px 20px;border-bottom:0.8px solid #F3F4F6}
+.milestone-item:last-child{border-bottom:none}
+.milestone-name{font-size:13px;font-weight:700;color:#111827;margin-bottom:6px}
+.milestone-badge{font-size:11px;font-weight:500;padding:4px 10px;border-radius:4px;display:inline-block}
+.mb-groen{background:#EEFBF6;color:#10B981}
+.mb-grijs{background:#F3F4F6;color:#6B7280}
