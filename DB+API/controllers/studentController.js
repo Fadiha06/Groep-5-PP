@@ -31,6 +31,32 @@ class StudentController {
             res.status(500).json({ error: 'Serverfout bij ophalen dashboard' });
         }
     }
+
+static async getLogboek(req, res) {
+    try {
+        const gebruikerId = req.user.id;
+
+        const student = await StudentModel.getStudentByGebruikerId(gebruikerId);
+        if (!student) {
+            return res.status(404).json({ error: 'Studentprofiel niet gevonden' });
+        }
+
+        const [stageInfo, laasteDag] = await Promise.all([
+            StudentModel.getLogboekStageInfo(student.student_id),
+            StudentModel.getLaatsteLogboekDag(student.student_id)
+        ]);
+
+        res.json({ stageInfo, laasteDag });
+
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: 'Serverfout bij ophalen logboek' });
+    }
+}
+
+
+
+
 }
 
 module.exports = StudentController;
