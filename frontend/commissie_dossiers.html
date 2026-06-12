@@ -3,98 +3,37 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EhB StageTool - Stagecommissie</title>
+    <title>EhB StageTool - Alle Dossiers</title>
     <link href="https://fonts.googleapis.com/css?family=Inter&display=swap" rel="stylesheet" />
     <link href="src/CSS/commissie_dossiers.css" rel="stylesheet" />
 </head>
 <body>
     <div class="app-container">
-
+        
         <aside class="sidebar">
             <div class="sidebar__header">
                 <span class="sidebar__title">EhB StageTool</span>
                 <span class="sidebar__subtitle">Stagecommissie</span>
             </div>
             <nav class="sidebar__menu">
-
                 <a href="commissie_dashboard.html" class="sidebar__item">
                     <span class="sidebar__label">Dashboard</span>
                 </a>
-
                 <a href="commissie_aanvraag.html" class="sidebar__item sidebar__item--badge">
-                    <span class="sidebar__label">Nieuwe aanvragen</span>
+                    <span class="sidebar__label">Aanvragen (Voorstellen)</span>
                     <div class="sidebar__badge">
                         <span id="badge-pending">0</span>
                     </div>
                 </a>
-
                 <a href="commissie_dossiers.html" class="sidebar__item sidebar__item--active">
                     <span class="sidebar__label">Alle dossiers</span>
                 </a>
-
             </nav>
         </aside>
 
+        <!-- Hoofdinhoud -->
         <main class="main-content">
             <header class="content-header">
-                <h1 class="content-header__title">Alle dossiers</h1>
-                <p class="content-header__subtitle">Academiejaar 2025–2026 — Toegepaste Informatica</p>
-            </header>
-
-            <section class="stats-grid">
-                <div class="stat-card">
-                    <span class="stat-card__label">Totaal</span>
-                    <span class="stat-card__value stat-card__value--total" id="stat-total">0</span>
-                </div>
-                <div class="stat-card">
-                    <span class="stat-card__label">In behandeling</span>
-                    <span class="stat-card__value stat-card__value--pending" id="stat-pending">0</span>
-                </div>
-                <div class="stat-card">
-                    <span class="stat-card__label">Goedgekeurd</span>
-                    <span class="stat-card__value stat-card__value--approved" id="stat-approved">0</span>
-                </div>
-                <div class="stat-card">
-                    <span class="stat-card__label">Onder voorstel</span>
-                    <span class="stat-card__value stat-card__value--proposed" id="stat-proposed">0</span>
-                </div>
-                <div class="stat-card">
-                    <span class="stat-card__label">Geweigerd</span>
-                    <span class="stat-card__value stat-card__value--rejected" id="stat-rejected">0</span>
-                </div>
-            </section>
-
-            <section class="filter-bar">
-                <div class="filter-bar__search">
-                    <input type="text" id="search-input" class="search-field" placeholder="Zoek op student of bedrijf..." />
-                </div>
-                <div class="filter-bar__sort">
-                    <select id="sort-select" class="sort-dropdown">
-                        <option value="name-asc">Naam (A-Z)</option>
-                        <option value="name-desc">Naam (Z-A)</option>
-                        <option value="status">Status</option>
-                    </select>
-                </div>
-                <span class="filter-bar__counter" id="results-count">Geen dossiers gevonden</span>
-            </section>
-
-            <section class="table-container">
-                <div class="table-header">
-                    <div class="table-grid">
-                        <span class="table-header__label">Student</span>
-                        <span class="table-header__label">Bedrijf</span>
-                        <span class="table-header__label">Stageopdracht</span>
-                        <span class="table-header__label">Promotor</span>
-                        <span class="table-header__label">Status</span>
-                        <span class="table-header__label">Datum</span>
-                        <span class="table-header__label">Acties</span>
-                    </div>
-                </div>
-                <div class="table-body" id="table-body">
-                </div>
-            </section>
-
-        </main>
-    </div>
-</body>
-</html>
+                <div>
+                    <h1 class="content-header__title">Alle dossiers</h1>
+                    <p class="content-header__subtitle">Academiejaar 2025–2026 — Toegepaste Informatica

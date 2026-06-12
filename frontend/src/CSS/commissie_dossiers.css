@@ -289,3 +289,82 @@ body {
     color: #94a3b8;
     font-size: 14px;
 }
+
+/* Styling voor de witte kaart sectie */
+.section--card {
+  background: white;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+  padding: 1.5rem;
+  margin-top: 1.5rem;
+}
+
+/* Uitlijning aanpassing voor de tabelgrid om plaats te maken voor de status (5 kolommen) */
+.table-grid {
+  display: grid;
+  grid-template-columns: 1.5fr 1.5fr 2fr 1fr 1fr;
+  gap: 1rem;
+  align-items: center;
+  padding: 1rem;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.table-header {
+  background-color: #f8fafc;
+  font-weight: 600;
+  color: #475569;
+  border-top: 1px solid #e2e8f0;
+}
+
+/* Stijl voor de knop in de tabel */
+.btn-view-dossier {
+  text-decoration: none;
+  display: inline-block;
+  background-color: #1e3a8a;
+  color: white;
+  padding: 0.35rem 0.7rem;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  text-align: center;
+  transition: background-color 0.2s;
+}
+
+.btn-view-dossier:hover {
+  background-color: #1e40af;
+}
+
+/* Status Badge Styles */
+.badge {
+  display: inline-block;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  font-weight: bold;
+  text-transform: uppercase;
+  text-align: center;
+}
+
+.badge--pending {
+  background-color: #fef3c7;
+  color: #d97706;
+}
+
+.badge--approved {
+  background-color: #def7ec;
+  color: #03543f;
+}
+
+.badge--active {
+  background-color: #e0f2fe;
+  color: #0369a1;
+}
+
+.badge--rejected {
+  background-color: #fde8e8;
+  color: #9b1c1c;
+}
+
+.badge--condition {
+  background-color: #f3e8ff;
+  color: #6b21a8;
+}
