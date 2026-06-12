@@ -57,9 +57,28 @@ const maakNotificatie = async (gebruikerId, stageId, titel, bericht, type) => {
     return result.insertId;
 };
 
+// Contract-status per student van deze docent
+const getMilestones = async (docentId) => {
+    const [rows] = await pool.query(
+        `SELECT
+            st.stage_id,
+            g.naam AS student_naam,
+            c.student_getekend,
+            c.mentor_getekend
+        FROM STAGE st
+        JOIN STUDENT s ON s.student_id = st.student_id
+        JOIN GEBRUIKER g ON g.id = s.gebruiker_id
+        LEFT JOIN CONTRACT c ON c.stage_id = st.stage_id
+        WHERE st.leerkracht_id = ?`,
+        [docentId]
+    );
+    return rows;
+};
+
 module.exports = {
     getDocent,
     getStudentenMetLogboekStatus,
     getStageInfo,
-    maakNotificatie
+    maakNotificatie,
+    getMilestones
 };

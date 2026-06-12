@@ -72,4 +72,29 @@ const stuurReminder = async (req, res) => {
     }
 };
 
-module.exports = { getStudenten, stuurReminder };
+// GET /api/docent/milestones — contract-status per student
+const getMilestones = async (req, res) => {
+    try {
+        const docent = await docentModel.getDocent(req.user.id);
+        if (!docent) {
+            return res.status(404).json({ error: 'Geen docent gevonden' });
+        }
+
+        const rijen = await docentModel.getMilestones(docent.docent_id);
+
+        const milestones = rijen.map(r => ({
+            stage_id: r.stage_id,
+            student: r.student_naam,
+            stageovereenkomst: (r.student_getekend && r.mentor_getekend)
+                ? 'Stageovereenkomst OK'
+                : 'Stageovereenkomst nog niet getekend',
+            getekend: !!(r.student_getekend && r.mentor_getekend)
+        }));
+
+        res.json({ docent: docent.naam, milestones });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: 'Serverfout bij ophalen milestones' });
+    }
+};
+module.exports = { getStudenten, stuurReminder, getMilestones };
