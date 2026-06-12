@@ -1,5 +1,6 @@
 const express = require('express');
 const cors = require('cors');
+
 require('dotenv').config();
 
 const app = express();
@@ -18,10 +19,12 @@ app.get('/', (req, res) => {
 const authRoutes = require('./routes/authRoutes');
 const userRoutes = require('./routes/userRoutes');
 const stageRoutes = require('./routes/stageRoutes');
+const docentRoutes = require('./routes/docentRoutes');
 
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
-app.use('/api/stage', stageRoutes);
+app.use('/api/stage', stageRoutes)
+app.use('/api/docent', docentRoutes);;
 
 // Start Server
 app.listen(port, () => {
