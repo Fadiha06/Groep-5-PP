@@ -34,4 +34,42 @@ const getStudenten = async (req, res) => {
     }
 };
 
-module.exports = { getStudenten };
+// POST /api/docent/reminder — stuur een logboek-herinnering naar een student
+const stuurReminder = async (req, res) => {
+    const { stage_id, weeknummer } = req.body;
+
+    if (!stage_id) {
+        return res.status(400).json({ error: 'stage_id is verplicht' });
+    }
+
+    try {
+        const docent = await docentModel.getDocent(req.user.id);
+        if (!docent) {
+            return res.status(404).json({ error: 'Geen docent gevonden' });
+        }
+
+        const stage = await docentModel.getStageInfo(stage_id);
+        if (!stage) {
+            return res.status(404).json({ error: 'Stage niet gevonden' });
+        }
+
+        // Alleen de begeleidende docent mag reminderen
+        if (stage.leerkracht_id !== docent.docent_id) {
+            return res.status(403).json({ error: 'Dit is niet jouw student' });
+        }
+
+        const titel = 'Logboek herinnering';
+        const bericht = weeknummer
+            ? `Vergeet je logboek van week ${weeknummer} niet in te vullen.`
+            : 'Vergeet je logboek niet in te vullen.';
+
+        await docentModel.maakNotificatie(stage.student_gebruiker_id, stage_id, titel, bericht, 'reminder');
+
+        res.status(201).json({ message: `Reminder verstuurd naar ${stage.student_naam}` });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: 'Serverfout bij versturen reminder' });
+    }
+};
+
+module.exports = { getStudenten, stuurReminder };

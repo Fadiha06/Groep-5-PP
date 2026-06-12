@@ -34,7 +34,32 @@ const getStudentenMetLogboekStatus = async (docentId, weeknummer) => {
     return rows;
 };
 
+// Stage-info: student (gebruiker_id) + leerkracht — voor de reminder
+const getStageInfo = async (stageId) => {
+    const [rows] = await pool.query(
+        `SELECT st.stage_id, st.leerkracht_id, s.gebruiker_id AS student_gebruiker_id, g.naam AS student_naam
+        FROM STAGE st
+        JOIN STUDENT s ON s.student_id = st.student_id
+        JOIN GEBRUIKER g ON g.id = s.gebruiker_id
+        WHERE st.stage_id = ?`,
+        [stageId]
+    );
+    return rows[0];
+};
+
+// Maak een notificatie aan voor een gebruiker
+const maakNotificatie = async (gebruikerId, stageId, titel, bericht, type) => {
+    const [result] = await pool.query(
+        `INSERT INTO NOTIFICATIE (gebruiker_id, stage_id, titel, bericht, type)
+        VALUES (?, ?, ?, ?, ?)`,
+        [gebruikerId, stageId, titel, bericht, type]
+    );
+    return result.insertId;
+};
+
 module.exports = {
     getDocent,
-    getStudentenMetLogboekStatus
+    getStudentenMetLogboekStatus,
+    getStageInfo,
+    maakNotificatie
 };
