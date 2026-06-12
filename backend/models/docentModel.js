@@ -1,10 +1,38 @@
-const db = require('../config/db');
+const pool = require('../config/db');
 
-class DocentModel {
-    static async createProfile(gebruiker_id) {
-        const [result] = await db.query('INSERT INTO DOCENT (gebruiker_id) VALUES (?)', [gebruiker_id]);
-        return result.insertId;
-    }
-}
+// Haal docent + naam op via de ingelogde gebruiker
+const getDocent = async (gebruikerId) => {
+    const [rows] = await pool.query(
+        `SELECT d.docent_id, g.naam
+        FROM DOCENT d
+        JOIN GEBRUIKER g ON g.id = d.gebruiker_id
+        WHERE d.gebruiker_id = ?`,
+        [gebruikerId]
+    );
+    return rows[0]; // undefined als geen docent
+};
 
-module.exports = DocentModel;
+// Alle studenten van deze docent + hun logboekstatus voor een bepaalde week
+const getStudentenMetLogboekStatus = async (docentId, weeknummer) => {
+    const [rows] = await pool.query(
+        `SELECT
+            st.stage_id,
+            g.naam AS student_naam,
+            b.naam AS bedrijf_naam,
+            lw.status AS logboek_status,
+            lw.totaal_uren
+        FROM STAGE st
+        JOIN STUDENT s ON s.student_id = st.student_id
+        JOIN GEBRUIKER g ON g.id = s.gebruiker_id
+        LEFT JOIN BEDRIJF b ON b.bedrijf_id = st.bedrijf_id
+        LEFT JOIN LOGBOEK_WEEK lw ON lw.stage_id = st.stage_id AND lw.weeknummer = ?
+        WHERE st.leerkracht_id = ?`,
+        [weeknummer, docentId]
+    );
+    return rows;
+};
+
+module.exports = {
+    getDocent,
+    getStudentenMetLogboekStatus
+};
