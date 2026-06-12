@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mijn Stage — EhB StageTool</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/VITE/src/CSS/student_voorstel_response.css">
+</head>
+<body>
+<div class="root">
+
+  <nav class="sidebar">
+    <div class="sb-logo">
+      <div class="sb-logo-title">EhB StageTool</div>
+      <div class="sb-logo-sub">Toegepaste Informatica</div>
+    </div>
+    <div class="sb-nav">
+      <a class="sb-item" href="#">Dashboard</a>
+      <a class="sb-item active" href="#">Mijn stage</a>
+      <a class="sb-item" href="#">Logboek</a>
+      <a class="sb-item" href="#">Contract</a>
+      <a class="sb-item" href="#">Evaluaties</a>
+    </div>
+    <div class="sb-footer">Ingelogd als Student</div>
+  </nav>
+
+  <div class="main">
+    <div>
+      <div class="page-title">Mijn Stage</div>
+      <div class="page-sub">Overzicht van je stageproces en huidige status.</div>
+    </div>
+
+    <!-- Status banner -->
+    <div id="banner-in_behandeling" class="status-banner banner-blauw">● Voorstel succesvol ingediend — Wacht op goedkeuring van de stagecommissie</div>
+    <div id="banner-goedgekeurd" class="status-banner banner-groen">● Voorstel goedgekeurd — Contract opmaken is de volgende stap</div>
+    <div id="banner-afgekeurd" class="status-banner banner-rood">● Voorstel afgekeurd — Bekijk de reden en dien een nieuw voorstel in</div>
+    <div id="banner-onder_conditie" class="status-banner banner-oranje">● Voorstel onder conditie — Los de openstaande punten op</div>
+
+    <!-- Info kaart -->
+    <div class="info-card">
+      <div class="info-block">
+        <div class="info-label">Bedrijf</div>
+        <div class="info-value" id="info-bedrijf">TechBedrijf NV</div>
+      </div>
+      <div class="info-divider"></div>
+      <div class="info-block">
+        <div class="info-label">Ingediend op</div>
+        <div class="info-value" id="info-datum">05/06/2026</div>
+      </div>
+      <div class="info-divider"></div>
+      <div class="info-block">
+        <div class="info-label">Status</div>
+        <div class="info-value" id="info-status">—</div>
+      </div>
+    </div>
+
+    <!-- Stepper -->
+    <div style="position:relative">
+      <div class="stepper-line" id="stepper-progress"></div>
+      <div class="stepper">
+        <div class="step">
+          <div class="step-circle" id="dot-1">1</div>
+          <div class="step-label" id="label-1">Voorstel indienen</div>
+          <div class="step-badge" id="badge-1"></div>
+        </div>
+        <div class="step">
+          <div class="step-circle" id="dot-2">2</div>
+          <div class="step-label" id="label-2">Beoordeling</div>
+          <div class="step-badge" id="badge-2"></div>
+        </div>
+        <div class="step">
+          <div class="step-circle" id="dot-3">3</div>
+          <div class="step-label" id="label-3">Contract aanmaken</div>
+          <div class="step-badge" id="badge-3"></div>
+        </div>
+        <div class="step">
+          <div class="step-circle" id="dot-4">4</div>
+          <div class="step-label" id="label-4">Tussentijdse evaluatie</div>
+          <div class="step-badge" id="badge-4"></div>
+        </div>
+        <div class="step">
+          <div class="step-circle" id="dot-5">5</div>
+          <div class="step-label" id="label-5">Eindevaluatie</div>
+          <div class="step-badge" id="badge-5"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== IN BEHANDELING ===== -->
+    <div id="block-in_behandeling">
+      <div class="status-card blauw">
+        <div class="status-card-header">
+          <div class="status-icon icon-blauw">📝</div>
+          <div>
+            <div class="status-card-title">Stagevoorstel in behandeling</div>
+            <div class="status-card-sub">Je hebt je voorstel ingediend op 05/06/2026. De stagecommissie kijkt dit momenteel na.</div>
+          </div>
+        </div>
+        <div class="detail-grid">
+          <div class="detail-item"><div class="detail-label">Bedrijf</div><div class="detail-value">TechBedrijf NV</div></div>
+          <div class="detail-item"><div class="detail-label">Stagementor (beoogd)</div><div class="detail-value">Jan Pieters</div></div>
+          <div class="detail-item"><div class="detail-label">Periode</div><div class="detail-value">01/09/2026 – 31/01/2027</div></div>
+          <div class="detail-item"><div class="detail-label">Opdracht omschrijving</div><div class="detail-value">Full-stack webapplicatie ontwikkelen...</div></div>
+          <div class="detail-item"><div class="detail-label">Status voorstel</div><div class="detail-value" style="color:#1A3C6E;font-weight:700">⏳ In beraad bij commissie</div></div>
+        </div>
+      </div>
+      <div class="wacht-bar" style="margin-top:14px">
+        <div class="wacht-title">⏳ Beoordeling aan de gang</div>
+        <div class="wacht-sub">Zodra je voorstel is goedgekeurd, kan je starten met het opmaken van je contract (Stap 2).</div>
+      </div>
+    </div>
+
+    <!-- ===== GOEDGEKEURD ===== -->
+    <div id="block-goedgekeurd">
+      <div class="status-card groen">
+        <div class="status-card-header">
+          <div class="status-icon icon-groen">✅</div>
+          <div>
+            <div class="status-card-title">Voorstel goedgekeurd</div>
+            <div class="status-card-sub">Beoordeeld door de stagecommissie op 02/06/2025</div>
+          </div>
+        </div>
+        <div class="detail-grid">
+          <div class="detail-item"><div class="detail-label">Bedrijf</div><div class="detail-value">TechBedrijf NV</div></div>
+          <div class="detail-item"><div class="detail-label">Stagementor</div><div class="detail-value">Jan Pieters</div></div>
+          <div class="detail-item"><div class="detail-label">Periode</div><div class="detail-value">01/09/2025 – 31/01/2026</div></div>
+          <div class="detail-item"><div class="detail-label">EhB-begeleider</div><div class="detail-value">Prof. An Claes</div></div>
+          <div class="detail-item"><div class="detail-label">Opdracht</div><div class="detail-value">Full-stack webapplicatie ontwikkelen</div></div>
+          <div class="detail-item"><div class="detail-label">Status</div><div class="detail-value groen">✔ Goedgekeurd</div></div>
+        </div>
+      </div>
+      <div class="next-bar" style="margin-top:14px">
+        <div>
+          <div class="next-bar-text-title">📄 Stap 2 — Contract aanmaken</div>
+          <div class="next-bar-text-sub">Je voorstel is goedgekeurd. Ga naar de contractpagina om verder te gaan.</div>
+        </div>
+        <button class="btn-primary btn-blauw" onclick="window.location.href='contract.html'">Naar contract →</button>
+      </div>
+    </div>
+
+    <!-- ===== AFGEKEURD ===== -->
+    <div id="block-afgekeurd">
+      <div class="status-card rood">
+        <div class="status-card-header">
+          <div class="status-icon icon-rood">✕</div>
+          <div>
+            <div class="status-card-title">Voorstel afgekeurd</div>
+            <div class="status-card-sub">Beoordeeld door de stagecommissie op 28 september 2024</div>
+          </div>
+        </div>
+        <div class="reden-box rood">
+          <div class="reden-title rood">✕ Voorstel afgekeurd</div>
+          <div class="reden-tekst rood">Je stagevoorstel werd afgekeurd door de stagecommissie op 28 september 2024. Je kan een nieuw voorstel indienen nadat je de onderstaande reden hebt verholpen.</div>
+          <div class="reden-quote rood">
+            <strong>Reden afkeuring:</strong><br>
+            De omschrijving van de stageopdracht sluit onvoldoende aan bij het profiel Toegepaste Informatica. Er zijn te weinig technische componenten (ontwikkeling, infrastructuur of data) aanwezig in de taakomschrijving.
+          </div>
+          <div class="tags-row" style="margin-top:14px">
+            <span class="tag" style="background:#FAEAEA;color:#8B2020;border:0.8px solid #EFA0A0">✕ Afgekeurd 28 sept</span>
+            <span class="tag" style="background:#EDEBE7;color:#5A5650;border:0.8px solid #C8C4BC">Geen verdere stappen mogelijk</span>
+          </div>
+          <div style="margin-top:16px">
+            <button class="btn-primary btn-rood" onclick="window.location.href='stageaanvraag_indienen.html'">＋ Nieuw voorstel indienen →</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== ONDER CONDITIE ===== -->
+    <div id="block-onder_conditie">
+      <div class="status-card oranje">
+        <div class="status-card-header">
+          <div class="status-icon icon-oranje">⚑</div>
+          <div>
+            <div class="status-card-title">Voorstel onder conditie</div>
+            <div class="status-card-sub">Er zijn openstaande punten die je moet oplossen voordat de stage kan starten.</div>
+          </div>
+        </div>
+        <div class="reden-box oranje">
+          <div class="reden-tekst oranje">Je voorstel werd voorlopig aanvaard, maar er zijn nog openstaande punten die je moet oplossen. Zodra alle condities opgelost zijn, wordt je dossier definitief goedgekeurd.</div>
+
+          <div style="margin-top:14px">
+            <div class="conditie-item oranje">
+              <div class="conditie-header">
+                <span class="conditie-num">1</span>
+                <span class="conditie-titel">Geen geldig studentennummer</span>
+                <span class="badge-open">Open</span>
+              </div>
+              <div class="conditie-tekst">Je studentennummer kon niet worden geverifieerd in het systeem. Contacteer de studentenadministratie om dit te laten corrigeren.</div>
+            </div>
+            <div class="conditie-item oranje">
+              <div class="conditie-header">
+                <span class="conditie-num">2</span>
+                <span class="conditie-titel">Stageperiode te kort</span>
+                <span class="badge-open">Open</span>
+              </div>
+              <div class="conditie-tekst">De opgegeven stageperiode bedraagt minder dan de vereiste 13 weken (91 dagen). Pas de begin- of einddatum aan.</div>
+            </div>
+            <div class="reden-quote oranje">ℹ Los alle openstaande condities op en meld dit aan de stagecoördinator. Je kan de stage pas starten na definitieve goedkeuring.</div>
+          </div>
+
+          <div class="tags-row">
+            <span class="tag" style="background:#FDF0DC;color:#7A4F0A;border:0.8px solid #F0C07A">2 openstaande condities</span>
+          </div>
+
+          <div style="border-top:1px solid #F0C07A;margin-top:14px;padding-top:14px;display:flex;align-items:center;justify-content:space-between">
+            <div style="font-size:12px;color:#7A4F0A">Heb je alle condities opgelost? Dien dan een verbeterd voorstel in.</div>
+            <button class="btn-primary btn-oranje" onclick="window.location.href='stageaanvraag_indienen.html'">✏️ Nieuw voorstel indienen →</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+// ============================================================
+// VERANDER DIT NAAR DE STATUS VAN DE STUDENT:
+// "in_behandeling" | "goedgekeurd" | "afgekeurd" | "onder_conditie"
+// Later vervang je dit door een API call naar de backend.
+// ============================================================
+const STATUS = "in_behandeling";
+
+// Stepper configuratie per status
+const STEPPER_CONFIG = {
+  in_behandeling: {
+    banner_kleur: { "in_behandeling": true },
+    info_status: { text: "In behandeling", kleur: "#1A3C6E" },
+    dots: ["active-blue", null, null, null, null],
+    labels: ["active", null, null, null, null],
+    badges: [{ text: "In proces", cls: "badge-in-proces" }, null, null, null, null],
+  },
+  goedgekeurd: {
+    info_status: { text: "Goedgekeurd", kleur: "#27AE60" },
+    dots: ["done", "active-green", null, null, null],
+    labels: ["done", "active", null, null, null],
+    badges: [
+      { text: "Voltooid", cls: "badge-voltooid" },
+      { text: "In proces", cls: "badge-in-proces" },
+      null, null, null
+    ],
+  },
+  afgekeurd: {
+    info_status: { text: "Afgekeurd", kleur: "#8B2020" },
+    dots: ["done", "active-red", null, null, null],
+    labels: ["done", "active", null, null, null],
+    badges: [
+      { text: "Ingediend", cls: "badge-voltooid" },
+      { text: "Afgekeurd", cls: "badge-afgekeurd" },
+      { text: "Geblokkeerd", cls: "badge-geblokkeerd" },
+      { text: "Geblokkeerd", cls: "badge-geblokkeerd" },
+      { text: "Geblokkeerd", cls: "badge-geblokkeerd" },
+    ],
+  },
+  onder_conditie: {
+    info_status: { text: "Onder conditie", kleur: "#7A4F0A" },
+    dots: ["active-orange", null, null, null, null],
+    labels: ["active", null, null, null, null],
+    badges: [
+      { text: "Onder conditie", cls: "badge-onder-conditie" },
+      null, null, null, null
+    ],
+  },
+};
+
+function render() {
+  // Verberg alle blokken en banners
+  ["in_behandeling", "goedgekeurd", "afgekeurd", "onder_conditie"].forEach(s => {
+    const block = document.getElementById("block-" + s);
+    const banner = document.getElementById("banner-" + s);
+    if (block) block.style.display = "none";
+    if (banner) banner.style.display = "none";
+  });
+
+  // Toon actief blok en banner
+  const block = document.getElementById("block-" + STATUS);
+  const banner = document.getElementById("banner-" + STATUS);
+  if (block) block.style.display = "block";
+  if (banner) banner.style.display = "inline-flex";
+
+  // Info status
+  const cfg = STEPPER_CONFIG[STATUS];
+  const infoStatus = document.getElementById("info-status");
+  infoStatus.textContent = cfg.info_status.text;
+  infoStatus.style.color = cfg.info_status.kleur;
+  infoStatus.style.fontWeight = "700";
+
+  // Stepper dots en badges
+  for (let i = 1; i <= 5; i++) {
+    const dot = document.getElementById("dot-" + i);
+    const label = document.getElementById("label-" + i);
+    const badge = document.getElementById("badge-" + i);
+
+    // Reset
+    dot.className = "step-circle";
+    label.className = "step-label";
+    badge.textContent = "";
+    badge.className = "step-badge";
+
+    const dotCls = cfg.dots[i - 1];
+    const labelCls = cfg.labels[i - 1];
+    const badgeCfg = cfg.badges[i - 1];
+
+    if (dotCls) dot.classList.add(dotCls);
+    if (dotCls === "done") dot.textContent = "✓";
+    else dot.textContent = i;
+
+    if (labelCls) label.classList.add(labelCls);
+    if (badgeCfg) {
+      badge.textContent = badgeCfg.text;
+      badge.classList.add(badgeCfg.cls);
+    }
+  }
+}
+
+render();
+</script>
+</body>
+</html>

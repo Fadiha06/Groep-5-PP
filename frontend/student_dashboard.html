@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Dashboard — EhB StageTool</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="/frontend/src/CSS/lege_staat_student_stijl.css">
+<link rel="stylesheet" href="src/CSS/lege_staat_student_stijl.css">
 </head>
 <body>
 <div class="root">
@@ -15,21 +15,26 @@
       <div class="sb-logo-sub">Toegepaste Informatica</div>
     </div>
     <div class="sb-nav">
-      <a class="sb-item active" href="#">Mijn aanvraag</a>     
+      <a class="sb-item active" href="#">Dashboard</a>
+      <a class="sb-item" href="#">Mijn stage</a>
+      <a class="sb-item" href="#">Logboek</a>
+      <a class="sb-item" href="#">Contract</a>
+      <a class="sb-item" href="#">Evaluaties</a>
+      
     </div>
     <div class="sb-footer">Ingelogd als Student</div>
   </nav>
   <div class="main">
     <div>
-      <div class="page-title">Welkom, <span id="student-naam">...</span>!
-      </div>
+      <div class="page-title">Welkom, Jan!</div>
       <div class="page-sub">Je hebt nog geen stage ingediend. Volg de stappen hieronder om te starten.</div>
     </div>
     <div class="empty-hero">
       <div class="empty-icon">📋</div>
       <div class="empty-title">Nog geen stageaanvraag ingediend</div>
       <div class="empty-sub">Dien je stagevoorstel in via de knop hieronder. De stagecommissie beoordeelt je aanvraag en je ontvangt een melding zodra er een beslissing is.</div>
-      <button class="btn-primary" onclick="window.location.href='stageaanvraag_indienen.html'">+ Stage indienen</button> 
+      <a href="stageaanvraag.html" class="btn-primary">+ Stage indienen</a>
+
     </div>
     <div class="info-row">
       <div class="info-card">
@@ -56,6 +61,9 @@
     </div>
   </div>
 </div>
-<script src="/frontend/src/JS/lege_staat_student.js"></script>
+
+<script src="/src/JS/api.js"></script>
+<script src="/src/JS/student_dashboard.js"></script>
+
 </body>
 </html>

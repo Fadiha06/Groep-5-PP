@@ -1,0 +1,125 @@
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Inter',system-ui,sans-serif;background:#F9FAFB;min-height:100vh;display:flex}
+.root{display:flex;width:100%;min-height:100vh}
+
+/* Sidebar */
+.sidebar{width:240px;flex-shrink:0;background:#1F2937;display:flex;flex-direction:column;min-height:100vh}
+.sb-logo{padding:20px 20px 16px;border-bottom:1px solid rgba(255,255,255,0.08)}
+.sb-logo-title{color:white;font-size:16px;font-weight:700}
+.sb-logo-sub{color:#6B7280;font-size:12px;margin-top:2px}
+.sb-nav{padding:12px 0;flex:1}
+.sb-item{display:flex;align-items:center;gap:10px;padding:10px 16px;font-size:14px;color:#9CA3AF;cursor:pointer;text-decoration:none}
+.sb-item.active{background:#D1193E;color:white;font-weight:500;border-radius:6px}
+.sb-item:not(.active):hover{background:rgba(255,255,255,0.05)}
+.sb-footer{padding:14px 16px;border-top:1px solid rgba(255,255,255,0.08);font-size:12px;color:#6B7280;margin-top:auto}
+
+/* Main */
+.main{flex:1;padding:28px;display:flex;flex-direction:column;gap:16px;overflow:auto}
+.page-title{font-size:26px;font-weight:700;color:#111827}
+.page-sub{font-size:14px;color:#6B7280;margin-top:4px}
+
+/* Status banner */
+.status-banner{padding:8px 16px;border-radius:20px;font-size:13px;font-weight:700;display:inline-flex;align-items:center;gap:8px;width:fit-content}
+.banner-blauw{background:#E8EEFF;color:#1A3C6E;border:0.8px solid #BFDBFE}
+.banner-groen{background:#E8F8EF;color:#1A8A42;border:0.8px solid #B2EACB}
+.banner-rood{background:#FAEAEA;color:#8B2020;border:0.8px solid #EFA0A0}
+.banner-oranje{background:#FDF0DC;color:#7A4F0A;border:0.8px solid #F0C07A}
+
+/* Stepper */
+.stepper{display:flex;align-items:flex-start;position:relative;padding:20px 0 10px}
+.stepper-line{position:absolute;top:30px;left:60px;right:60px;height:3px;background:#E5E7EB;z-index:0}
+.step{display:flex;flex-direction:column;align-items:center;flex:1;position:relative;z-index:1}
+.step-circle{width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:700;border:3px solid #E5E7EB;background:white;color:#9CA3AF}
+.step-circle.done{background:#10B981;border-color:#10B981;color:white}
+.step-circle.active-blue{background:white;border-color:#1A3C6E;color:#1A3C6E;box-shadow:0 0 0 5px rgba(26,60,110,0.12)}
+.step-circle.active-green{background:#27AE60;border-color:#27AE60;color:white}
+.step-circle.active-orange{background:#FDF0DC;border-color:#F0C07A;color:#7A4F0A}
+.step-circle.active-red{background:#FAEAEA;border-color:#EFA0A0;color:#8B2020}
+.step-label{font-size:12px;font-weight:500;color:#9CA3AF;margin-top:8px;text-align:center;max-width:90px}
+.step-label.active{color:#1A3C6E;font-weight:600}
+.step-label.done{color:#10B981}
+.step-badge{font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px;margin-top:4px}
+.badge-in-proces{background:#E8EEFF;color:#1A3C6E}
+.badge-voltooid{background:#E8F8EF;color:#27AE60}
+.badge-onder-conditie{background:#FDF0DC;color:#7A4F0A;border:0.8px solid #F0C07A}
+.badge-afgekeurd{background:#FAEAEA;color:#8B2020;border:0.8px solid #EFA0A0}
+.badge-geblokkeerd{background:#EDEBE7;color:#5A5650;border:0.8px solid #C8C4BC}
+
+/* Info card */
+.info-card{background:white;border-radius:12px;border:0.8px solid #E5E7EB;padding:16px 20px;display:flex;gap:0}
+.info-divider{width:1px;background:#E5E7EB;margin:0 20px}
+.info-block{display:flex;flex-direction:column;gap:3px}
+.info-label{font-size:11px;font-weight:500;color:#9CA3AF;text-transform:uppercase;letter-spacing:0.5px}
+.info-value{font-size:14px;font-weight:500;color:#111827}
+.info-value.rood{color:#8B2020}
+.info-value.oranje{color:#7A4F0A}
+
+/* Status cards */
+.status-card{background:white;border-radius:14px;box-shadow:0 2px 16px rgba(0,0,0,0.07);padding:28px 32px;border-left:5px solid #E5E7EB}
+.status-card.blauw{border-left-color:#1A3C6E}
+.status-card.groen{border-left-color:#27AE60}
+.status-card.rood{border-left-color:#EFA0A0}
+.status-card.oranje{border-left-color:#F0C07A}
+
+.status-card-header{display:flex;align-items:center;gap:12px;margin-bottom:20px}
+.status-icon{width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}
+.icon-blauw{background:#E8EEFF}
+.icon-groen{background:#E8F8EF}
+.icon-rood{background:#FAEAEA}
+.icon-oranje{background:#FDF0DC}
+.status-card-title{font-size:17px;font-weight:700;color:#1E2A3A}
+.status-card-sub{font-size:13px;color:#5A6A7E;margin-top:3px}
+
+/* Detail grid */
+.detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px 32px;margin-bottom:20px}
+.detail-item{}
+.detail-label{font-size:11px;font-weight:700;color:#8A9AB0;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px}
+.detail-value{font-size:14px;font-weight:500;color:#1E2A3A}
+.detail-value.groen{color:#27AE60;font-weight:700}
+
+/* Reden box */
+.reden-box{border-radius:8px;padding:16px 20px;margin:16px 0}
+.reden-box.rood{background:#FAEAEA;border:0.8px solid #EFA0A0}
+.reden-box.oranje{background:#FDF0DC;border:0.8px solid #F0C07A}
+.reden-title{font-size:14px;font-weight:600;margin-bottom:8px}
+.reden-title.rood{color:#8B2020}
+.reden-title.oranje{color:#7A4F0A}
+.reden-tekst{font-size:13px;line-height:1.7}
+.reden-tekst.rood{color:#8B2020}
+.reden-tekst.oranje{color:#7A4F0A}
+
+.reden-quote{border-left:3px solid;border-radius:0 6px 6px 0;padding:10px 14px;margin-top:10px;font-size:13px;line-height:1.7}
+.reden-quote.rood{border-color:#EFA0A0;background:rgba(139,32,32,0.07);color:#8B2020}
+.reden-quote.oranje{border-color:#F0C07A;background:rgba(122,79,10,0.07);color:#7A4F0A}
+
+/* Conditie items */
+.conditie-item{border-radius:8px;padding:12px 16px;margin-bottom:10px;position:relative}
+.conditie-item.oranje{background:rgba(122,79,10,0.07);border:0.8px solid #F0C07A}
+.conditie-num{width:24px;height:24px;border-radius:50%;background:#F0C07A;color:#7A4F0A;font-size:12px;font-weight:700;display:inline-flex;align-items:center;justify-content:center;margin-right:10px;flex-shrink:0}
+.conditie-header{display:flex;align-items:center;margin-bottom:4px}
+.conditie-titel{font-size:13px;font-weight:600;color:#7A4F0A}
+.conditie-tekst{font-size:12px;color:#7A4F0A;line-height:1.6;padding-left:34px}
+.badge-open{background:#FDF0DC;color:#7A4F0A;border:0.8px solid #F0C07A;font-size:10px;font-weight:600;padding:2px 8px;border-radius:20px;margin-left:auto}
+
+/* Next step bar */
+.next-bar{background:white;border-radius:14px;box-shadow:0 2px 16px rgba(0,0,0,0.07);padding:20px 28px;display:flex;align-items:center;justify-content:space-between;border-left:5px solid #1A3C6E;gap:16px}
+.next-bar-text-title{font-size:15px;font-weight:700;color:#1A3C6E}
+.next-bar-text-sub{font-size:13px;color:#5A6A7E;margin-top:3px}
+
+/* Buttons */
+.btn-primary{padding:10px 22px;border-radius:8px;border:none;color:white;font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap}
+.btn-rood{background:#8B2020}
+.btn-rood:hover{background:#6B1818}
+.btn-blauw{background:#1A3C6E}
+.btn-blauw:hover{background:#142D52}
+.btn-oranje{background:#7A4F0A}
+.btn-oranje:hover{background:#5E3C08}
+
+/* Wacht bericht */
+.wacht-bar{background:white;border-radius:14px;box-shadow:0 2px 16px rgba(0,0,0,0.07);padding:18px 28px;border-left:5px solid #D0D8E8}
+.wacht-title{font-size:15px;font-weight:700;color:#5A6A7E}
+.wacht-sub{font-size:13px;color:#5A6A7E;margin-top:4px}
+
+/* Status tags row */
+.tags-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.tag{font-size:11px;padding:4px 10px;border-radius:20px}
