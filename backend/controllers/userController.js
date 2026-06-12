@@ -65,3 +65,25 @@ exports.deleteUser = async (req, res) => {
         res.status(500).json({ error: 'Fout bij verwijderen gebruiker' });
     }
 };
+
+exports.updateUser = async (req, res) => {
+    try {
+        const userId = req.params.id;
+        const { rol, status } = req.body;
+        
+        if (!rol || !status) {
+            return res.status(400).json({ error: 'Rol en status zijn verplicht bij updaten' });
+        }
+        
+        const rolFormatted = rol.toLowerCase();
+        
+        const updated = await UserModel.updateUser(userId, rolFormatted, status);
+        if (!updated) {
+            return res.status(404).json({ error: 'Gebruiker niet gevonden' });
+        }
+        res.json({ message: 'Gebruiker succesvol bijgewerkt' });
+    } catch (error) {
+        console.error('Update user error:', error);
+        res.status(500).json({ error: 'Fout bij bewerken gebruiker' });
+    }
+};
