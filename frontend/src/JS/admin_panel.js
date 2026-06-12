@@ -38,10 +38,10 @@ function renderTable(data) {
       <div class="td td-name">${g.naam}</div>
       <div class="td td-email">${g.email}</div>
       <div class="td">
-        <select class="role-select" onchange="wijzigRol(${g.id}, '${g.status}', this.value)" ${isMe ? 'disabled title="Je kan je eigen rol niet wijzigen"' : ''}>${rolOpties}</select>
+        <select class="role-select" onchange="wijzigRol(${idx}, this.value)" ${isMe ? 'disabled title="Je kan je eigen rol niet wijzigen"' : ''}>${rolOpties}</select>
       </div>
       <div class="td">
-        <span class="status-badge" style="cursor:pointer;" onclick="toggleStatus(${g.id}, '${g.rol}', '${g.status}')" title="Klik om status te wijzigen">
+        <span class="status-badge">
           <span class="status-dot ${actief ? 'dot-actief' : 'dot-inactief'}"></span>
           <span class="${actief ? 'text-actief' : 'text-inactief'}">${g.status}</span>
         </span>
@@ -94,33 +94,9 @@ async function executeDelete() {
   }
 }
 
-async function wijzigRol(id, status, nieuweRol) {
-  try {
-    await apiFetch(`/users/${id}`, {
-      method: 'PUT',
-      body: JSON.stringify({ rol: nieuweRol, status })
-    });
-    loadUsers();
-    showConfirm('Rol gewijzigd', 'De rol is succesvol gewijzigd naar ' + nieuweRol + '.');
-  } catch (err) {
-    console.error(err);
-    alert('Kon rol niet wijzigen.');
-    loadUsers(); // Herlaad om wijziging ongedaan te maken in UI
-  }
-}
-
-async function toggleStatus(id, rol, currentStatus) {
-  const nieuweStatus = currentStatus === 'Actief' ? 'Inactief' : 'Actief';
-  try {
-    await apiFetch(`/users/${id}`, {
-      method: 'PUT',
-      body: JSON.stringify({ rol, status: nieuweStatus })
-    });
-    loadUsers();
-  } catch (err) {
-    console.error(err);
-    alert('Kon status niet wijzigen.');
-  }
+function wijzigRol(idx, nieuweRol) {
+  gebruikers[idx].rol = nieuweRol;
+  showConfirm('Rol gewijzigd', 'De rol van ' + gebruikers[idx].naam + ' is gewijzigd naar ' + nieuweRol + '.');
 }
 
 function openModal() {
@@ -178,7 +154,6 @@ window.confirmDelete = confirmDelete;
 window.closeDeleteConfirm = closeDeleteConfirm;
 window.executeDelete = executeDelete;
 window.wijzigRol = wijzigRol;
-window.toggleStatus = toggleStatus;
 window.openModal = openModal;
 window.closeModal = closeModal;
 window.createAccount = createAccount;

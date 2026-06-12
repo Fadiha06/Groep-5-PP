@@ -19,32 +19,23 @@ class UserModel {
         return result.insertId;
     }
 
-    // Profiel creatie gebeurt nu in de specifieke modellen (StudentModel, DocentModel, etc.)
+    
 
     static async getAllUsers() {
-        // Zorg dat we ook rollen netjes formateren
-        const [rows] = await db.query('SELECT id, naam, email, rol, status FROM GEBRUIKER ORDER BY id DESC');
+        
+        const [rows] = await db.query('SELECT id, naam, email, rol FROM GEBRUIKER ORDER BY id DESC');
         return rows.map(u => ({
             id: u.id,
             naam: u.naam,
             email: u.email,
             rol: u.rol.charAt(0).toUpperCase() + u.rol.slice(1),
-            status: u.status || 'Actief'
+            status: 'Actief' // Dummy status, kan later uit DB komen indien nodig
         }));
     }
 
     static async deleteUser(id) {
-        // Door ON DELETE CASCADE in de database (aangepast via fix-db.js), 
-        // verwijdert dit ook automatisch de rijen in STUDENT, DOCENT, STAGE, etc.
+       
         const [result] = await db.query('DELETE FROM GEBRUIKER WHERE id = ?', [id]);
-        return result.affectedRows > 0;
-    }
-
-    static async updateUser(id, rol, status) {
-        const [result] = await db.query(
-            'UPDATE GEBRUIKER SET rol = ?, status = ? WHERE id = ?',
-            [rol, status, id]
-        );
         return result.affectedRows > 0;
     }
 }
