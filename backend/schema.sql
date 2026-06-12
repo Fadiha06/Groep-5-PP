@@ -84,11 +84,11 @@ CREATE TABLE STAGE (
     status VARCHAR(50) DEFAULT 'in_aanvraag',
     reden_weigering TEXT,
     goedkeuringsdatum DATE,
-    FOREIGN KEY (student_id) REFERENCES STUDENT(student_id),
-    FOREIGN KEY (leerkracht_id) REFERENCES DOCENT(docent_id),
-    FOREIGN KEY (mentor_id) REFERENCES STAGEMENTOR(mentor_id),
-    FOREIGN KEY (bedrijf_id) REFERENCES BEDRIJF(bedrijf_id),
-    FOREIGN KEY (lid_id) REFERENCES STAGECOMMISSIE(lid_id)
+    FOREIGN KEY (student_id) REFERENCES STUDENT(student_id) ON DELETE CASCADE,
+    FOREIGN KEY (leerkracht_id) REFERENCES DOCENT(docent_id) ON DELETE SET NULL,
+    FOREIGN KEY (mentor_id) REFERENCES STAGEMENTOR(mentor_id) ON DELETE SET NULL,
+    FOREIGN KEY (bedrijf_id) REFERENCES BEDRIJF(bedrijf_id) ON DELETE CASCADE,
+    FOREIGN KEY (lid_id) REFERENCES STAGECOMMISSIE(lid_id) ON DELETE SET NULL
 );
 
 CREATE TABLE NOTIFICATIE (
@@ -134,8 +134,6 @@ CREATE TABLE CONTRACT (
     student_handtekening LONGTEXT,
     mentor_getekend BOOLEAN DEFAULT FALSE,
     mentor_handtekening LONGTEXT,
-    leerkracht_getekend BOOLEAN DEFAULT FALSE,
-    leerkracht_handtekening LONGTEXT,
     getekend_op DATETIME,
     FOREIGN KEY (stage_id) REFERENCES STAGE(stage_id) ON DELETE CASCADE
 );
