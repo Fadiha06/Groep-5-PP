@@ -196,6 +196,58 @@ static async getLaatsteLogboekDag(student_id) {
     return rows[0] || null;
 }
 
+static async saveLogboekDag(gebruiker_id, datum, taken_beschrijving, reflectie, leerpunten, uren) {
+    const [studentRows] = await pool.query(
+        `SELECT s.student_id, st.stage_id, st.startdatum
+         FROM STUDENT s
+         JOIN STAGE st ON st.student_id = s.student_id
+         WHERE s.gebruiker_id = ?
+         ORDER BY st.startdatum DESC LIMIT 1`,
+        [gebruiker_id]
+    );
+    if (!studentRows.length) return null;
+
+    const { stage_id, startdatum } = studentRows[0];
+    const weeknummer = Math.max(1, Math.ceil((new Date(datum) - new Date(startdatum)) / (7 * 24 * 60 * 60 * 1000)));
+
+    let [weekRows] = await pool.query(
+        `SELECT week_id, status FROM LOGBOEK_WEEK WHERE stage_id = ? AND weeknummer = ?`,
+        [stage_id, weeknummer]
+    );
+
+    if (!weekRows.length) {
+        const [result] = await pool.query(
+            `INSERT INTO LOGBOEK_WEEK (stage_id, weeknummer, status) VALUES (?, ?, 'open')`,
+            [stage_id, weeknummer]
+        );
+        weekRows = [{ week_id: result.insertId, status: 'open' }];
+    }
+
+    if (weekRows[0].status === 'ingediend') {
+        throw new Error('WEEK_INGEDIEND');
+    }
+
+    const week_id = weekRows[0].week_id;
+
+    const [bestaand] = await pool.query(
+        `SELECT dag_id FROM LOGBOEK_DAG WHERE stage_id = ? AND datum = ?`,
+        [stage_id, datum]
+    );
+
+    if (bestaand.length) {
+        await pool.query(
+            `UPDATE LOGBOEK_DAG SET uren = ?, taken_beschrijving = ?, reflectie = ?, leerpunten = ? WHERE dag_id = ?`,
+            [uren, taken_beschrijving, reflectie, leerpunten, bestaand[0].dag_id]
+        );
+        return { dag_id: bestaand[0].dag_id, weeknummer, actie: 'bijgewerkt' };
+    } else {
+        const [result] = await pool.query(
+            `INSERT INTO LOGBOEK_DAG (week_id, stage_id, datum, uren, taken_beschrijving, reflectie, leerpunten) VALUES (?, ?, ?, ?, ?, ?, ?)`,
+            [week_id, stage_id, datum, uren, taken_beschrijving, reflectie, leerpunten]
+        );
+        return { dag_id: result.insertId, weeknummer, actie: 'aangemaakt' };
+    }
+}
 
 }
 module.exports = StudentModel;
