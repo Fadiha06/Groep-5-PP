@@ -1,3 +1,11 @@
+async function laadStudentGegevens() {
+  const gebruiker = await fetch('/api/auth/me').then(r => r.json());
+  document.getElementById('inp-naam').value = gebruiker.naam;
+  document.getElementById('inp-email').value = gebruiker.email;
+}
+
+laadStudentGegevens();
+
 document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('btn-submit').addEventListener('click', async () => {
     const payload = {
