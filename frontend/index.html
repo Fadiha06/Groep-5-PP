@@ -23,7 +23,10 @@
       <span class="card__header-desc">Log in met je EhB-account of externe credentials.</span>
     </div>
 
-    
+    <div class="tabs">
+      <button class="tab tab--active" onclick="switchTab(this, 'ehb')">EhB-account</button>
+      <button class="tab" onclick="switchTab(this, 'extern')">Extern</button>
+    </div>
 
     <div class="form" id="tab-ehb">
       <div class="form__group">
@@ -37,8 +40,8 @@
       <a href="Wachtwoordvergeten.html" class="form__forgot">Wachtwoord vergeten?</a>
       <button class="btn-submit" type="button">Inloggen</button>
       <div class="info">
-        
-       
+        <p>Studenten en medewerkers loggen in met hun <span class="highlight">EhB-account</span></p>
+        <p>Stagementoren gebruiken het tabblad <span class="accent">Extern</span>.</p>
       </div>
     </div>
 
@@ -59,42 +62,8 @@
     </div>
   </div>
 
-  <script>
-    function switchTab(el, tabId) {
-      document.querySelectorAll('.tab').forEach(t => t.classList.remove('tab--active'));
-      el.classList.add('tab--active');
-      document.getElementById('tab-ehb').style.display = tabId === 'ehb' ? 'block' : 'none';
-      document.getElementById('tab-extern').style.display = tabId === 'extern' ? 'block' : 'none';
-    }
-
-    // Loginknop EhB koppelen aan de backend
-  document.querySelector('#tab-ehb .btn-submit').addEventListener('click', async () => {
-    const email = document.getElementById('email').value;
-    const password = document.getElementById('password').value;
-
-    try {
-      const res = await fetch('http://localhost:3000/api/auth/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password })
-      });
-
-      const data = await res.json();
-
-      if (res.ok) {
-        localStorage.setItem('token', data.token);
-        localStorage.setItem('user', JSON.stringify(data.user));
-        alert('Ingelogd als ' + data.user.naam + ' (' + data.user.rol + ')');
-      } else {
-        alert(data.error);
-      }
-    } catch (err) {
-      alert('Kan geen verbinding maken met de server. Draait de backend?');
-    }
-  });
-
-  
-  </script>
+  <script src="/src/JS/api.js"></script>
+  <script src="/src/JS/login.js"></script>
   
 
 </body>
