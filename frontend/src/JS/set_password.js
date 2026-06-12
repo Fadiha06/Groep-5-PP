@@ -63,7 +63,8 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  
+  // Make checkRequirements available globally if needed by inline handlers, 
+  // though it's already declared at top-level.
   window.toggleVisibility = toggleVisibility;
   window.checkRequirements = checkRequirements;
 });
