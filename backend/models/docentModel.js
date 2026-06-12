@@ -9,10 +9,10 @@ const getDocent = async (gebruikerId) => {
         WHERE d.gebruiker_id = ?`,
         [gebruikerId]
     );
-    return rows[0]; // undefined als geen docent
+    return rows[0];
 };
 
-// Alle studenten van deze docent + hun logboekstatus voor een bepaalde week
+// Alle studenten van deze docent + hun logboekstatus + opgetelde uren voor een week
 const getStudentenMetLogboekStatus = async (docentId, weeknummer) => {
     const [rows] = await pool.query(
         `SELECT
@@ -20,7 +20,9 @@ const getStudentenMetLogboekStatus = async (docentId, weeknummer) => {
             g.naam AS student_naam,
             b.naam AS bedrijf_naam,
             lw.status AS logboek_status,
-            lw.totaal_uren
+            (SELECT COALESCE(SUM(ld.uren), 0)
+                FROM LOGBOEK_DAG ld
+                WHERE ld.week_id = lw.week_id) AS totaal_uren
         FROM STAGE st
         JOIN STUDENT s ON s.student_id = st.student_id
         JOIN GEBRUIKER g ON g.id = s.gebruiker_id
