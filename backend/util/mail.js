@@ -20,7 +20,7 @@ const stuurWachtwoordLink = async (naarEmail, link) => {
             <p>Er is een account voor je aangemaakt bij de EhB StageTool.</p>
             <p>Klik op de link om je wachtwoord in te stellen:</p>
             <p><a href="${link}">Wachtwoord instellen</a></p>
-            <p>Deze link verloopt over 24 uur.</p>
+            <p>Deze link verloopt over 10 minuten.</p>
         `
     });
 };
