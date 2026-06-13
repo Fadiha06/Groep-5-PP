@@ -7,5 +7,6 @@ router.get('/dashboard', verifyToken, requireRole('student'), StudentController.
 
 router.get('/logboek', verifyToken, requireRole('student'), StudentController.getLogboek);
 router.post('/logboek/dag', verifyToken, requireRole('student'), StudentController.saveLogboekDag);
+router.get('/evaluaties', verifyToken, requireRole('student'), StudentController.getEvaluaties);
 
 module.exports = router;
