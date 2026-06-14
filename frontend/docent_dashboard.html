@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>EhB StageTool — Docent Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="src/CSS/docent_dashboard.css" />
+</head>
+<body>
+
+    <aside class="sidebar">
+        <div class="sidebar-brand">
+            <div class="sidebar-brand-title">EhB StageTool</div>
+            <div class="sidebar-brand-sub">Toegepaste Informatica</div>
+        </div>
+        <nav>
+            <a href="#" class="nav-item active">Docent Dashboard</a>
+            <a href="#" class="nav-item">Overzicht Studenten</a>
+            <a href="#" class="nav-item">Logboeken</a>
+            <a href="#" class="nav-item">Evaluaties</a>
+        </nav>
+    </aside>
+
+    <main class="main">
+        <div class="header">
+            <div>
+                <h1 id="groet">Welkom</h1>
+                <p>Bekijk hier de voortgang en score-aggregatie van jouw studenten.</p>
+            </div>
+            <button class="logout-btn" onclick="logout()">Uitloggen</button>
+        </div>
+
+        <div class="grid">
+            <div>
+                <div class="card">
+                    <div class="card-title">Logboek Controle — <span id="week-label">Week 4</span></div>
+                    <div class="table-header">
+                        <div>Student</div>
+                        <div>Bedrijf</div>
+                        <div>Status Logboek</div>
+                        <div>Actie</div>
+                    </div>
+                    <div id="studenten-body">
+                        <div class="placeholder" style="padding:12px 0;">Laden...</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-title">Voortgang &amp; Milestones</div>
+                <div id="milestones-body">
+                    <div class="placeholder">Laden...</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-title">Tussentijdse Punten Aggregatie (Competenties)</div>
+            <div class="placeholder">Beschikbaar zodra de evaluatie-feature klaar is.</div>
+        </div>
+    </main>
+
+    <script>
+        const API = 'http://localhost:3000/api/docent';
+        const token = localStorage.getItem('token');
+        const WEEK = 4;
+
+        async function laadDashboard() {
+            if (!token) {
+                alert('Je bent niet ingelogd.');
+                window.location.href = 'index.html';
+                return;
+            }
+
+            try {
+                const res = await fetch(`${API}/studenten?week=${WEEK}`, {
+                    headers: { 'Authorization': 'Bearer ' + token }
+                });
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.error || 'Fout');
+
+                document.getElementById('groet').textContent = `Goedenavond, ${data.docent}`;
+                document.getElementById('week-label').textContent = `Week ${data.weeknummer}`;
+                vulStudenten(data.studenten);
+            } catch (err) {
+                document.getElementById('studenten-body').innerHTML =
+                    `<div class="placeholder" style="padding:12px 0;">${err.message}</div>`;
+            }
+
+            try {
+                const res = await fetch(`${API}/milestones`, {
+                    headers: { 'Authorization': 'Bearer ' + token }
+                });
+                const data = await res.json();
+                if (res.ok) vulMilestones(data.milestones);
+            } catch (err) {
+                console.error(err);
+            }
+        }
+
+        function vulStudenten(studenten) {
+            const body = document.getElementById('studenten-body');
+            body.innerHTML = '';
+            studenten.forEach(s => {
+                const badge = s.ingevuld ? 'badge-ok' : 'badge-missing';
+                const actie = s.ingevuld
+                    ? '<span class="link">Bekijk details</span>'
+                    : `<button class="reminder-btn" onclick="stuurReminder(${s.stage_id})">Stuur reminder</button>`;
+                const rij = document.createElement('div');
+                rij.className = 'table-row';
+                rij.innerHTML = `
+                    <div class="student">${s.student}</div>
+                    <div>${s.bedrijf}</div>
+                    <div><span class="badge ${badge}">${s.status}</span></div>
+                    <div>${actie}</div>
+                `;
+                body.appendChild(rij);
+            });
+        }
+
+        function vulMilestones(milestones) {
+            const body = document.getElementById('milestones-body');
+            body.innerHTML = '';
+            milestones.forEach(m => {
+                const badge = m.getekend ? 'badge-ok' : 'badge-missing';
+                const div = document.createElement('div');
+                div.className = 'milestone-item';
+                div.innerHTML = `
+                    <div class="milestone-naam">${m.student}</div>
+                    <span class="badge ${badge}">${m.stageovereenkomst}</span>
+                `;
+                body.appendChild(div);
+            });
+        }
+
+        async function stuurReminder(stageId) {
+            try {
+                const res = await fetch(`${API}/reminder`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + token
+                    },
+                    body: JSON.stringify({ stage_id: stageId, weeknummer: WEEK })
+                });
+                const data = await res.json();
+                alert(res.ok ? data.message : (data.error || 'Er ging iets mis'));
+            } catch (err) {
+                alert('Kan geen verbinding maken met de server');
+            }
+        }
+
+        function logout() {
+            localStorage.removeItem('token');
+            window.location.href = 'index.html';
+        }
+
+        laadDashboard();
+    </script>
+
+</body>
+</html>
