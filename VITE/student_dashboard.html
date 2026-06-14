@@ -26,113 +26,143 @@
   <div class="main">
 
     <div class="page-header">
-      <div class="page-title">Welkom, John</div>
+      <div class="page-title" id="welkom-naam">Welkom</div>
       <button class="btn-uitloggen">Uitloggen</button>
     </div>
 
     <div class="next-banner">
-      <div class="next-banner-title">Volgende stap: logboek week 4 indienen</div>
-      <div class="next-banner-sub">Deadline vrijdag 7 juni — 3 dagen resterend</div>
+      <div class="next-banner-title" id="banner-week">Volgende stap: logboek indienen</div>
+      <div class="next-banner-sub">Vul je logboek in voor deze week</div>
     </div>
 
     <div class="metrics">
       <div class="metric-card">
         <div class="metric-label">Stagedagen</div>
-        <div class="metric-value">38/60</div>
-        <div class="metric-bar-wrap"><div class="metric-bar bar-blue" style="width:63%"></div></div>
-        <div class="metric-sub">63% voltooid</div>
+        <div class="metric-value" id="stat-stagedagen-value">—</div>
+        <div class="metric-bar-wrap"><div class="metric-bar bar-blue" id="stat-stagedagen-bar" style="width:0%"></div></div>
+        <div class="metric-sub" id="stat-stagedagen-sub">laden...</div>
       </div>
       <div class="metric-card">
         <div class="metric-label">Uren deze week</div>
-        <div class="metric-value">26/40</div>
-        <div class="metric-bar-wrap"><div class="metric-bar bar-orange" style="width:65%"></div></div>
-        <div class="metric-sub">14u resterend</div>
+        <div class="metric-value" id="stat-uren-value">—</div>
+        <div class="metric-bar-wrap"><div class="metric-bar bar-orange" id="stat-uren-bar" style="width:0%"></div></div>
+        <div class="metric-sub" id="stat-uren-sub">laden...</div>
       </div>
       <div class="metric-card">
         <div class="metric-label">Logboeken</div>
-        <div class="metric-value">3/12</div>
+        <div class="metric-value" id="stat-logboeken-value">—</div>
         <div class="metric-sub">Weken ingediend</div>
       </div>
     </div>
 
     <div class="bottom-grid">
 
-      <!-- Stageproces -->
       <div class="card">
         <div class="card-title">Stageproces</div>
-        <div class="timeline">
-          <div class="tl-item">
-            <div class="tl-dot done"></div>
-            <div class="tl-title">Voorstel ingediend</div>
-            <div class="tl-sub">Goedgekeurd op 10 januari</div>
-          </div>
-          <div class="tl-item">
-            <div class="tl-dot done"></div>
-            <div class="tl-title">Contract opgemaakt</div>
-            <div class="tl-sub">Wacht op handtekening mentor</div>
-          </div>
-          <div class="tl-item">
-            <div class="tl-dot active"></div>
-            <div class="tl-title active">Stage lopende</div>
-            <div class="tl-sub">Week 4 op 12</div>
-          </div>
-          <div class="tl-item">
-            <div class="tl-dot"></div>
-            <div class="tl-title">Tussentijdse evaluatie</div>
-            <div class="tl-sub">Week 6</div>
-          </div>
-          <div class="tl-item">
-            <div class="tl-dot"></div>
-            <div class="tl-title">Finale evaluatie</div>
-            <div class="tl-sub">Na afloop</div>
-          </div>
+        <div class="timeline" id="timeline">
+          <div class="tl-item"><div class="tl-dot"></div><div class="tl-title">laden...</div></div>
         </div>
       </div>
 
-      <!-- Logboek deze week -->
       <div class="card">
         <div class="card-title">Logboek deze week</div>
         <table class="logboek-table">
-          <tr>
-            <td>
-              <div class="dag-naam">Maandag 3 maart</div>
-              <div class="dag-taak">API-integratie uitgewerkt</div>
-            </td>
-            <td class="badge-col"><span class="badge badge-ok">Ok</span></td>
-          </tr>
-          <tr>
-            <td>
-              <div class="dag-naam">Dinsdag 4 maart</div>
-              <div class="dag-taak">Meeting + documentatie</div>
-            </td>
-            <td class="badge-col"><span class="badge badge-ok">Ok</span></td>
-          </tr>
-          <tr>
-            <td>
-              <div class="dag-naam">Woensdag 5 maart</div>
-              <div class="dag-taak">Testing & bugfixes</div>
-            </td>
-            <td class="badge-col"><span class="badge badge-ok">Ok</span></td>
-          </tr>
-          <tr>
-            <td>
-              <div class="dag-naam">Donderdag 6 maart</div>
-              <div class="dag-taak">Nog niet ingevuld</div>
-            </td>
-            <td class="badge-col"><span class="badge badge-open">Openstaand</span></td>
-          </tr>
-          <tr>
-            <td>
-              <div class="dag-naam">Vrijdag 7 maart</div>
-              <div class="dag-taak">Nog niet ingevuld</div>
-            </td>
-            <td class="badge-col"><span class="badge badge-open">Openstaand</span></td>
-          </tr>
+          <tbody id="logboek-tabel">
+            <tr><td colspan="2">laden...</td></tr>
+          </tbody>
         </table>
       </div>
 
     </div>
   </div>
 </div>
+
+<script>
+const API = 'http://localhost:3000';
+
+document.addEventListener('DOMContentLoaded', async () => {
+    const token = localStorage.getItem('token');
+    if (!token) {
+        window.location.href = 'index.html';
+        return;
+    }
+
+    try {
+        const res = await fetch(`${API}/api/student/dashboard`, {
+            headers: { 'Authorization': 'Bearer ' + token }
+        });
+
+        if (res.status === 401 || res.status === 403) {
+            localStorage.removeItem('token');
+            window.location.href = 'index.html';
+            return;
+        }
+
+        const data = await res.json();
+        renderDashboard(data);
+    } catch (err) {
+        console.error('Fout bij laden dashboard:', err);
+    }
+});
+
+function renderDashboard({ student, stats, stageproces, logboekDezeWeek }) {
+    document.getElementById('welkom-naam').textContent = 'Welkom, ' + student.naam;
+
+    if (stats) {
+        const { stagedagen, urenDezeWeek, logboeken, huidigWeekNr } = stats;
+
+        const pctDagen = Math.round((stagedagen.gewerkt / stagedagen.totaal) * 100);
+        document.getElementById('stat-stagedagen-value').textContent = `${stagedagen.gewerkt}/${stagedagen.totaal}`;
+        document.getElementById('stat-stagedagen-bar').style.width = pctDagen + '%';
+        document.getElementById('stat-stagedagen-sub').textContent = `${pctDagen}% voltooid`;
+
+        const pctUren = Math.round((urenDezeWeek.gewerkt / urenDezeWeek.target) * 100);
+        document.getElementById('stat-uren-value').textContent = `${urenDezeWeek.gewerkt}/${urenDezeWeek.target}`;
+        document.getElementById('stat-uren-bar').style.width = Math.min(pctUren, 100) + '%';
+        document.getElementById('stat-uren-sub').textContent = `${urenDezeWeek.resterend}u resterend`;
+
+        document.getElementById('stat-logboeken-value').textContent = `${logboeken.ingediend}/${logboeken.totaal}`;
+        document.getElementById('banner-week').textContent = `Volgende stap: logboek week ${huidigWeekNr} indienen`;
+    }
+
+    if (stageproces) {
+        document.getElementById('timeline').innerHTML = stageproces.map(stap => `
+            <div class="tl-item">
+                <div class="tl-dot ${stap.voltooid ? 'done' : stap.actief ? 'active' : ''}"></div>
+                <div class="tl-title ${stap.actief ? 'active' : ''}">${stap.label}</div>
+                <div class="tl-sub">${stap.detail || ''}</div>
+            </div>
+        `).join('');
+    }
+
+    const tabel = document.getElementById('logboek-tabel');
+    if (logboekDezeWeek && logboekDezeWeek.length > 0) {
+        tabel.innerHTML = logboekDezeWeek.map(dag => {
+            const datum = new Date(dag.datum);
+            const dagNaam = datum.toLocaleDateString('nl-BE', { weekday: 'long', day: 'numeric', month: 'long' });
+            const heeftTaak = !!dag.taken_beschrijving;
+            return `
+                <tr>
+                    <td>
+                        <div class="dag-naam">${dagNaam.charAt(0).toUpperCase() + dagNaam.slice(1)}</div>
+                        <div class="dag-taak">${dag.taken_beschrijving || 'Nog niet ingevuld'}</div>
+                    </td>
+                    <td class="badge-col">
+                        <span class="badge ${heeftTaak ? 'badge-ok' : 'badge-open'}">${heeftTaak ? 'Ok' : 'Openstaand'}</span>
+                    </td>
+                </tr>
+            `;
+        }).join('');
+    } else {
+        tabel.innerHTML = `<tr><td colspan="2">Nog geen dagen ingevuld deze week.</td></tr>`;
+    }
+}
+
+document.querySelector('.btn-uitloggen').addEventListener('click', () => {
+    localStorage.removeItem('token');
+    window.location.href = 'index.html';
+});
+</script>
+
 </body>
 </html>
