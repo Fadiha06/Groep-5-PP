@@ -1,0 +1,370 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Inter', sans-serif;
+}
+
+body {
+    background-color: #f1f5f9;
+    color: #1e293b;
+}
+
+/* ── LAYOUT ── */
+.app-container {
+    display: flex;
+    min-height: 100vh;
+}
+
+/* ── SIDEBAR ── */
+.sidebar {
+    width: 240px;
+    background-color: #1e293b;
+    display: flex;
+    flex-direction: column;
+    padding: 24px 0;
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100vh;
+}
+
+.sidebar__header {
+    padding: 0 20px 24px 20px;
+    border-bottom: 1px solid #334155;
+}
+
+.sidebar__title {
+    display: block;
+    font-size: 16px;
+    font-weight: 700;
+    color: #f8fafc;
+}
+
+.sidebar__subtitle {
+    display: block;
+    font-size: 12px;
+    color: #94a3b8;
+    margin-top: 4px;
+}
+
+.sidebar__menu {
+    display: flex;
+    flex-direction: column;
+    padding: 16px 0;
+    gap: 4px;
+}
+
+.sidebar__item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 20px;
+    text-decoration: none;
+    color: #94a3b8;
+    font-size: 14px;
+    border-radius: 0;
+    transition: background 0.2s, color 0.2s;
+}
+
+.sidebar__item:hover {
+    background-color: #334155;
+    color: #f8fafc;
+}
+
+.sidebar__item--active {
+    background-color: #ef4444;
+    color: #fff;
+}
+
+.sidebar__item--active:hover {
+    background-color: #dc2626;
+    color: #fff;
+}
+
+.sidebar__label {
+    flex: 1;
+}
+
+.sidebar__badge {
+    background-color: #ef4444;
+    color: #fff;
+    border-radius: 999px;
+    padding: 2px 8px;
+    font-size: 11px;
+    font-weight: 700;
+    min-width: 22px;
+    text-align: center;
+}
+
+.sidebar__item--active .sidebar__badge {
+    background-color: #fff;
+    color: #ef4444;
+}
+
+/* ── MAIN CONTENT ── */
+.main-content {
+    margin-left: 240px;
+    flex: 1;
+    padding: 32px;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+
+/* ── HEADER ── */
+.content-header__title {
+    font-size: 24px;
+    font-weight: 700;
+    color: #1e293b;
+}
+
+.content-header__subtitle {
+    font-size: 14px;
+    color: #64748b;
+    margin-top: 4px;
+}
+
+/* ── STATS GRID ── */
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 16px;
+}
+
+.stat-card {
+    background: #fff;
+    border-radius: 12px;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.07);
+}
+
+.stat-card__label {
+    font-size: 13px;
+    color: #64748b;
+    font-weight: 500;
+}
+
+.stat-card__value {
+    font-size: 28px;
+    font-weight: 700;
+}
+
+.stat-card__value--total    { color: #1e293b; }
+.stat-card__value--pending  { color: #f59e0b; }
+.stat-card__value--approved { color: #22c55e; }
+.stat-card__value--proposed { color: #3b82f6; }
+.stat-card__value--rejected { color: #ef4444; }
+
+/* ── FILTER BAR ── */
+.filter-bar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.search-field {
+    padding: 10px 14px;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    font-size: 14px;
+    width: 280px;
+    outline: none;
+    background: #fff;
+    transition: border 0.2s;
+}
+
+.search-field:focus {
+    border-color: #ef4444;
+}
+
+.sort-dropdown {
+    padding: 10px 14px;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    font-size: 14px;
+    background: #fff;
+    outline: none;
+    cursor: pointer;
+}
+
+.filter-bar__counter {
+    margin-left: auto;
+    font-size: 13px;
+    color: #64748b;
+}
+
+/* ── TABLE ── */
+.table-container {
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.07);
+    overflow: hidden;
+}
+
+.table-grid {
+    display: grid;
+    grid-template-columns: 1.5fr 1.5fr 2fr 1.5fr 1fr 1fr 1fr;
+    gap: 12px;
+    padding: 14px 20px;
+    align-items: center;
+}
+
+.table-header {
+    background-color: #f8fafc;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.table-header__label {
+    font-size: 12px;
+    font-weight: 600;
+    color: #64748b;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.table-body .table-row {
+    border-bottom: 1px solid #f1f5f9;
+    transition: background 0.15s;
+}
+
+.table-body .table-row:hover {
+    background-color: #f8fafc;
+}
+
+.table-body .table-row:last-child {
+    border-bottom: none;
+}
+
+.table-cell {
+    font-size: 14px;
+    color: #1e293b;
+}
+
+.table-cell--sub {
+    font-size: 12px;
+    color: #64748b;
+    margin-top: 2px;
+}
+
+/* ── STATUS BADGES ── */
+.status-badge {
+    display: inline-block;
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.status-badge--pending  { background: #fef3c7; color: #b45309; }
+.status-badge--approved { background: #dcfce7; color: #15803d; }
+.status-badge--proposed { background: #dbeafe; color: #1d4ed8; }
+.status-badge--rejected { background: #fee2e2; color: #b91c1c; }
+
+/* ── ACTIE KNOPPEN ── */
+.btn {
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    border: none;
+    transition: opacity 0.2s;
+}
+
+.btn:hover { opacity: 0.85; }
+
+.btn--view    { background: #e2e8f0; color: #1e293b; }
+.btn--approve { background: #22c55e; color: #fff; }
+.btn--propose { background: #3b82f6; color: #fff; }
+.btn--reject  { background: #ef4444; color: #fff; }
+
+/* ── EMPTY STATE ── */
+.empty-state {
+    padding: 48px;
+    text-align: center;
+    color: #94a3b8;
+    font-size: 14px;
+}
+
+/* Styling voor de witte kaart sectie */
+.section--card {
+  background: white;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+  padding: 1.5rem;
+  margin-top: 1.5rem;
+}
+
+/* Uitlijning aanpassing voor de tabelgrid om plaats te maken voor de status (5 kolommen) */
+.table-grid {
+  display: grid;
+  grid-template-columns: 1.5fr 1.5fr 2fr 1fr 1fr;
+  gap: 1rem;
+  align-items: center;
+  padding: 1rem;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.table-header {
+  background-color: #f8fafc;
+  font-weight: 600;
+  color: #475569;
+  border-top: 1px solid #e2e8f0;
+}
+
+/* Stijl voor de knop in de tabel */
+.btn-view-dossier {
+  text-decoration: none;
+  display: inline-block;
+  background-color: #1e3a8a;
+  color: white;
+  padding: 0.35rem 0.7rem;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  text-align: center;
+  transition: background-color 0.2s;
+}
+
+.btn-view-dossier:hover {
+  background-color: #1e40af;
+}
+
+/* Status Badge Styles */
+.badge {
+  display: inline-block;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  font-weight: bold;
+  text-transform: uppercase;
+  text-align: center;
+}
+
+.badge--pending {
+  background-color: #fef3c7;
+  color: #d97706;
+}
+
+.badge--approved {
+  background-color: #def7ec;
+  color: #03543f;
+}
+
+.badge--active {
+  background-color: #e0f2fe;
+  color: #0369a1;
+}
+
+.badge--rejected {
+  background-color: #fde8e8;
+  color: #9b1c1c;
+}
+
+.badge--condition {
+  background-color: #f3e8ff;
+  color: #6b21a8;
+}

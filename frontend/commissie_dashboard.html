@@ -5,186 +5,136 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>EhB StageTool - Dashboard Commissie</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link href="src/CSS/commiessie_dashboard.css" rel="stylesheet">
+  <link href="src/CSS/commissie_dashboard.css" rel="stylesheet">
+  <style>
+    /* Styling om de statistiekkaarten er als klikbare knoppen uit te laten zien */
+    .stat-card-btn {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      text-align: left;
+      background: #ffffff;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      padding: 1.5rem;
+      cursor: pointer;
+      transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
+      width: 100%;
+      font-family: inherit;
+    }
+    .stat-card-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+      border-color: #cbd5e1;
+    }
+    .stat-card-btn:active {
+      transform: translateY(0);
+    }
+  </style>
 </head>
 <body>
-  <!-- Sidebar -->
-  <aside class="sidebar">
-    <div class="sidebar-brand">
-      <div class="sidebar-brand-title">EhB StageTool</div>
-      <div class="sidebar-brand-subtitle">Stagecommissie</div>
-    </div>
-    <nav class="sidebar-nav">
-      <a href="#" class="nav-item active">
-        <span class="nav-item-icon"></span>
-        <span class="nav-item-text">Dashboard</span>
-      </a>
-      <a href="#" class="nav-item">
-        <span class="nav-item-icon"></span>
-        <span class="nav-item-text">Aanvragen (Voorstellen)</span>
-        <span class="nav-item-badge">5</span>
-      </a>
-      <a href="#" class="nav-item">
-        <span class="nav-item-icon"></span>
-        <span class="nav-item-text">Alle dossiers</span>
-      </a>
-    </nav>
-  </aside>
+  <div class="app-container">
 
-  <!-- Main Content -->
-  <main class="main">
-    <!-- Header -->
-    <header class="header">
-      <div class="header-content">
-        <div>
-          <h1 class="header-title">Dashboard Commissie</h1>
-          <p class="header-subtitle">Beoordeel ingediende stagevoorstellen en bewaak de kwaliteit van de stageplaatsen.</p>
-        </div>
-        <button class="logout-btn" onclick="logout()">Uitloggen</button>
+    <aside class="sidebar">
+      <div class="sidebar__header">
+        <span class="sidebar__title">EhB StageTool</span>
+        <span class="sidebar__subtitle">Stagecommissie</span>
       </div>
-    </header>
+      <nav class="sidebar__menu">
 
-    <!-- Stats Cards -->
-    <section class="stats-section">
-      <div class="stats-grid">
-        <div class="stat-card">
-          <div class="stat-content">
-            <span class="stat-label">Nieuwe Aanvragen</span>
-            <span class="stat-number">5</span>
-            <span class="stat-description">Wachten op jouw beoordeling</span>
-          </div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-content">
-            <span class="stat-label">Goedgekeurd</span>
-            <span class="stat-number">34</span>
-            <span class="stat-description">81% van de ingediende voorstellen</span>
-          </div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-content">
-            <span class="stat-label">Actieve Stages</span>
-            <span class="stat-number">28</span>
-            <span class="stat-description">Momenteel lopend (Contract OK)</span>
-          </div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-content">
-            <span class="stat-label">Geweigerd / Aanpassing</span>
-            <span class="stat-number">3</span>
-            <span class="stat-description">Zijn teruggestuurd naar student</span>
-          </div>
-        </div>
-      </div>
-    </section>
+        <a href="commissie_dashboard.html" class="sidebar__item sidebar__item--active">
+          <span class="sidebar__label">Dashboard</span>
+        </a>
 
-    <!-- Attention Points -->
-    <section class="section">
-      <div class="section-header">
-        <h2 class="section-title">Aandachtspunten</h2>
-        <a href="#" class="view-all-link" onclick="viewAllPoints(event)">Bekijk alle (5) →</a>
-      </div>
-      <div class="attention-points-grid">
-        <div class="point-card">
-          <div class="point-header">
-            <span class="point-student">Sara Nkosi</span>
-            <span class="point-problem">Aanpassing gevraagd (Voorstel)</span>
+        <a href="commissie_aanvraag.html" class="sidebar__item sidebar__item--badge">
+          <span class="sidebar__label">Aanvragen (Voorstellen)</span>
+          <div class="sidebar__badge">
+            <span id="badge-pending">0</span>
           </div>
-          <div class="point-status">
-            <span class="status-badge status-waiting">Wacht op student</span>
-          </div>
-        </div>
-        <div class="point-card">
-          <div class="point-header">
-            <span class="point-student">Pieter Smeets</span>
-            <span class="point-problem">Contract nog niet getekend</span>
-          </div>
-          <div class="point-status">
-            <span class="status-badge status-urgent">Urgent</span>
-          </div>
-        </div>
-        <div class="point-card">
-          <div class="point-header">
-            <span class="point-student">Remi Jacobs</span>
-            <span class="point-problem">Geen stagementor toegewezen</span>
-          </div>
-          <div class="point-status">
-            <span class="status-badge status-action">Actie vereist</span>
-          </div>
-        </div>
-      </div>
-    </section>
+        </a>
 
-    <!-- Recent Decisions -->
-    <section class="section">
-      <div class="section-header">
-        <h2 class="section-title">Recente Beslissingen</h2>
-      </div>
-      <div class="decisions-list">
-        <div class="decision-item">
-          <div class="decision-icon approved">✓</div>
-          <div class="decision-content">
-            <span class="decision-title">Thomas Claes (Deloitte)</span>
-            <span class="decision-description">Stagevoorstel goedgekeurd door An Claes.</span>
-            <span class="decision-time">Vandaag, 10:45</span>
-          </div>
-        </div>
-        <div class="decision-item">
-          <div class="decision-icon pending">💬</div>
-          <div class="decision-content">
-            <span class="decision-title">Sara Nkosi (Proximus)</span>
-            <span class="decision-description">Aanpassing gevraagd: Ontbrekende competenties in beschrijving.</span>
-            <span class="decision-time">Vandaag, 09:12</span>
-          </div>
-        </div>
-        <div class="decision-item">
-          <div class="decision-icon rejected">✖</div>
-          <div class="decision-content">
-            <span class="decision-title">Ali Hassan (Start-up X)</span>
-            <span class="decision-description">Dossier geweigerd: Opdracht te vaag omschreven.</span>
-            <span class="decision-time">Gisteren, 14:20</span>
-          </div>
-        </div>
-      </div>
-    </section>
+        <a href="commissie_dossiers.html" class="sidebar__item">
+          <span class="sidebar__label">Alle dossiers</span>
+        </a>
 
-    <!-- Attention Points Table -->
-    <section class="section">
-      <div class="section-header">
-        <h2 class="section-title">Aandachtspunten</h2>
-        <a href="#" class="view-all-link" onclick="viewAllPoints(event)">Bekijk alle →</a>
-      </div>
-      <div class="table-container">
-        <div class="table-header">
-          <div class="table-cell">Student</div>
-          <div class="table-cell">Probleem</div>
-          <div class="table-cell">Status</div>
-        </div>
-        <div class="table-row">
-          <div class="table-cell">Sara Nkosi</div>
-          <div class="table-cell">Aanpassing gevraagd</div>
-          <div class="table-cell"><span class="status-badge status-waiting">Wacht op student</span></div>
-        </div>
-        <div class="table-row">
-          <div class="table-cell">Remi Jacobs</div>
-          <div class="table-cell">Logboek week 3 laattijdig</div>
-          <div class="table-cell"><span class="status-badge status-open">Openstaand</span></div>
-        </div>
-        <div class="table-row">
-          <div class="table-cell">Pieter Smeets</div>
-          <div class="table-cell">Contract niet getekend</div>
-          <div class="table-cell"><span class="status-badge status-urgent">Urgent</span></div>
-        </div>
-        <div class="table-row">
-          <div class="table-cell">Nina Goossens</div>
-          <div class="table-cell">Tussentijdse bespr. gepland</div>
-          <div class="table-cell"><span class="status-badge status-week">Week 6</span></div>
-        </div>
-      </div>
-    </section>
-  </main>
+      </nav>
+    </aside>
 
-  <script src="/src/JS/api.js"></script>
-  <script src="/backend/models/commissieModel.js"></script>
+    <main class="main-content">
+      <header class="content-header">
+        <div class="content-header__left">
+          <h1 class="content-header__title">Dashboard Commissie</h1>
+          <p class="content-header__subtitle">Beoordeel ingediende stagevoorstellen en bewaak de kwaliteit van de stageplaatsen.</p>
+        </div>
+        <button class="btn btn--logout" onclick="logout()">Uitloggen</button>
+      </header>
+
+      <section class="stats-grid">
+        <button class="stat-card-btn" onclick="window.location.href='commissie_aanvraag.html'">
+          <span class="stat-card__label">Nieuwe Aanvragen</span>
+          <span class="stat-card__value" id="stat-new">0</span>
+          <span class="stat-card__description">Wachten op jouw beoordeling</span>
+        </button>
+        
+        <button class="stat-card-btn" onclick="window.location.href='commissie_goedgekeurd.html'">
+          <span class="stat-card__label">Goedgekeurd</span>
+          <span class="stat-card__value stat-card__value--approved" id="stat-approved">0</span>
+          <span class="stat-card__description" id="stat-approved-pct">— van de ingediende voorstellen</span>
+        </button>
+        
+        <button class="stat-card-btn" onclick="window.location.href='commissie_conditie.html'">
+          <span class="stat-card__label">Aanvaard onder Conditie</span>
+          <span class="stat-card__value stat-card__value--total" id="stat-active">0</span>
+          <span class="stat-card__description">Aanvaard onder Conditie </span>
+        </button>
+        
+        <button class="stat-card-btn" onclick="window.location.href='commissie_geweigerd.html'">
+          <span class="stat-card__label">Geweigerd / Aanpassing</span>
+          <span class="stat-card__value stat-card__value--rejected" id="stat-rejected">0</span>
+          <span class="stat-card__description">Zijn teruggestuurd naar student</span>
+        </button>
+      </section>
+
+      <section class="section">
+        <div class="section__header">
+          <h2 class="section__title">Aandachtspunten</h2>
+          <a href="#" class="section__link" onclick="viewAllPoints(event)">Bekijk alle →</a>
+        </div>
+        <div class="attention-grid" id="attention-points-grid">
+          <!-- Dynamisch geladen via JS -->
+        </div>
+      </section>
+
+      <section class="section">
+        <div class="section__header">
+          <h2 class="section__title">Recente Beslissingen</h2>
+        </div>
+        <div class="decisions-list" id="decisions-list">
+          <!-- Dynamisch geladen via JS -->
+        </div>
+      </section>
+
+      <section class="section">
+        <div class="section__header">
+          <h2 class="section__title">Aandachtspunten Overzicht</h2>
+          <a href="#" class="section__link" onclick="viewAllPoints(event)">Bekijk alle →</a>
+        </div>
+        <div class="table-container">
+          <div class="table-grid table-header">
+            <span class="table-header__label">Student</span>
+            <span class="table-header__label">Probleem</span>
+            <span class="table-header__label">Status</span>
+          </div>
+          <div class="table-body" id="attention-table-body">
+            <!-- Dynamisch geladen via JS -->
+          </div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <script src="src/JS/api.js"></script>
+  <script src="src/JS/commissie_dashboard.js"></script>
 </body>
 </html>
