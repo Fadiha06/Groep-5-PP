@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EhB StageTool - Alle Dossiers</title>
+    <link href="https://fonts.googleapis.com/css?family=Inter&display=swap" rel="stylesheet" />
+    <link href="src/CSS/commissie_dossiers.css" rel="stylesheet" />
+</head>
+<body>
+    <div class="app-container">
+
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar__header">
+                <span class="sidebar__title">EhB StageTool</span>
+                <span class="sidebar__subtitle">Stagecommissie</span>
+            </div>
+            <nav class="sidebar__menu">
+                <a href="commissie_dashboard.html" class="sidebar__item">
+                    <span class="sidebar__label">Dashboard</span>
+                </a>
+                <a href="commissie_aanvraag.html" class="sidebar__item">
+                    <span class="sidebar__label">Nieuwe aanvragen</span>
+                    <div class="sidebar__badge">
+                        <span id="badge-pending">0</span>
+                    </div>
+                </a>
+                <a href="commissie_dossiers.html" class="sidebar__item sidebar__item--active">
+                    <span class="sidebar__label">Alle dossiers</span>
+                </a>
+            </nav>
+        </aside>
+
+        <!-- Hoofdinhoud -->
+        <main class="main-content">
+            <header class="content-header">
+                <div>
+                    <h1 class="content-header__title">Alle dossiers</h1>
+                    <p class="content-header__subtitle">Academiejaar 2025–2026 — Toegepaste Informatica</p>
+                </div>
+            </header>
+
+            <!-- Filterbar -->
+            <div class="filter-bar">
+                <input
+                    type="text"
+                    id="search-input"
+                    class="search-field"
+                    placeholder="Zoek op naam, bedrijf of opdracht..."
+                />
+                <select id="status-filter" class="sort-dropdown">
+                    <option value="">Alle statussen</option>
+                    <option value="in_aanvraag">Nieuw</option>
+                    <option value="goedgekeurd">Goedgekeurd</option>
+                    <option value="geweigerd">Geweigerd</option>
+                    <option value="conditie">Voorwaarde</option>
+                    <option value="actief">Actief</option>
+                </select>
+                <span class="filter-bar__counter" id="counter">0 dossiers</span>
+            </div>
+
+            <!-- Tabel -->
+            <div class="table-container">
+                <!-- Header -->
+                <div class="table-grid table-header">
+                    <span class="table-header__label">Student</span>
+                    <span class="table-header__label">Bedrijf</span>
+                    <span class="table-header__label">Opdracht</span>
+                    <span class="table-header__label">Status</span>
+                    <span class="table-header__label">Actie</span>
+                </div>
+                <!-- Rijen worden hier dynamisch ingeladen -->
+                <div class="table-body" id="dossiers-table-body">
+                    <div class="empty-state">Dossiers worden geladen...</div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="src/JS/api.js"></script>
+    <script src="src/JS/commissie_dossiers.js"></script>
+</body>
+</html>
