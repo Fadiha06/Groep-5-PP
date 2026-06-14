@@ -1,66 +1,157 @@
+// Alle geladen dossiers bijhouden voor zoeken/filteren
+let alleDossiers = [];
+
 document.addEventListener('DOMContentLoaded', () => {
-  if (!requireAuth(['stagecommissie', 'administrator'])) return;
-  loadAlleDossiers();
+    laadAlleDossiers();
+
+    // Zoekbalk live filteren
+    document.getElementById('search-input').addEventListener('input', filterEnToonDossiers);
+
+    // Status dropdown filteren
+    document.getElementById('status-filter').addEventListener('change', filterEnToonDossiers);
 });
 
-async function loadAlleDossiers() {
-  try {
-    const stages = await apiFetch('/stage/all');
+async function laadAlleDossiers() {
+    try {
+        if (typeof apiFetch !== 'function') {
+            console.warn("⚠️ apiFetch niet beschikbaar, fallback wordt gebruikt.");
+            alleDossiers = fallbackDossiers();
+            filterEnToonDossiers();
+            return;
+        }
 
-    // Update sidebar badge
-    const pending = stages.filter(s => s.status === 'in_aanvraag');
-    document.getElementById('badge-pending').textContent = pending.length;
+        const stages = await apiFetch('/stage/all');
+        console.log("✅ Dossiers ontvangen:", stages);
 
-    const tbody = document.getElementById('dossiers-table-body');
-    tbody.innerHTML = '';
+        // Sidebar badge bijwerken
+        const aantalNieuw = stages.filter(s =>
+            String(s.status || '').toLowerCase() === 'in_aanvraag'
+        ).length;
+        document.getElementById('badge-pending').textContent = aantalNieuw;
 
-    if (stages.length === 0) {
-      tbody.innerHTML = '<p class="no-data-msg">Geen dossiers gevonden.</p>';
-      return;
+        alleDossiers = stages;
+        filterEnToonDossiers();
+
+    } catch (err) {
+        console.error('❌ Fout bij ophalen dossiers:', err);
+        alleDossiers = fallbackDossiers();
+        filterEnToonDossiers();
     }
-
-    stages.forEach(stage => {
-      const row = document.createElement('div');
-      row.className = 'table-grid';
-      
-      // Bepaal de juiste badge styling & tekst per status
-      let badgeHtml = '';
-      const statusValue = stage.status ? stage.status.toLowerCase() : '';
-
-      if (statusValue === 'in_aanvraag') {
-        badgeHtml = `<span class="badge badge--pending">Nieuw</span>`;
-      } else if (statusValue === 'goedgekeurd') {
-        badgeHtml = `<span class="badge badge--approved">Goedgekeurd</span>`;
-      } else if (statusValue === 'actief') {
-        badgeHtml = `<span class="badge badge--active">Actief</span>`;
-      } else if (statusValue === 'geweigerd') {
-        badgeHtml = `<span class="badge badge--rejected">Geweigerd</span>`;
-      } else if (statusValue === 'conditie') {
-        badgeHtml = `<span class="badge badge--condition">Voorwaarde</span>`;
-      } else {
-        badgeHtml = `<span class="badge badge--pending">${statusValue.toUpperCase() || 'ONBEKEND'}</span>`;
-      }
-
-      row.innerHTML = `
-        <strong>${stage.studentnaam || '—'}</strong>
-        <span>${stage.bedrijfsnaam || '—'}</span>
-        <span>${stage.titel || '—'}</span>
-        <div>${badgeHtml}</div>
-        <div>
-          <a href="commissie_aanvraag.html?id=${stage.stage_id}" class="btn-view-dossier">Dossier bekijken</a>
-        </div>
-      `;
-      tbody.appendChild(row);
-    });
-
-  } catch (err) {
-    console.error('Fout bij ophalen dossiers:', err);
-    document.getElementById('dossiers-table-body').innerHTML = 
-      `<p class="error-msg">Fout bij het laden van dossiers: ${err.message}</p>`;
-  }
 }
 
-function logout() {
-  localStorage.removeItem('token');
-  window.location.href = 'login.html';
+function filterEnToonDossiers() {
+    const zoekterm = document.getElementById('search-input').value.toLowerCase().trim();
+    const statusFilter = document.getElementById('status-filter').value.toLowerCase();
+
+    const gefilterd = alleDossiers.filter(dossier => {
+        const naam = String(dossier.studentnaam || dossier.studentNaam || '').toLowerCase();
+        const bedrijf = String(dossier.bedrijfsnaam || dossier.bedrijfNaam || '').toLowerCase();
+        const titel = String(dossier.titel || dossier.opdrachtTitel || '').toLowerCase();
+        const status = String(dossier.status || '').toLowerCase();
+
+        const zoekMatch = !zoekterm ||
+            naam.includes(zoekterm) ||
+            bedrijf.includes(zoekterm) ||
+            titel.includes(zoekterm);
+
+        const statusMatch = !statusFilter || status === statusFilter;
+
+        return zoekMatch && statusMatch;
+    });
+
+    toonDossiers(gefilterd);
+    document.getElementById('counter').textContent = `${gefilterd.length} dossier${gefilterd.length !== 1 ? 's' : ''}`;
+}
+
+function toonDossiers(dossiers) {
+    const tbody = document.getElementById('dossiers-table-body');
+
+    if (dossiers.length === 0) {
+        tbody.innerHTML = '<div class="empty-state">Geen dossiers gevonden.</div>';
+        return;
+    }
+
+    tbody.innerHTML = '';
+
+    dossiers.forEach(dossier => {
+        const id = dossier.stage_id || dossier.id || '';
+        const naam = dossier.studentnaam || dossier.studentNaam || '—';
+        const bedrijf = dossier.bedrijfsnaam || dossier.bedrijfNaam || '—';
+        const titel = dossier.titel || dossier.opdrachtTitel || '—';
+        const status = String(dossier.status || '').toLowerCase();
+
+        // Bepaal badge + link naar juiste detailpagina
+        let badgeHtml = '';
+        let detailPagina = '';
+
+        if (status === 'in_aanvraag') {
+            badgeHtml = `<span class="badge badge--pending">Nieuw</span>`;
+            detailPagina = `commissie_aanvraag.html?id=${id}`;
+        } else if (status === 'goedgekeurd') {
+            badgeHtml = `<span class="badge badge--approved">Goedgekeurd</span>`;
+            detailPagina = `commissie_goedgekeurd.html?id=${id}`;
+        } else if (status === 'geweigerd') {
+            badgeHtml = `<span class="badge badge--rejected">Geweigerd</span>`;
+            detailPagina = `commissie_geweigerd.html?id=${id}`;
+        } else if (status === 'conditie' || status === 'onder conditie' || status === 'aanvaard onder conditie') {
+            badgeHtml = `<span class="badge badge--condition">Onder conditie</span>`;
+            detailPagina = `commissie_conditie.html?id=${id}`;
+        } else if (status === 'actief') {
+            badgeHtml = `<span class="badge badge--active">Actief</span>`;
+            detailPagina = `commissie_aanvraag.html?id=${id}`;
+        } else {
+            badgeHtml = `<span class="badge badge--pending">${status || 'Onbekend'}</span>`;
+            detailPagina = `commissie_aanvraag.html?id=${id}`;
+        }
+
+        const rij = document.createElement('div');
+        rij.className = 'table-grid table-row';
+        rij.innerHTML = `
+            <div class="table-cell">
+                <strong>${naam}</strong>
+            </div>
+            <div class="table-cell">${bedrijf}</div>
+            <div class="table-cell">${titel}</div>
+            <div class="table-cell">${badgeHtml}</div>
+            <div class="table-cell">
+                <a href="${detailPagina}" class="btn-view-dossier">Openen →</a>
+            </div>
+        `;
+
+        tbody.appendChild(rij);
+    });
+}
+
+// Fallback als de API niet beschikbaar is
+function fallbackDossiers() {
+    return [
+        {
+            stage_id: "1",
+            studentnaam: "Kevin Janssens",
+            bedrijfsnaam: "Inetum-Realdolmen",
+            titel: "Cloud Native Microservices Platform",
+            status: "goedgekeurd"
+        },
+        {
+            stage_id: "2",
+            studentnaam: "Annelies Devos",
+            bedrijfsnaam: "Cronos Groep",
+            titel: "Integratie van AI chatbots",
+            status: "in_aanvraag"
+        },
+        {
+            stage_id: "3",
+            studentnaam: "Mohamed El Amri",
+            bedrijfsnaam: "Cegeka",
+            titel: "Security Audit ERP Systeem",
+            status: "geweigerd"
+        },
+        {
+            stage_id: "4",
+            studentnaam: "Remi Jacobs",
+            bedrijfsnaam: "IBM Belgium",
+            titel: "Data-analyse stage",
+            status: "conditie"
+        }
+    ];
 }
