@@ -97,4 +97,31 @@ const getMilestones = async (req, res) => {
         res.status(500).json({ error: 'Serverfout bij ophalen milestones' });
     }
 };
-module.exports = { getStudenten, stuurReminder, getMilestones };
+
+// GET /api/docent/dossiers — alle studenten met volledige info
+const getDossiers = async (req, res) => {
+    try {
+        const docent = await docentModel.getDocent(req.user.id);
+        if (!docent) {
+            return res.status(404).json({ error: 'Geen docent gevonden' });
+        }
+        const studenten = await docentModel.getDossiers(docent.docent_id);
+        res.json({ docent: docent.naam, studenten });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: 'Serverfout bij ophalen dossiers' });
+    }
+};
+
+// GET /api/docent/student/:gebruikerId/meldingen
+const getMeldingen = async (req, res) => {
+    try {
+        const meldingen = await docentModel.getMeldingenVoorStudent(req.params.gebruikerId);
+        res.json({ meldingen });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: 'Serverfout bij ophalen meldingen' });
+    }
+};
+
+module.exports = { getStudenten, stuurReminder, getMilestones, getDossiers, getMeldingen };

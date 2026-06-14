@@ -6,20 +6,18 @@ const verifyToken = (req, res, next) => {
         return res.status(401).json({ error: 'Geen toegang (Geen geldige token)' });
     }
 
-    if (!token) {
-        return res.status(401).json({ error: 'Geen toegangstoken verstrekt. Log in om toegang te krijgen.' });
-    }
+    const token = authHeader.split(' ')[1];
 
     try {
         const decoded = jwt.verify(token, process.env.JWT_SECRET || 'supersecret');
-        req.user = decoded; 
+        req.user = decoded;
         next();
-    } catch (error) {
-        return res.status(403).json({ error: 'Ongeldig of verlopen token.' });
+    } catch (err) {
+        return res.status(401).json({ error: 'Geen toegang (Token verlopen of ongeldig)' });
     }
 };
 
-exports.requireRole = (allowedRoles) => {
+const requireRole = (allowedRoles) => {
     return (req, res, next) => {
         if (!req.user || !req.user.rol) {
             return res.status(401).json({ error: 'Niet geautoriseerd.' });
@@ -32,8 +30,6 @@ exports.requireRole = (allowedRoles) => {
     };
 };
 
-// Default-export = verifyToken (voor `const auth = require(...)`)
-// + named exports voor `const { verifyToken, requireRole } = require(...)`
 module.exports = verifyToken;
 module.exports.verifyToken = verifyToken;
 module.exports.requireRole = requireRole;

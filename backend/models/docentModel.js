@@ -75,10 +75,49 @@ const getMilestones = async (docentId) => {
     return rows;
 };
 
+// Volledige dossiers van de studenten van deze docent
+const getDossiers = async (docentId) => {
+    const [rows] = await pool.query(
+        `SELECT
+            st.stage_id,
+            s.gebruiker_id,
+            g.naam AS student_naam,
+            s.studentnummer,
+            s.opleiding,
+            g.email,
+            b.naam AS bedrijf_naam,
+            b.adres AS bedrijf_adres,
+            b.stad AS bedrijf_stad,
+            st.startdatum,
+            st.einddatum
+        FROM STAGE st
+        JOIN STUDENT s ON s.student_id = st.student_id
+        JOIN GEBRUIKER g ON g.id = s.gebruiker_id
+        LEFT JOIN BEDRIJF b ON b.bedrijf_id = st.bedrijf_id
+        WHERE st.leerkracht_id = ?`,
+        [docentId]
+    );
+    return rows;
+};
+
+// Meldingen/notificaties van een student
+const getMeldingenVoorStudent = async (gebruikerId) => {
+    const [rows] = await pool.query(
+        `SELECT notificatie_id, titel, bericht, type
+        FROM NOTIFICATIE
+        WHERE gebruiker_id = ?
+        ORDER BY notificatie_id DESC`,
+        [gebruikerId]
+    );
+    return rows;
+};
+
 module.exports = {
     getDocent,
     getStudentenMetLogboekStatus,
     getStageInfo,
     maakNotificatie,
-    getMilestones
+    getMilestones,
+    getDossiers,
+    getMeldingenVoorStudent
 };
