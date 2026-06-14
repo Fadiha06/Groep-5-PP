@@ -99,9 +99,17 @@
       </div>
     </div>
     <div class="modal-body" id="modal-body-content"></div>
+    <div class="feedback-sectie" id="feedback-sectie" style="display:none;padding:0 24px 16px">
+      <div class="dag-label" style="margin-bottom:6px">Feedback voor de student:</div>
+      <textarea id="feedback-tekst" placeholder="Schrijf hier je feedback..." style="width:100%;min-height:80px;padding:10px 12px;border-radius:8px;border:0.8px solid #E2E8F0;font-family:inherit;font-size:13px;resize:vertical"></textarea>
+      <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:8px">
+        <button class="btn-feedback" onclick="annuleerFeedback()">Annuleren</button>
+        <button class="btn-goedkeuren" onclick="verstuurFeedback()">Verstuur feedback</button>
+      </div>
+    </div>
     <div class="modal-footer">
-      <button class="btn-feedback">Feedback geven</button>
-      <button class="btn-goedkeuren">✓ Goedkeuren</button>
+      <button class="btn-feedback" id="btn-feedback" onclick="geefFeedback()">Feedback geven</button>
+      <button class="btn-goedkeuren" id="btn-goedkeuren" onclick="goedkeuren()">✓ Goedkeuren</button>
     </div>
   </div>
 </div>

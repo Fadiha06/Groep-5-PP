@@ -39,8 +39,17 @@ function renderTable(data) {
   }).join('');
 }
 
+let huidigModalIndex = null;
+
 function openModal(index) {
+  huidigModalIndex = index;
   const l = logboekenData[index];
+
+  // Reset feedback sectie en footer
+  document.getElementById('feedback-sectie').style.display = 'none';
+  document.getElementById('modal-body-content').style.display = 'flex';
+  document.getElementById('btn-feedback').style.display = '';
+  document.getElementById('btn-goedkeuren').style.display = '';
 
   document.getElementById('modal-title').textContent = `Logboek: ${l.naam} (Week ${l.week})`;
   document.getElementById('modal-sub').textContent = `${l.periode || '—'} • ${l.bedrijf}`;
@@ -105,6 +114,55 @@ function openModal(index) {
 
 function closeModal() {
   document.getElementById('modal').classList.remove('open');
+}
+
+async function goedkeuren() {
+  const l = logboekenData[huidigModalIndex];
+  try {
+    await apiFetch('/docent/logboek/goedkeuren', {
+      method: 'POST',
+      body: JSON.stringify({ stage_id: l.stage_id, week: l.week })
+    });
+    closeModal();
+    laadLogboeken();
+  } catch (err) {
+    alert(err.message || 'Kon het logboek niet goedkeuren.');
+  }
+}
+
+function geefFeedback() {
+  document.getElementById('modal-body-content').style.display = 'none';
+  document.getElementById('btn-feedback').style.display = 'none';
+  document.getElementById('btn-goedkeuren').style.display = 'none';
+  document.getElementById('feedback-sectie').style.display = 'block';
+  document.getElementById('feedback-tekst').value = '';
+  document.getElementById('feedback-tekst').focus();
+}
+
+function annuleerFeedback() {
+  document.getElementById('feedback-sectie').style.display = 'none';
+  document.getElementById('modal-body-content').style.display = 'flex';
+  document.getElementById('btn-feedback').style.display = '';
+  document.getElementById('btn-goedkeuren').style.display = '';
+}
+
+async function verstuurFeedback() {
+  const l = logboekenData[huidigModalIndex];
+  const tekst = document.getElementById('feedback-tekst').value.trim();
+  if (!tekst) {
+    alert('Schrijf eerst feedback voor je verstuurt.');
+    return;
+  }
+  try {
+    await apiFetch('/docent/logboek/feedback', {
+      method: 'POST',
+      body: JSON.stringify({ stage_id: l.stage_id, week: l.week, feedback: tekst })
+    });
+    closeModal();
+    laadLogboeken();
+  } catch (err) {
+    alert(err.message || 'Kon de feedback niet versturen.');
+  }
 }
 
 function filterTable() {
