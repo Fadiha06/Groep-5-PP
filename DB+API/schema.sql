@@ -1,6 +1,10 @@
 -- Database: Stagebeheer
 -- Gebaseerd op het ERD
 
+DROP DATABASE IF EXISTS stagebeheer;
+CREATE DATABASE stagebeheer;
+USE stagebeheer;
+
 CREATE TABLE GEBRUIKER (
     id INT AUTO_INCREMENT PRIMARY KEY,
     naam VARCHAR(255) NOT NULL,

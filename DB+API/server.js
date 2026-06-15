@@ -1,6 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 const mysql = require('mysql2/promise');
+const jwt = require('jsonwebtoken');
 require('dotenv').config();
 
 const app = express();
@@ -30,6 +31,29 @@ app.get('/api/health', async (req, res) => {
         res.json({ status: 'success', message: 'Database connected successfully' });
     } catch (err) {
         res.status(500).json({ status: 'error', message: 'Database connection failed', error: err.message });
+    }
+});
+
+// Login
+app.post('/api/auth/login', async (req, res) => {
+    const { email, wachtwoord } = req.body;
+    try {
+        const [rows] = await pool.query(
+            'SELECT id, naam, email, rol, wachtwoord FROM GEBRUIKER WHERE email = ?',
+            [email]
+        );
+        if (!rows.length || rows[0].wachtwoord !== wachtwoord) {
+            return res.status(401).json({ error: 'Ongeldig e-mailadres of wachtwoord' });
+        }
+        const gebruiker = rows[0];
+        const token = jwt.sign(
+            { id: gebruiker.id, email: gebruiker.email, rol: gebruiker.rol },
+            process.env.JWT_SECRET,
+            { expiresIn: '24h' }
+        );
+        res.json({ token, naam: gebruiker.naam, rol: gebruiker.rol });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
     }
 });
 
