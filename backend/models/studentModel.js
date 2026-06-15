@@ -113,10 +113,17 @@ const getStageHeader = async (gebruikerId) => {
 
 // Alle beschikbare competenties ophalen
 const getAlleCompetenties = async () => {
-    const [rows] = await pool.query(
+    const [comps] = await pool.query(
         `SELECT competentie_id, naam FROM COMPETENTIE ORDER BY naam ASC`
     );
-    return rows;
+    const [niveaus] = await pool.query(
+        `SELECT rubriek_id, competentie_id, punten, omschrijving FROM RUBRIEK ORDER BY punten ASC`
+    );
+    return comps.map(c => ({
+        competentie_id: c.competentie_id,
+        naam: c.naam,
+        niveaus: niveaus.filter(n => n.competentie_id === c.competentie_id)
+    }));
 };
 
 // Competenties van één dag ophalen
@@ -132,9 +139,9 @@ const getCompetentiesVanDag = async (dagId) => {
 const slaCompetentiesOp = async (dagId, studentId, competenties) => {
     await pool.query(`DELETE FROM LOGBOEK_COMPETENTIE WHERE dag_id = ?`, [dagId]);
     if (!competenties || competenties.length === 0) return;
-    const values = competenties.map(c => [dagId, studentId, c.competentie_id, c.commentaar || null]);
+    const values = competenties.map(c => [dagId, studentId, c.competentie_id, c.score ?? null, c.commentaar || null]);
     await pool.query(
-        `INSERT INTO LOGBOEK_COMPETENTIE (dag_id, student_id, competentie_id, commentaar) VALUES ?`,
+        `INSERT INTO LOGBOEK_COMPETENTIE (dag_id, student_id, competentie_id, score, commentaar) VALUES ?`,
         [values]
     );
 };

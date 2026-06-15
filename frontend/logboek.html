@@ -69,6 +69,11 @@
                         <input type="number" id="uren" placeholder="Bijv. 6" min="0" max="24" style="max-width:160px;" required />
                     </div>
                     <br />
+                    <div class="form-group">
+                        <label>Competenties van vandaag</label>
+                        <div id="competenties-lijst">Laden...</div>
+                    </div>
+                    <br />
                     <div class="form-actions">
                         <button class="btn btn-primary" onclick="slaOp()">Logboek opslaan</button>
                         <button class="btn btn-secondary">Annuleren</button>
@@ -112,6 +117,29 @@
             }
         }
 
+        async function laadCompetenties() {
+            if (!token) return;
+            try {
+                const res = await fetch(`${API}/competenties`, {
+                    headers: { 'Authorization': 'Bearer ' + token }
+                });
+                if (!res.ok) return;
+                const lijst = await res.json();
+                const box = document.getElementById('competenties-lijst');
+                box.innerHTML = lijst.map(c => `
+                    <div class="comp-rij">
+                        <label>
+                            <input type="checkbox" class="comp-check" value="${c.competentie_id}" />
+                            ${c.naam}
+                        </label>
+                        <input type="text" class="comp-comment" data-id="${c.competentie_id}" placeholder="Commentaar (optioneel)..." />
+                    </div>
+                `).join('');
+            } catch (err) {
+                console.error(err);
+            }
+        }
+
         async function laadLaatste() {
             if (!token) return;
             try {
@@ -147,12 +175,18 @@
                 return;
             }
 
+            const competenties = [...document.querySelectorAll('.comp-check:checked')].map(chk => ({
+                competentie_id: Number(chk.value),
+                commentaar: document.querySelector(`.comp-comment[data-id="${chk.value}"]`).value
+            }));
+
             const data = {
                 datum: datum.value,
                 taken_beschrijving: taken.value,
                 reflectie: reflectie.value,
                 leerpunten: problemen.value,
-                uren: uren.value
+                uren: uren.value,
+                competenties
             };
 
             try {
@@ -180,6 +214,7 @@
 
         laadStageHeader();
         laadLaatste();
+        laadCompetenties();
     </script>
 
 </body>

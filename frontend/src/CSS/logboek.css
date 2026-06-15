@@ -654,3 +654,74 @@ body {
   color: #15803D;
   font-size: 14px;
 }
+
+/* ── COMPETENTIE-RUBRIEK (logboek) ── */
+#competenties-lijst {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 4px;
+}
+
+.comp-rij {
+  display: grid;
+  grid-template-columns: 220px 1fr;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  border: 1.5px solid var(--border);
+  border-radius: 6px;
+  background: var(--white);
+  transition: border-color 0.15s, background 0.15s;
+}
+
+.comp-rij:hover {
+  border-color: var(--blue);
+}
+
+.comp-rij label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-primary);
+  cursor: pointer;
+  margin: 0;
+}
+
+.comp-rij input[type="checkbox"] {
+  width: 17px;
+  height: 17px;
+  accent-color: var(--ehb-red);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.comp-rij .comp-comment {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1.5px solid var(--border);
+  border-radius: 6px;
+  font-family: inherit;
+  font-size: 14px;
+  color: var(--text-primary);
+  outline: none;
+  transition: border-color 0.15s;
+}
+
+.comp-rij .comp-comment:focus {
+  border-color: var(--blue);
+}
+
+.comp-rij .comp-comment::placeholder {
+  color: var(--text-muted);
+}
+
+/* Op smalle schermen onder elkaar */
+@media (max-width: 640px) {
+  .comp-rij {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+}
