@@ -44,43 +44,42 @@
 
             <div class="form-section">
                 <div class="card">
-                    <div class="form-group">
-                        <label for="datum">Datum <span class="required">*</span></label>
-                        <input type="date" id="datum" required />
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="datum">Datum <span class="required">*</span></label>
+                            <input type="date" id="datum" required />
+                        </div>
+                        <div class="form-group">
+                            <label for="uren">Gewerkte uren <span class="required">*</span></label>
+                            <input type="number" id="uren" placeholder="Bijv. 6" min="0" max="24" required />
+                        </div>
                     </div>
-                    <br />
+
                     <div class="form-group">
                         <label for="taken">Uitgevoerde taken <span class="required">*</span></label>
-                        <textarea id="taken" rows="4" placeholder="Beschrijf de taken die je vandaag hebt uitgevoerd..." required></textarea>
+                        <textarea id="taken" rows="3" placeholder="Beschrijf de taken die je vandaag hebt uitgevoerd..." required></textarea>
                     </div>
-                    <br />
+
                     <div class="form-group">
                         <label for="reflectie">Reflectie <span class="required">*</span></label>
-                        <textarea id="reflectie" rows="4" placeholder="Wat heb je geleerd? Wat vond je moeilijk?" required></textarea>
+                        <textarea id="reflectie" rows="3" placeholder="Wat heb je geleerd? Wat vond je moeilijk?" required></textarea>
                     </div>
-                    <br />
+
                     <div class="form-group">
                         <label for="problemen">Problemen of uitdagingen <span class="required">*</span></label>
-                        <textarea id="problemen" rows="3" placeholder="Meld eventuele problemen of vragen..." required></textarea>
+                        <textarea id="problemen" rows="2" placeholder="Meld eventuele problemen of vragen..." required></textarea>
                     </div>
-                    <br />
-                    <div class="form-group">
-                        <label for="uren">Aantal gewerkte uren <span class="required">*</span></label>
-                        <input type="number" id="uren" placeholder="Bijv. 6" min="0" max="24" style="max-width:160px;" required />
-                    </div>
-                    <br />
 
                     <div class="rubriek-blok">
                         <div class="rubriek-blok__head">
                             <div>
-                                <div class="rubriek-blok__titel">Dagelijkse competentie-rubriek</div>
-                                <div class="rubriek-blok__sub">Klik op een vak om een score toe te kennen per competentie. Feedback is optioneel.</div>
+                                <div class="rubriek-blok__titel">Competentie-rubriek</div>
+                                <div class="rubriek-blok__sub">Klik op een vak om jezelf een score te geven per competentie.</div>
                             </div>
                             <div class="rubriek-totaal" id="rubriek-totaal">Totaal: 0/0 ptn</div>
                         </div>
                         <div id="competenties-lijst">Laden...</div>
                     </div>
-                    <br />
 
                     <div class="form-actions">
                         <button class="btn btn-primary" onclick="slaOp()">Logboek opslaan</button>
@@ -100,6 +99,30 @@
                         <div class="last-entry__row">Nog geen logboek ingevuld.</div>
                     </div>
                 </div>
+
+                <div class="card">
+                    <div class="card__title">
+                        <span>Weekoverzicht</span>
+                        <span id="week-status-pill" class="badge">—</span>
+                    </div>
+                    <div class="week-nav">
+                        <button class="btn-link" onclick="vorigeWeek()">← Vorige</button>
+                        <strong id="week-label">Week —</strong>
+                        <button class="btn-link" onclick="volgendeWeek()">Volgende →</button>
+                    </div>
+                    <div id="week-dagen">Laden...</div>
+                    <div class="form-actions" style="margin-top:14px;">
+                        <button class="btn btn-primary" id="indien-knop" onclick="dienWeekInUI()" style="width:100%;">Week indienen</button>
+                    </div>
+                </div>
+
+                <div class="status-banner" style="margin-top:0;">
+                    <div class="status-pill">
+                        <span class="status-dot">✓</span>
+                        <span class="status-text">Actieve stage</span>
+                    </div>
+                    <span class="status-banner__label" id="week-teller">Week — van —</span>
+                </div>
             </div>
 
         </div>
@@ -109,10 +132,18 @@
         const API = 'http://localhost:3000/api/student';
         const token = localStorage.getItem('token');
 
+        let huidigeWeek = 1;
+        let totaalWeken = 1;
+
         function labelVoorPunten(p) {
             if (p <= 1) return 'Onvoldoende';
             if (p <= 3) return 'Goed';
             return 'Uitstekend';
+        }
+
+        function berekenWeek(datum, start) {
+            const d = new Date(datum), s = new Date(start);
+            return Math.floor((d - s) / (1000 * 60 * 60 * 24 * 7)) + 1;
         }
 
         async function laadStageHeader() {
@@ -126,6 +157,12 @@
                 document.getElementById('stage-periode').textContent =
                     `${new Date(stage.startdatum).toLocaleDateString('nl-BE', opt)} – ${new Date(stage.einddatum).toLocaleDateString('nl-BE', opt)}`;
                 document.getElementById('stage-mentor').textContent = '—';
+
+                const start = new Date(stage.startdatum);
+                const eind = new Date(stage.einddatum);
+                totaalWeken = Math.max(1, Math.ceil((eind - start) / (1000 * 60 * 60 * 24 * 7)));
+                huidigeWeek = Math.min(totaalWeken, Math.max(1, berekenWeek(new Date(), stage.startdatum)));
+                laadWeek(huidigeWeek);
             } catch (err) {
                 console.error(err);
             }
@@ -202,6 +239,75 @@
             }
         }
 
+        async function laadWeek(nr) {
+            huidigeWeek = nr;
+            document.getElementById('week-label').textContent = `Week ${nr}`;
+            document.getElementById('week-teller').textContent = `Week ${nr} van ${totaalWeken}`;
+            const box = document.getElementById('week-dagen');
+            const pill = document.getElementById('week-status-pill');
+            const knop = document.getElementById('indien-knop');
+            if (!token) return;
+            try {
+                const res = await fetch(`${API}/logboek/week/${nr}`, { headers: { 'Authorization': 'Bearer ' + token } });
+                if (res.status === 404) {
+                    box.innerHTML = '<div class="last-entry__row">Nog geen logboeken voor deze week.</div>';
+                    pill.textContent = 'Open';
+                    knop.disabled = true;
+                    knop.style.opacity = 0.5;
+                    knop.textContent = 'Week indienen';
+                    return;
+                }
+                const week = await res.json();
+                const ingediend = week.status === 'ingediend';
+                pill.textContent = ingediend ? 'Ingediend' : 'Open';
+                knop.disabled = ingediend;
+                knop.style.opacity = ingediend ? 0.5 : 1;
+                knop.textContent = ingediend ? 'Reeds ingediend' : 'Week indienen';
+                if (!week.dagen.length) {
+                    box.innerHTML = '<div class="last-entry__row">Nog geen dagen ingevuld deze week.</div>';
+                    return;
+                }
+                box.innerHTML = week.dagen.map(d => `
+                    <div class="week-dag-rij">
+                        <div class="week-dag-rij__top">
+                            <span class="week-dag-rij__datum">${new Date(d.datum).toLocaleDateString('nl-BE', { weekday: 'short', day: 'numeric', month: 'short' })}</span>
+                            <span class="week-dag-rij__uren">${d.uren ?? 0} u</span>
+                        </div>
+                        <div class="week-dag-rij__taken">${d.taken_beschrijving || '—'}</div>
+                    </div>
+                `).join('');
+            } catch (err) {
+                console.error(err);
+            }
+        }
+
+        function vorigeWeek() {
+            if (huidigeWeek > 1) laadWeek(huidigeWeek - 1);
+        }
+
+        function volgendeWeek() {
+            if (huidigeWeek < totaalWeken) laadWeek(huidigeWeek + 1);
+        }
+
+        async function dienWeekInUI() {
+            if (!confirm(`Week ${huidigeWeek} indienen? Daarna kun je deze week niet meer bewerken.`)) return;
+            try {
+                const res = await fetch(`${API}/logboek/week/${huidigeWeek}/indienen`, {
+                    method: 'PUT',
+                    headers: { 'Authorization': 'Bearer ' + token }
+                });
+                const r = await res.json();
+                if (res.ok) {
+                    alert(r.message || 'Week ingediend');
+                    laadWeek(huidigeWeek);
+                } else {
+                    alert(r.error || 'Er ging iets mis');
+                }
+            } catch (err) {
+                alert('Kan geen verbinding maken met de server');
+            }
+        }
+
         async function slaOp() {
             const datum = document.getElementById('datum');
             const taken = document.getElementById('taken');
@@ -250,6 +356,7 @@
                     fb.style.display = 'block';
                     setTimeout(() => fb.style.display = 'none', 3000);
                     laadLaatste();
+                    laadWeek(huidigeWeek);
                 } else {
                     alert(result.error || 'Er ging iets mis');
                 }
