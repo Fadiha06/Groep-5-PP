@@ -1,71 +1,36 @@
 const express = require('express');
 const cors = require('cors');
-const mysql = require('mysql2/promise');
+const helmet = require('helmet');
+
 require('dotenv').config();
 
 const app = express();
-const port = process.env.PORT || 3000;
+const port = process.env.PORT || 5000;
 
-app.use(cors());
+// Middleware
+app.use(helmet());
+app.use(cors({ origin: ['http://localhost:5000', 'http://localhost:5500', 'http://127.0.0.1:5500', 'http://localhost:3000', 'http://localhost:5173', 'http://127.0.0.1:5173', 'null'] }));
 app.use(express.json());
-app.use('/api/student', require('./routes/studentRoutes'));
 
-// connectie pool
-const pool = mysql.createPool({
-  host: process.env.DB_HOST || 'localhost',
-  user: process.env.DB_USER || 'root',
-  password: process.env.DB_PASSWORD || '',
-  database: process.env.DB_NAME || 'stagebeheer',
-  waitForConnections: true,
-  connectionLimit: 10,
-  queueLimit: 0
+// Basic Route
+app.get('/', (req, res) => {
+    res.send('Stagebeheer API is running...');
 });
 
-// test
-app.get('/api/health', async (req, res) => {
-    try {
-        const connection = await pool.getConnection();
-        connection.release();
-        res.json({ status: 'success', message: 'Database connected successfully' });
-    } catch (err) {
-        res.status(500).json({ status: 'error', message: 'Database connection failed', error: err.message });
-    }
-});
+// Import Routes
+const authRoutes = require('./routes/authRoutes');
+const userRoutes = require('./routes/userRoutes');
+const stageRoutes = require('./routes/stageRoutes');
+const docentRoutes = require('./routes/docentRoutes');
+const studentRoutes = require('./routes/studentRoutes');   // ← TOEGEVOEGD
 
-// API user
+app.use('/api/auth', authRoutes);
+app.use('/api/users', userRoutes);
+app.use('/api/stage', stageRoutes)
+app.use('/api/docent', docentRoutes);
+app.use('/api/student', studentRoutes);                    // ← TOEGEVOEGD
 
-app.get('/api/gebruikers', async (req, res) => {
-    try {
-        const [rows] = await pool.query('SELECT id, naam, email, rol FROM GEBRUIKER');
-        res.json(rows);
-    } catch (err) {
-        res.status(500).json({ error: err.message });
-    }
-});
-
-app.get('/api/gebruikers/:id', async (req, res) => {
-    try {
-        const [rows] = await pool.query('SELECT id, naam, email, rol FROM GEBRUIKER WHERE id = ?', [req.params.id]);
-        if (rows.length === 0) return res.status(404).json({ message: 'Gebruiker niet gevonden' });
-        res.json(rows[0]);
-    } catch (err) {
-        res.status(500).json({ error: err.message });
-    }
-});
-
-app.post('/api/gebruikers', async (req, res) => {
-    const { naam, email, wachtwoord, rol } = req.body;
-    try {
-        const [result] = await pool.query(
-            'INSERT INTO GEBRUIKER (naam, email, wachtwoord, rol) VALUES (?, ?, ?, ?)',
-            [naam, email, wachtwoord, rol]
-        );
-        res.status(201).json({ id: result.insertId, naam, email, rol });
-    } catch (err) {
-        res.status(500).json({ error: err.message });
-    }
-});
-
+// Start Server
 app.listen(port, () => {
-  console.log(`Server is running on http://localhost:${port}`);
+    console.log(`Server running on http://localhost:${port}`);
 });

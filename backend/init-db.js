@@ -23,8 +23,6 @@ async function initDB() {
         console.log(`Database '${dbName}' aanmaken...`);
         await connection.query(`CREATE DATABASE \`${dbName}\`;`);
         console.log(`Database '${dbName}' is gereed.`);
-
-       
         await connection.query(`USE \`${dbName}\`;`);
 
         const schemaPath = path.join(__dirname, 'schema.sql');

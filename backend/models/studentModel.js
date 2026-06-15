@@ -1,175 +1,144 @@
-const pool = require('../config/db');
+const db = require('../config/db');
 
-// Haal studentprofiel + de actieve stage op (voor de ingelogde gebruiker)
-const getStudentMetStage = async (gebruikerId) => {
-    const [rows] = await pool.query(
-        `SELECT s.student_id, st.stage_id, st.startdatum, st.einddatum
-        FROM STUDENT s
-        JOIN STAGE st ON st.student_id = s.student_id
-        WHERE s.gebruiker_id = ?
-        ORDER BY st.startdatum DESC
-        LIMIT 1`,
-        [gebruikerId]
-    );
-    return rows[0];
-};
+class StudentModel {
+    static async createProfile(gebruiker_id) {
+        const [result] = await db.query('INSERT INTO STUDENT (gebruiker_id) VALUES (?)', [gebruiker_id]);
+        return result.insertId;
+    }
 
-// Zoek een week van een stage op weeknummer
-const findWeek = async (stageId, weeknummer) => {
-    const [rows] = await pool.query(
-        `SELECT * FROM LOGBOEK_WEEK WHERE stage_id = ? AND weeknummer = ?`,
-        [stageId, weeknummer]
-    );
-    return rows[0];
-};
+    // ===== Logboek-feature =====
+    static async getStudentMetStage(gebruikerId) {
+        const [rows] = await db.query(
+            `SELECT s.student_id, st.stage_id, st.startdatum, st.einddatum
+            FROM STUDENT s
+            JOIN STAGE st ON st.student_id = s.student_id
+            WHERE s.gebruiker_id = ?
+            ORDER BY st.startdatum DESC LIMIT 1`,
+            [gebruikerId]
+        );
+        return rows[0];
+    }
 
-// Maak een nieuwe week aan, geeft het nieuwe week_id terug
-const createWeek = async (stageId, weeknummer) => {
-    const [result] = await pool.query(
-        `INSERT INTO LOGBOEK_WEEK (stage_id, weeknummer, status) VALUES (?, ?, 'open')`,
-        [stageId, weeknummer]
-    );
-    return result.insertId;
-};
+    static async findWeek(stageId, weeknummer) {
+        const [rows] = await db.query(
+            `SELECT * FROM LOGBOEK_WEEK WHERE stage_id = ? AND weeknummer = ?`,
+            [stageId, weeknummer]
+        );
+        return rows[0];
+    }
 
-// Zoek een dag-entry op datum binnen een stage
-const findDag = async (stageId, datum) => {
-    const [rows] = await pool.query(
-        `SELECT * FROM LOGBOEK_DAG WHERE stage_id = ? AND datum = ?`,
-        [stageId, datum]
-    );
-    return rows[0];
-};
+    static async createWeek(stageId, weeknummer) {
+        const [result] = await db.query(
+            `INSERT INTO LOGBOEK_WEEK (stage_id, weeknummer, status) VALUES (?, ?, 'open')`,
+            [stageId, weeknummer]
+        );
+        return result.insertId;
+    }
 
-// Maak een nieuwe dag-entry aan
-const createDag = async (weekId, stageId, datum, uren, taken, reflectie, leerpunten) => {
-    const [result] = await pool.query(
-        `INSERT INTO LOGBOEK_DAG
-        (week_id, stage_id, datum, uren, taken_beschrijving, reflectie, leerpunten)
-        VALUES (?, ?, ?, ?, ?, ?, ?)`,
-        [weekId, stageId, datum, uren, taken, reflectie, leerpunten]
-    );
-    return result.insertId;
-};
+    static async findDag(stageId, datum) {
+        const [rows] = await db.query(
+            `SELECT * FROM LOGBOEK_DAG WHERE stage_id = ? AND datum = ?`,
+            [stageId, datum]
+        );
+        return rows[0];
+    }
 
-// Werk een bestaande dag-entry bij
-const updateDag = async (dagId, uren, taken, reflectie, leerpunten) => {
-    await pool.query(
-        `UPDATE LOGBOEK_DAG
-        SET uren = ?, taken_beschrijving = ?, reflectie = ?, leerpunten = ?
-        WHERE dag_id = ?`,
-        [uren, taken, reflectie, leerpunten, dagId]
-    );
-};
+    static async createDag(weekId, stageId, datum, uren, taken, reflectie, leerpunten) {
+        const [result] = await db.query(
+            `INSERT INTO LOGBOEK_DAG
+            (week_id, stage_id, datum, uren, taken_beschrijving, reflectie, leerpunten)
+            VALUES (?, ?, ?, ?, ?, ?, ?)`,
+            [weekId, stageId, datum, uren, taken, reflectie, leerpunten]
+        );
+        return result.insertId;
+    }
 
-// Haal alle dagen van een week op (gesorteerd op datum)
-const getDagenVanWeek = async (weekId) => {
-    const [rows] = await pool.query(
-        `SELECT dag_id, datum, uren, taken_beschrijving, reflectie, leerpunten
-        FROM LOGBOEK_DAG
-        WHERE week_id = ?
-        ORDER BY datum ASC`,
-        [weekId]
-    );
-    return rows;
-};
+    static async updateDag(dagId, uren, taken, reflectie, leerpunten) {
+        await db.query(
+            `UPDATE LOGBOEK_DAG
+            SET uren = ?, taken_beschrijving = ?, reflectie = ?, leerpunten = ?
+            WHERE dag_id = ?`,
+            [uren, taken, reflectie, leerpunten, dagId]
+        );
+    }
 
-// Dien een week in (status + tijdstip)
-const dienWeekIn = async (weekId) => {
-    await pool.query(
-        `UPDATE LOGBOEK_WEEK
-        SET status = 'ingediend', ingediend_op = NOW()
-        WHERE week_id = ?`,
-        [weekId]
-    );
-};
+    static async getDagenVanWeek(weekId) {
+        const [rows] = await db.query(
+            `SELECT dag_id, datum, uren, taken_beschrijving, reflectie, leerpunten
+            FROM LOGBOEK_DAG WHERE week_id = ? ORDER BY datum ASC`,
+            [weekId]
+        );
+        return rows;
+    }
 
-const getLaatsteDag = async (gebruikerId) => {
-    const [rows] = await pool.query(
-        `SELECT ld.dag_id, ld.datum, ld.uren, ld.taken_beschrijving, ld.reflectie, ld.leerpunten
-        FROM LOGBOEK_DAG ld
-        JOIN STAGE st ON st.stage_id = ld.stage_id
-        JOIN STUDENT s ON s.student_id = st.student_id
-        WHERE s.gebruiker_id = ?
-        ORDER BY ld.datum DESC
-        LIMIT 1`,   
-        [gebruikerId]
-    );
-    return rows[0];
-};
+    static async dienWeekIn(weekId) {
+        await db.query(
+            `UPDATE LOGBOEK_WEEK SET status = 'ingediend', ingediend_op = NOW() WHERE week_id = ?`,
+            [weekId]
+        );
+    }
 
-const getStageHeader = async (gebruikerId) => {
-    const [rows] = await pool.query(
-        `SELECT st.titel, st.startdatum, st.einddatum, b.naam AS bedrijf_naam
-        FROM STUDENT s
-        JOIN STAGE st ON st.student_id = s.student_id
-        LEFT JOIN BEDRIJF b ON b.bedrijf_id = st.bedrijf_id
-        WHERE s.gebruiker_id = ?
-        ORDER BY st.startdatum DESC LIMIT 1`,
-        [gebruikerId]
-    );
-    return rows[0];
-};
+    static async getLaatsteDag(gebruikerId) {
+        const [rows] = await db.query(
+            `SELECT ld.dag_id, ld.datum, ld.uren, ld.taken_beschrijving, ld.reflectie, ld.leerpunten
+            FROM LOGBOEK_DAG ld
+            JOIN STAGE st ON st.stage_id = ld.stage_id
+            JOIN STUDENT s ON s.student_id = st.student_id
+            WHERE s.gebruiker_id = ?
+            ORDER BY ld.datum DESC LIMIT 1`,
+            [gebruikerId]
+        );
+        return rows[0];
+    }
 
-// Alle beschikbare competenties ophalen
-const getAlleCompetenties = async () => {
-    const [comps] = await pool.query(
-        `SELECT competentie_id, naam FROM COMPETENTIE ORDER BY naam ASC`
-    );
-    const [niveaus] = await pool.query(
-        `SELECT rubriek_id, competentie_id, punten, omschrijving FROM RUBRIEK ORDER BY punten ASC`
-    );
-    return comps.map(c => ({
-        competentie_id: c.competentie_id,
-        naam: c.naam,
-        niveaus: niveaus.filter(n => n.competentie_id === c.competentie_id)
-    }));
-};
+    static async getStageHeader(gebruikerId) {
+        const [rows] = await db.query(
+            `SELECT st.titel, st.startdatum, st.einddatum, b.naam AS bedrijf_naam
+            FROM STUDENT s
+            JOIN STAGE st ON st.student_id = s.student_id
+            LEFT JOIN BEDRIJF b ON b.bedrijf_id = st.bedrijf_id
+            WHERE s.gebruiker_id = ?
+            ORDER BY st.startdatum DESC LIMIT 1`,
+            [gebruikerId]
+        );
+        return rows[0];
+    }
 
-// Competenties van één dag ophalen
-const getCompetentiesVanDag = async (dagId) => {
-    const [rows] = await pool.query(
-        `SELECT lc.competentie_id, c.naam, lc.score, lc.commentaar
-        FROM LOGBOEK_COMPETENTIE lc
-        JOIN COMPETENTIE c ON c.competentie_id = lc.competentie_id
-        WHERE lc.dag_id = ?`,
-        [dagId]
-    );
-    return rows;
-};
+    static async getAlleCompetenties() {
+        const [comps] = await db.query(`SELECT competentie_id, naam FROM COMPETENTIE ORDER BY naam ASC`);
+        const [niveaus] = await db.query(`SELECT rubriek_id, competentie_id, punten, omschrijving FROM RUBRIEK ORDER BY punten ASC`);
+        return comps.map(c => ({
+            competentie_id: c.competentie_id,
+            naam: c.naam,
+            niveaus: niveaus.filter(n => n.competentie_id === c.competentie_id)
+        }));
+    }
 
-// Competenties van een dag opslaan (eerst leegmaken, dan opnieuw invoegen)
-const slaCompetentiesOp = async (dagId, studentId, competenties) => {
-    await pool.query(`DELETE FROM LOGBOEK_COMPETENTIE WHERE dag_id = ?`, [dagId]);
-    if (!competenties || competenties.length === 0) return;
-    const values = competenties.map(c => [dagId, studentId, c.competentie_id, c.score ?? null, c.commentaar || null]);
-    await pool.query(
-        `INSERT INTO LOGBOEK_COMPETENTIE (dag_id, student_id, competentie_id, score, commentaar) VALUES ?`,
-        [values]
-    );
-};
+    static async getCompetentiesVanDag(dagId) {
+        const [rows] = await db.query(
+            `SELECT lc.competentie_id, c.naam, lc.score, lc.commentaar
+            FROM LOGBOEK_COMPETENTIE lc
+            JOIN COMPETENTIE c ON c.competentie_id = lc.competentie_id
+            WHERE lc.dag_id = ?`,
+            [dagId]
+        );
+        return rows;
+    }
 
-const getGebruiker = async (gebruikerId) => {
-    const [rows] = await pool.query(
-        `SELECT id, naam, email, rol FROM GEBRUIKER WHERE id = ?`,
-        [gebruikerId]
-    );
-    return rows[0];
-};
+    static async slaCompetentiesOp(dagId, studentId, competenties) {
+        await db.query(`DELETE FROM LOGBOEK_COMPETENTIE WHERE dag_id = ?`, [dagId]);
+        if (!competenties || competenties.length === 0) return;
+        const values = competenties.map(c => [dagId, studentId, c.competentie_id, c.score ?? null, c.commentaar || null]);
+        await db.query(
+            `INSERT INTO LOGBOEK_COMPETENTIE (dag_id, student_id, competentie_id, score, commentaar) VALUES ?`,
+            [values]
+        );
+    }
 
-module.exports = {
-    getStudentMetStage,
-    findWeek,
-    createWeek,
-    findDag,
-    createDag,
-    updateDag,
-    getDagenVanWeek,
-    dienWeekIn,
-    getLaatsteDag,
-    getStageHeader,
-    getAlleCompetenties,
-    getCompetentiesVanDag,
-    slaCompetentiesOp,
-    getGebruiker
-};
+    static async getGebruiker(gebruikerId) {
+        const [rows] = await db.query(`SELECT id, naam, email, rol FROM GEBRUIKER WHERE id = ?`, [gebruikerId]);
+        return rows[0];
+    }
+}
+
+module.exports = StudentModel;

@@ -1,27 +1,23 @@
 const express = require('express');
 const router = express.Router();
-const { vulDagIn, getWeek, dienWeekIn, getLaatste, getStageInfo, getCompetenties, getDagCompetenties, getProfiel, getDagOpDatum } = require('../controllers/studentController');
+const StudentController = require('../controllers/studentController');
 const { verifyToken, requireRole } = require('../middleware/authMiddleware');
 
-// POST /api/student/logboek — een dag invullen of bijwerken
-router.post('/logboek', verifyToken, requireRole('student'), vulDagIn);
+// ── main ──
+router.get('/dashboard', verifyToken, requireRole('student'), StudentController.getDashboard);
+router.get('/logboek', verifyToken, requireRole('student'), StudentController.getLogboek);
+router.post('/logboek/dag', verifyToken, requireRole('student'), StudentController.saveLogboekDag);
+router.get('/evaluaties', verifyToken, requireRole('student'), StudentController.getEvaluaties);
 
-// GET /api/student/logboek/week/:nr — een week ophalen met al zijn dagen
-router.get('/logboek/week/:nr', verifyToken, requireRole('student'), getWeek);
-
-// PUT /api/student/logboek/week/:nr/indienen — een week indienen
-router.put('/logboek/week/:nr/indienen', verifyToken, requireRole('student'), dienWeekIn);
-
-router.get('/logboek/laatste', verifyToken, requireRole('student'), getLaatste);
-
-router.get('/stage-info', verifyToken, requireRole('student'), getStageInfo);
-
-router.get('/competenties', verifyToken, requireRole('student'), getCompetenties);
-
-router.get('/logboek/dag/:dagId/competenties', verifyToken, requireRole('student'), getDagCompetenties);
-
-router.get('/profiel', verifyToken, requireRole('student'), getProfiel);
-
-router.get('/logboek/dag', verifyToken, requireRole('student'), getDagOpDatum);
+// ── logboek-feature ──
+router.post('/logboek', verifyToken, requireRole('student'), StudentController.vulDagIn);
+router.get('/logboek/week/:nr', verifyToken, requireRole('student'), StudentController.getWeek);
+router.put('/logboek/week/:nr/indienen', verifyToken, requireRole('student'), StudentController.dienWeekIn);
+router.get('/logboek/laatste', verifyToken, requireRole('student'), StudentController.getLaatste);
+router.get('/stage-info', verifyToken, requireRole('student'), StudentController.getStageInfo);
+router.get('/competenties', verifyToken, requireRole('student'), StudentController.getCompetenties);
+router.get('/logboek/dag', verifyToken, requireRole('student'), StudentController.getDagOpDatum);
+router.get('/logboek/dag/:dagId/competenties', verifyToken, requireRole('student'), StudentController.getDagCompetenties);
+router.get('/profiel', verifyToken, requireRole('student'), StudentController.getProfiel);
 
 module.exports = router;

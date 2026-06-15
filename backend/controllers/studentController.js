@@ -1,4 +1,4 @@
-const studentModel = require('../models/studentModel');
+const StudentModel = require('../models/studentModel');
 
 // Hulpfunctie: in welke week van de stage valt deze datum?
 const berekenWeeknummer = (datum, startdatum) => {
@@ -8,214 +8,220 @@ const berekenWeeknummer = (datum, startdatum) => {
     return Math.floor(verschilInDagen / 7) + 1;
 };
 
-// POST /api/student/logboek — een dag invullen of bijwerken
-const vulDagIn = async (req, res) => {
-    const { datum, taken_beschrijving, competenties } = req.body;
-    const uren = req.body.uren ?? null;
-    const reflectie = req.body.reflectie ?? null;
-    const leerpunten = req.body.leerpunten ?? null;
+class StudentController {
 
-    if (!datum || !taken_beschrijving) {
-        return res.status(400).json({ error: 'Datum en taken zijn verplicht' });
+    // ===== Bestaande methods van main — NIET verwijderen =====
+    static async getDashboard(req, res) {
+        try {
+            const gebruikerId = req.user.id;
+            const student = await StudentModel.getStudentByGebruikerId(gebruikerId);
+            if (!student) return res.status(404).json({ error: 'Studentprofiel niet gevonden' });
+            const [stats, stageproces, logboek, notificaties] = await Promise.all([
+                StudentModel.getDashboardStats(student.student_id),
+                StudentModel.getStageproces(student.student_id),
+                StudentModel.getLogboekDezeWeek(student.student_id),
+                StudentModel.getNotificaties(gebruikerId)
+            ]);
+            res.json({ student, stats, stageproces, logboekDezeWeek: logboek, notificaties });
+        } catch (err) {
+            console.error(err);
+            res.status(500).json({ error: 'Serverfout bij ophalen dashboard' });
+        }
     }
 
-    try {
-        const info = await studentModel.getStudentMetStage(req.user.id);
-        if (!info) {
-            return res.status(404).json({ error: 'Geen student of stage gevonden' });
+    static async getLogboek(req, res) {
+        try {
+            const gebruikerId = req.user.id;
+            const student = await StudentModel.getStudentByGebruikerId(gebruikerId);
+            if (!student) return res.status(404).json({ error: 'Studentprofiel niet gevonden' });
+            const [stageInfo, laasteDag] = await Promise.all([
+                StudentModel.getLogboekStageInfo(student.student_id),
+                StudentModel.getLaatsteLogboekDag(student.student_id)
+            ]);
+            res.json({ stageInfo, laasteDag });
+        } catch (err) {
+            console.error(err);
+            res.status(500).json({ error: 'Serverfout bij ophalen logboek' });
         }
-
-        // Weeknummer berekenen uit de datum
-        const weeknummer = berekenWeeknummer(datum, info.startdatum);
-        if (weeknummer < 1) {
-            return res.status(400).json({ error: 'Datum valt vóór de start van de stage' });
-        }
-
-        // Datum mag niet ná het einde van de stage liggen
-        if (info.einddatum && new Date(datum) > new Date(info.einddatum)) {
-            return res.status(400).json({ error: 'Datum valt ná het einde van de stage' });
-        }
-
-        // Week zoeken
-        let week = await studentModel.findWeek(info.stage_id, weeknummer);
-
-        // Een al ingediende week mag niet meer bewerkt worden
-        if (week && week.status === 'ingediend') {
-            return res.status(403).json({ error: 'Deze week is al ingediend en kan niet meer bewerkt worden' });
-        }
-
-        // Week aanmaken als die nog niet bestaat
-        let weekId;
-        if (week) {
-            weekId = week.week_id;
-        } else {
-            weekId = await studentModel.createWeek(info.stage_id, weeknummer);
-        }
-
-        // Upsert: dag bijwerken als hij bestaat, anders aanmaken
-        const bestaandeDag = await studentModel.findDag(info.stage_id, datum);
-        let dagId;
-        let nieuw;
-        if (bestaandeDag) {
-            await studentModel.updateDag(bestaandeDag.dag_id, uren, taken_beschrijving, reflectie, leerpunten);
-            dagId = bestaandeDag.dag_id;
-            nieuw = false;
-        } else {
-            dagId = await studentModel.createDag(weekId, info.stage_id, datum, uren, taken_beschrijving, reflectie, leerpunten);
-            nieuw = true;
-        }
-
-        // Competenties van de dag opslaan (als ze meegestuurd zijn)
-        if (Array.isArray(competenties)) {
-            await studentModel.slaCompetentiesOp(dagId, info.student_id, competenties);
-        }
-
-        return res.status(nieuw ? 201 : 200).json({
-            message: nieuw ? 'Dag toegevoegd' : 'Dag bijgewerkt',
-            dag_id: dagId,
-            weeknummer
-        });
     }
-    catch (err) {
-        console.error(err);
-        res.status(500).json({ error: 'Serverfout bij invullen logboek' });
-    }
-};
 
-// GET /api/student/logboek/week/:nr — een week ophalen met al zijn dagen
-const getWeek = async (req, res) => {
-    const weeknummer = Number(req.params.nr);
-
-    try {
-        const info = await studentModel.getStudentMetStage(req.user.id);
-        if (!info) {
-            return res.status(404).json({ error: 'Geen student of stage gevonden' });
+    static async saveLogboekDag(req, res) {
+        const { datum, taken_beschrijving, reflectie, leerpunten, uren } = req.body;
+        if (!datum || !taken_beschrijving) return res.status(400).json({ error: 'Datum en taken zijn verplicht' });
+        try {
+            const result = await StudentModel.saveLogboekDag(req.user.id, datum, taken_beschrijving, reflectie, leerpunten, uren);
+            if (!result) return res.status(404).json({ error: 'Geen student of stage gevonden' });
+            res.status(result.actie === 'aangemaakt' ? 201 : 200).json({
+                message: `Logboek dag ${result.actie}`, dag_id: result.dag_id, weeknummer: result.weeknummer
+            });
+        } catch (err) {
+            if (err.message === 'WEEK_INGEDIEND') return res.status(403).json({ error: 'Deze week is al ingediend en kan niet meer bewerkt worden' });
+            console.error(err);
+            res.status(500).json({ error: 'Serverfout bij opslaan logboek' });
         }
+    }
 
-        const week = await studentModel.findWeek(info.stage_id, weeknummer);
-        if (!week) {
-            return res.status(404).json({ error: 'Deze week bestaat nog niet' });
+    static async getEvaluaties(req, res) {
+        try {
+            const gebruikerId = req.user.id;
+            const student = await StudentModel.getStudentByGebruikerId(gebruikerId);
+            if (!student) return res.status(404).json({ error: 'Studentprofiel niet gevonden' });
+            const [tussentijds, finaal] = await Promise.all([
+                StudentModel.getTussentijdseEvaluatie(student.student_id),
+                StudentModel.getFinaleEvaluatie(student.student_id)
+            ]);
+            res.json({ tussentijds, finaal });
+        } catch (err) {
+            console.error(err);
+            res.status(500).json({ error: 'Serverfout bij ophalen evaluaties' });
         }
-
-        const dagen = await studentModel.getDagenVanWeek(week.week_id);
-
-        res.json({
-            weeknummer: week.weeknummer,
-            status: week.status,
-            ingediend_op: week.ingediend_op,
-            dagen
-        });
-    } catch (err) {
-        console.error(err);
-        res.status(500).json({ error: 'Serverfout bij ophalen week' });
     }
-};
 
-// PUT /api/student/logboek/week/:nr/indienen — een week indienen
-const dienWeekIn = async (req, res) => {
-    const weeknummer = Number(req.params.nr);
+    // ===== Logboek-feature (jouw werk, nu als static methods) =====
+    static async vulDagIn(req, res) {
+        const { datum, taken_beschrijving, competenties } = req.body;
+        const uren = req.body.uren ?? null;
+        const reflectie = req.body.reflectie ?? null;
+        const leerpunten = req.body.leerpunten ?? null;
+        if (!datum || !taken_beschrijving) return res.status(400).json({ error: 'Datum en taken zijn verplicht' });
+        try {
+            const info = await StudentModel.getStudentMetStage(req.user.id);
+            if (!info) return res.status(404).json({ error: 'Geen student of stage gevonden' });
 
-    try {
-        const info = await studentModel.getStudentMetStage(req.user.id);
-        if (!info) {
-            return res.status(404).json({ error: 'Geen student of stage gevonden' });
+            const weeknummer = berekenWeeknummer(datum, info.startdatum);
+            if (weeknummer < 1) return res.status(400).json({ error: 'Datum valt vóór de start van de stage' });
+            if (info.einddatum && new Date(datum) > new Date(info.einddatum)) {
+                return res.status(400).json({ error: 'Datum valt ná het einde van de stage' });
+            }
+
+            let week = await StudentModel.findWeek(info.stage_id, weeknummer);
+            if (week && week.status === 'ingediend') {
+                return res.status(403).json({ error: 'Deze week is al ingediend en kan niet meer bewerkt worden' });
+            }
+            const weekId = week ? week.week_id : await StudentModel.createWeek(info.stage_id, weeknummer);
+
+            const bestaandeDag = await StudentModel.findDag(info.stage_id, datum);
+            let dagId, nieuw;
+            if (bestaandeDag) {
+                await StudentModel.updateDag(bestaandeDag.dag_id, uren, taken_beschrijving, reflectie, leerpunten);
+                dagId = bestaandeDag.dag_id; nieuw = false;
+            } else {
+                dagId = await StudentModel.createDag(weekId, info.stage_id, datum, uren, taken_beschrijving, reflectie, leerpunten);
+                nieuw = true;
+            }
+
+            if (Array.isArray(competenties)) {
+                await StudentModel.slaCompetentiesOp(dagId, info.student_id, competenties);
+            }
+
+            return res.status(nieuw ? 201 : 200).json({ message: nieuw ? 'Dag toegevoegd' : 'Dag bijgewerkt', dag_id: dagId, weeknummer });
+        } catch (err) {
+            console.error(err);
+            res.status(500).json({ error: 'Serverfout bij invullen logboek' });
         }
+    }
 
-        const week = await studentModel.findWeek(info.stage_id, weeknummer);
-        if (!week) {
-            return res.status(404).json({ error: 'Deze week bestaat nog niet' });
+    static async getWeek(req, res) {
+        const weeknummer = Number(req.params.nr);
+        try {
+            const info = await StudentModel.getStudentMetStage(req.user.id);
+            if (!info) return res.status(404).json({ error: 'Geen student of stage gevonden' });
+            const week = await StudentModel.findWeek(info.stage_id, weeknummer);
+            if (!week) return res.status(404).json({ error: 'Deze week bestaat nog niet' });
+            const dagen = await StudentModel.getDagenVanWeek(week.week_id);
+            res.json({ weeknummer: week.weeknummer, status: week.status, ingediend_op: week.ingediend_op, dagen });
+        } catch (err) {
+            console.error(err);
+            res.status(500).json({ error: 'Serverfout bij ophalen week' });
         }
+    }
 
-        if (week.status === 'ingediend') {
-            return res.status(409).json({ error: 'Deze week is al ingediend' });
+    static async dienWeekIn(req, res) {
+        const weeknummer = Number(req.params.nr);
+        try {
+            const info = await StudentModel.getStudentMetStage(req.user.id);
+            if (!info) return res.status(404).json({ error: 'Geen student of stage gevonden' });
+            const week = await StudentModel.findWeek(info.stage_id, weeknummer);
+            if (!week) return res.status(404).json({ error: 'Deze week bestaat nog niet' });
+            if (week.status === 'ingediend') return res.status(409).json({ error: 'Deze week is al ingediend' });
+            await StudentModel.dienWeekIn(week.week_id);
+            res.json({ message: `Week ${weeknummer} ingediend` });
+        } catch (err) {
+            console.error(err);
+            res.status(500).json({ error: 'Serverfout bij indienen week' });
         }
-
-        await studentModel.dienWeekIn(week.week_id);
-        res.json({ message: `Week ${weeknummer} ingediend` });
-    } catch (err) {
-        console.error(err);
-        res.status(500).json({ error: 'Serverfout bij indienen week' });
     }
-};
 
-const getLaatste = async (req, res) => {
-    try {
-        const dag = await studentModel.getLaatsteDag(req.user.id);
-        if (!dag) {
-            return res.status(404).json({ error: 'Nog geen logboek ingevuld' });
+    static async getLaatste(req, res) {
+        try {
+            const dag = await StudentModel.getLaatsteDag(req.user.id);
+            if (!dag) return res.status(404).json({ error: 'Nog geen logboek ingevuld' });
+            dag.competenties = await StudentModel.getCompetentiesVanDag(dag.dag_id);
+            res.json(dag);
+        } catch (err) {
+            console.error(err);
+            res.status(500).json({ error: 'Serverfout bij ophalen laatste logboek' });
         }
-        dag.competenties = await studentModel.getCompetentiesVanDag(dag.dag_id);
-        res.json(dag);
-    } catch (err) {
-        console.error(err);
-        res.status(500).json({ error: 'Serverfout bij ophalen laatste logboek' });
     }
-};
 
-const getStageInfo = async (req, res) => {
-    try {
-        const stage = await studentModel.getStageHeader(req.user.id);
-        if (!stage) {
-            return res.status(404).json({ error: 'Geen stage gevonden' });
+    static async getStageInfo(req, res) {
+        try {
+            const stage = await StudentModel.getStageHeader(req.user.id);
+            if (!stage) return res.status(404).json({ error: 'Geen stage gevonden' });
+            res.json(stage);
+        } catch (err) {
+            console.error(err);
+            res.status(500).json({ error: 'Serverfout bij ophalen stage-info' });
         }
-        res.json(stage);
-    } catch (err) {
-        console.error(err);
-        res.status(500).json({ error: 'Serverfout bij ophalen stage-info' });
     }
-};
 
-// GET /api/student/competenties — alle competenties ophalen
-const getCompetenties = async (req, res) => {
-    try {
-        const lijst = await studentModel.getAlleCompetenties();
-        res.json(lijst);
-    } catch (err) {
-        console.error(err);
-        res.status(500).json({ error: 'Serverfout bij ophalen competenties' });
+    static async getCompetenties(req, res) {
+        try {
+            const lijst = await StudentModel.getAlleCompetenties();
+            res.json(lijst);
+        } catch (err) {
+            console.error(err);
+            res.status(500).json({ error: 'Serverfout bij ophalen competenties' });
+        }
     }
-};
 
-// GET /api/student/logboek/dag/:dagId/competenties — competenties van een dag
-const getDagCompetenties = async (req, res) => {
-    const dagId = Number(req.params.dagId);
-    try {
-        const lijst = await studentModel.getCompetentiesVanDag(dagId);
-        res.json(lijst);
-    } catch (err) {
-        console.error(err);
-        res.status(500).json({ error: 'Serverfout bij ophalen dag-competenties' });
+    static async getDagCompetenties(req, res) {
+        const dagId = Number(req.params.dagId);
+        try {
+            const lijst = await StudentModel.getCompetentiesVanDag(dagId);
+            res.json(lijst);
+        } catch (err) {
+            console.error(err);
+            res.status(500).json({ error: 'Serverfout bij ophalen dag-competenties' });
+        }
     }
-};
 
-const getProfiel = async (req, res) => {
-    try {
-        const gebruiker = await studentModel.getGebruiker(req.user.id);
-        if (!gebruiker) return res.status(404).json({ error: 'Gebruiker niet gevonden' });
-        res.json(gebruiker);
-    } catch (err) {
-        console.error(err);
-        res.status(500).json({ error: 'Serverfout bij ophalen profiel' });
+    static async getProfiel(req, res) {
+        try {
+            const gebruiker = await StudentModel.getGebruiker(req.user.id);
+            if (!gebruiker) return res.status(404).json({ error: 'Gebruiker niet gevonden' });
+            res.json(gebruiker);
+        } catch (err) {
+            console.error(err);
+            res.status(500).json({ error: 'Serverfout bij ophalen profiel' });
+        }
     }
-};
 
-// GET /api/student/logboek/dag?datum=YYYY-MM-DD — één dag + zijn competenties ophalen
-const getDagOpDatum = async (req, res) => {
-    const datum = req.query.datum;
-    if (!datum) return res.status(400).json({ error: 'Datum ontbreekt' });
-    try {
-        const info = await studentModel.getStudentMetStage(req.user.id);
-        if (!info) return res.status(404).json({ error: 'Geen student of stage gevonden' });
-
-        const dag = await studentModel.findDag(info.stage_id, datum);
-        if (!dag) return res.status(404).json({ error: 'Nog geen logboek voor deze datum' });
-
-        dag.competenties = await studentModel.getCompetentiesVanDag(dag.dag_id);
-        res.json(dag);
-    } catch (err) {
-        console.error(err);
-        res.status(500).json({ error: 'Serverfout bij ophalen dag' });
+    static async getDagOpDatum(req, res) {
+        const datum = req.query.datum;
+        if (!datum) return res.status(400).json({ error: 'Datum ontbreekt' });
+        try {
+            const info = await StudentModel.getStudentMetStage(req.user.id);
+            if (!info) return res.status(404).json({ error: 'Geen student of stage gevonden' });
+            const dag = await StudentModel.findDag(info.stage_id, datum);
+            if (!dag) return res.status(404).json({ error: 'Nog geen logboek voor deze datum' });
+            dag.competenties = await StudentModel.getCompetentiesVanDag(dag.dag_id);
+            res.json(dag);
+        } catch (err) {
+            console.error(err);
+            res.status(500).json({ error: 'Serverfout bij ophalen dag' });
+        }
     }
-};
+}
 
-module.exports = { vulDagIn, getWeek, dienWeekIn, getLaatste, getStageInfo, getCompetenties, getDagCompetenties, getProfiel, getDagOpDatum };
+module.exports = StudentController;
