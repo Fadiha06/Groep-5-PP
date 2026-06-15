@@ -725,3 +725,149 @@ body {
     gap: 8px;
   }
 }
+
+/* ── DAGELIJKSE COMPETENTIE-RUBRIEK (kaarten) ── */
+.rubriek-blok__head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 18px;
+}
+
+.rubriek-blok__titel {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.rubriek-blok__sub {
+  font-size: 13px;
+  color: var(--text-secondary);
+  margin-top: 4px;
+}
+
+.rubriek-totaal {
+  flex-shrink: 0;
+  background: rgba(59,130,246,0.10);
+  color: var(--blue);
+  font-weight: 700;
+  font-size: 15px;
+  padding: 10px 18px;
+  border-radius: 8px;
+  white-space: nowrap;
+}
+
+#competenties-lijst {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.comp-kaart {
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.comp-kaart__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  background: #F8FAFC;
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--border);
+}
+
+.comp-kaart__naam {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.comp-kaart__max {
+  font-weight: 500;
+  color: var(--text-muted);
+  font-size: 13px;
+}
+
+.comp-kaart__score {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--blue);
+  white-space: nowrap;
+}
+
+.comp-kaart__niveaus {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+}
+
+.niveau-vak {
+  padding: 16px;
+  cursor: pointer;
+  border-right: 1px solid var(--border);
+  transition: background 0.15s, box-shadow 0.15s;
+}
+
+.niveau-vak:last-child {
+  border-right: none;
+}
+
+.niveau-vak:hover {
+  background: #F8FAFC;
+}
+
+.niveau-vak__titel {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 6px;
+}
+
+.niveau-vak__desc {
+  font-size: 13px;
+  color: var(--text-secondary);
+  line-height: 1.5;
+}
+
+/* Geselecteerd niveau */
+.niveau-vak.geselecteerd {
+  background: rgba(59,130,246,0.08);
+  box-shadow: inset 0 0 0 2px var(--blue);
+}
+
+/* Feedback-veld onderaan elke kaart */
+.comp-feedback {
+  width: 100%;
+  border: none;
+  border-top: 1px solid var(--border);
+  padding: 12px 18px;
+  font-family: inherit;
+  font-size: 14px;
+  color: var(--text-primary);
+  outline: none;
+}
+
+.comp-feedback::placeholder {
+  color: var(--text-muted);
+}
+
+.comp-feedback:focus {
+  background: #F8FAFC;
+}
+
+/* Responsive: niveaus onder elkaar op smal scherm */
+@media (max-width: 700px) {
+  .comp-kaart__niveaus {
+    grid-template-columns: 1fr;
+  }
+  .niveau-vak {
+    border-right: none;
+    border-bottom: 1px solid var(--border);
+  }
+  .niveau-vak:last-child {
+    border-bottom: none;
+  }
+}

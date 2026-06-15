@@ -69,11 +69,19 @@
                         <input type="number" id="uren" placeholder="Bijv. 6" min="0" max="24" style="max-width:160px;" required />
                     </div>
                     <br />
-                    <div class="form-group">
-                        <label>Competenties van vandaag</label>
+
+                    <div class="rubriek-blok">
+                        <div class="rubriek-blok__head">
+                            <div>
+                                <div class="rubriek-blok__titel">Dagelijkse competentie-rubriek</div>
+                                <div class="rubriek-blok__sub">Klik op een vak om een score toe te kennen per competentie. Feedback is optioneel.</div>
+                            </div>
+                            <div class="rubriek-totaal" id="rubriek-totaal">Totaal: 0/0 ptn</div>
+                        </div>
                         <div id="competenties-lijst">Laden...</div>
                     </div>
                     <br />
+
                     <div class="form-actions">
                         <button class="btn btn-primary" onclick="slaOp()">Logboek opslaan</button>
                         <button class="btn btn-secondary">Annuleren</button>
@@ -101,6 +109,12 @@
         const API = 'http://localhost:3000/api/student';
         const token = localStorage.getItem('token');
 
+        function labelVoorPunten(p) {
+            if (p <= 1) return 'Onvoldoende';
+            if (p <= 3) return 'Goed';
+            return 'Uitstekend';
+        }
+
         async function laadStageHeader() {
             if (!token) return;
             try {
@@ -117,24 +131,53 @@
             }
         }
 
+        function updateTotaal() {
+            const kaarten = document.querySelectorAll('.comp-kaart');
+            let totaal = 0, max = 0;
+            kaarten.forEach(k => {
+                max += 5;
+                if (k.dataset.score) totaal += Number(k.dataset.score);
+            });
+            document.getElementById('rubriek-totaal').textContent = `Totaal: ${totaal}/${max} ptn`;
+        }
+
         async function laadCompetenties() {
             if (!token) return;
             try {
-                const res = await fetch(`${API}/competenties`, {
-                    headers: { 'Authorization': 'Bearer ' + token }
-                });
+                const res = await fetch(`${API}/competenties`, { headers: { 'Authorization': 'Bearer ' + token } });
                 if (!res.ok) return;
                 const lijst = await res.json();
                 const box = document.getElementById('competenties-lijst');
                 box.innerHTML = lijst.map(c => `
-                    <div class="comp-rij">
-                        <label>
-                            <input type="checkbox" class="comp-check" value="${c.competentie_id}" />
-                            ${c.naam}
-                        </label>
-                        <input type="text" class="comp-comment" data-id="${c.competentie_id}" placeholder="Commentaar (optioneel)..." />
+                    <div class="comp-kaart" data-comp="${c.competentie_id}">
+                        <div class="comp-kaart__head">
+                            <span class="comp-kaart__naam">${c.naam} <span class="comp-kaart__max">(Max 5 ptn)</span></span>
+                            <span class="comp-kaart__score" data-score-label>Score: –/5</span>
+                        </div>
+                        <div class="comp-kaart__niveaus">
+                            ${c.niveaus.map(n => `
+                                <div class="niveau-vak" data-punten="${n.punten}">
+                                    <div class="niveau-vak__titel">${n.punten} ptn – ${labelVoorPunten(n.punten)}</div>
+                                    <div class="niveau-vak__desc">${n.omschrijving}</div>
+                                </div>
+                            `).join('')}
+                        </div>
+                        <input type="text" class="comp-feedback" placeholder="Voeg specifieke feedback toe (optioneel)..." />
                     </div>
                 `).join('');
+
+                box.querySelectorAll('.niveau-vak').forEach(vak => {
+                    vak.addEventListener('click', () => {
+                        const kaart = vak.closest('.comp-kaart');
+                        kaart.querySelectorAll('.niveau-vak').forEach(v => v.classList.remove('geselecteerd'));
+                        vak.classList.add('geselecteerd');
+                        kaart.dataset.score = vak.dataset.punten;
+                        kaart.querySelector('[data-score-label]').textContent = `Score: ${vak.dataset.punten}/5`;
+                        updateTotaal();
+                    });
+                });
+
+                updateTotaal();
             } catch (err) {
                 console.error(err);
             }
@@ -175,10 +218,13 @@
                 return;
             }
 
-            const competenties = [...document.querySelectorAll('.comp-check:checked')].map(chk => ({
-                competentie_id: Number(chk.value),
-                commentaar: document.querySelector(`.comp-comment[data-id="${chk.value}"]`).value
-            }));
+            const competenties = [...document.querySelectorAll('.comp-kaart')]
+                .filter(k => k.dataset.score)
+                .map(k => ({
+                    competentie_id: Number(k.dataset.comp),
+                    score: Number(k.dataset.score),
+                    commentaar: k.querySelector('.comp-feedback').value
+                }));
 
             const data = {
                 datum: datum.value,
