@@ -33,6 +33,10 @@ exports.login = async (req, res) => {
             redirect_url = 'student_dashboard.html';
         } else if (user.rol === 'commissie' || user.rol === 'stagecommissie') {
             redirect_url = 'commissie_dashboard.html';
+        } else if (user.rol === 'stagementor' || user.rol === 'mentor') {
+            redirect_url = 'mentor_dashboard.html';
+        } else if (user.rol === 'docent') {
+            redirect_url = 'docent_dashboard.html';
         } else {
             redirect_url = 'index.html';
         }

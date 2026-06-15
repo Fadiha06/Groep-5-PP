@@ -19,7 +19,7 @@ exports.createAccount = async (req, res) => {
             return res.status(400).json({ error: 'Ongeldig e-mailadres' });
         }
 
-        const defaultPasswordHash = await argon2.hash('niet_ingesteld');
+        const defaultPasswordHash = await argon2.hash('test123');
         const rolFormatted = rol.toLowerCase();
         
         const gebruiker_id = await UserModel.createUser(naam, email, defaultPasswordHash, rolFormatted);
