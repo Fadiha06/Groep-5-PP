@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Bekijk en beoordeel de wekelijkse logboeken van je studenten.">
+  <title>Logboeken — EhB StageTool</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="src/CSS/mentor_logboeken.css" rel="stylesheet">
+</head>
+<body>
+  <div class="app-container">
+
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="sidebar-logo">
+        <div class="sidebar-logo-icon">E</div>
+        <div class="sidebar-logo-text">
+          <span class="sidebar-logo-title">EhB StageTool</span>
+          <span class="sidebar-logo-subtitle">Docentenportaal</span>
+        </div>
+      </div>
+      <nav class="sidebar-nav">
+        <a href="docent_dashboard.html" class="nav-item">
+          <span class="nav-icon">📊</span> Dashboard
+        </a>
+        <a href="docent_logboeken.html" class="nav-item active">
+          <span class="nav-icon">📋</span> Logboeken
+        </a>
+        <a href="docent_evaluatie.html" class="nav-item">
+          <span class="nav-icon">📝</span> Evaluatie
+        </a>
+      </nav>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+      <div class="main-header">
+        <div>
+          <h1 class="header-title">Wekelijkse Logboeken</h1>
+          <p class="header-subtitle">Bekijk en beoordeel de logboeken van je studenten</p>
+        </div>
+        <button class="logout-btn" onclick="logout()">Uitloggen</button>
+      </div>
+
+      <!-- Error banner -->
+      <div id="error-banner" class="alert alert-error hidden">
+        Kan geen verbinding maken met de server. Controleer of de backend actief is op poort 5000.
+      </div>
+
+      <!-- Student Selectie -->
+      <div class="card">
+        <div class="card-header">
+          <h2 class="card-title">Selecteer Student</h2>
+        </div>
+        <div id="student-select">
+          <div class="loading">Studenten laden</div>
+        </div>
+      </div>
+
+      <!-- Logboek Detail (verborgen tot een student gekozen is) -->
+      <div class="card hidden" id="logboek-detail">
+        <!-- Student info header -->
+        <div class="detail-header">
+          <div class="detail-avatar" id="student-avatar">?</div>
+          <div class="detail-info">
+            <h2 id="student-naam">Student Naam</h2>
+            <p id="student-meta">Opleiding · Bedrijf</p>
+          </div>
+        </div>
+
+        <!-- Week Navigatie -->
+        <div class="week-selector">
+          <button id="btn-vorige" onclick="vorigeWeek()">← Vorige</button>
+          <span id="week-label">Week 1/13</span>
+          <button id="btn-volgende" onclick="volgendeWeek()">Volgende →</button>
+        </div>
+
+        <!-- Status van dit logboek -->
+        <div class="logboek-status" id="logboek-status-row">
+          <span class="status-badge" id="logboek-status-badge">Status onbekend</span>
+          <span id="uren-totaal">0/40 uur gelogd</span>
+        </div>
+
+        <!-- Dagoverzicht tabel -->
+        <h3 class="card-title" style="margin-bottom: 12px;">Dagoverzicht</h3>
+        <div style="overflow-x: auto;">
+          <table class="logboek-table">
+            <thead>
+              <tr>
+                <th style="min-width:110px;">Datum</th>
+                <th style="min-width:60px;">Uren</th>
+                <th style="min-width:200px;">Taakomschrijving</th>
+                <th style="min-width:180px;">Reflectie / Leerpunten</th>
+              </tr>
+            </thead>
+            <tbody id="logboek-dagen">
+              <!-- Dynamisch ingevuld via JS -->
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Feedback sectie -->
+        <div style="margin-top: 24px; padding-top: 20px; border-top: 1px solid #F1F5F9;">
+          <h3 class="card-title" style="margin-bottom: 12px;">Feedback voor student</h3>
+          <textarea
+            id="logboek-feedback"
+            placeholder="Geef hier je schriftelijke feedback voor de student (optioneel)..."
+            style="min-height: 110px;"
+          ></textarea>
+          <div style="margin-top: 14px; display: flex; gap: 10px; flex-wrap: wrap;">
+            <button class="btn btn-primary" onclick="keurGoed()">✓ Goedkeuren</button>
+            <button class="btn btn-secondary" onclick="slaFeedbackOp()">Feedback opslaan</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Lege state: geen student geselecteerd -->
+      <div class="card" id="no-student">
+        <div class="empty-state">
+          <div class="empty-state-icon">📋</div>
+          <div class="empty-state-title">Selecteer een student</div>
+          <p>Kies een student uit de lijst hierboven om hun logboek te bekijken.</p>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- Success Modal -->
+  <div class="modal-overlay hidden" id="success-modal">
+    <div class="modal">
+      <div class="modal-icon">✓</div>
+      <h3 class="modal-title">Opgeslagen</h3>
+      <p class="modal-message" id="modal-msg">Je actie is succesvol uitgevoerd.</p>
+      <button class="modal-btn" onclick="sluitModal()">OK</button>
+    </div>
+  </div>
+
+  <script src="src/JS/api.js"></script>
+  <script src="src/JS/mentor_logboeken.js"></script>
+</body>
+</html>

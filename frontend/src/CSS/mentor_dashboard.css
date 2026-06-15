@@ -1,0 +1,81 @@
+/* ============================================
+   MENTOR DASHBOARD — pagina-specifieke stijlen
+   Gebruik naast mentor_shared.css
+   ============================================ */
+
+/* ── Stat cards: kleuraccenten per type ── */
+.stat-card:nth-child(1) .stat-icon { color: #3B82F6; }
+.stat-card:nth-child(2) .stat-icon { color: #F59E0B; }
+.stat-card:nth-child(3) .stat-icon { color: #8B5CF6; }
+
+.stat-card:nth-child(1) .stat-value { color: #1D4ED8; }
+.stat-card:nth-child(2) .stat-value { color: #B45309; }
+.stat-card:nth-child(3) .stat-value { color: #6D28D9; }
+
+/* Subtiele gekleurde linker rand per stat card */
+.stat-card:nth-child(1) { border-left: 4px solid #3B82F6; }
+.stat-card:nth-child(2) { border-left: 4px solid #F59E0B; }
+.stat-card:nth-child(3) { border-left: 4px solid #8B5CF6; }
+
+/* ── Te beoordelen logboeken — rijen ── */
+#logboek-list .student-item {
+  position: relative;
+}
+
+/* Rode stip voor wachtende items */
+#logboek-list .student-item::before {
+  content: '';
+  position: absolute;
+  left: -2px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 4px;
+  height: 60%;
+  background: #F59E0B;
+  border-radius: 0 2px 2px 0;
+}
+
+#logboek-list .student-item.status-late::before {
+  background: #EF4444;
+}
+
+/* ── Welkomtitel animatie ── */
+#welkom-titel {
+  background: linear-gradient(90deg, #1E293B 60%, #3B82F6);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* ── Zoekbalk: focus ring ── */
+#student-zoeken:focus {
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+}
+
+/* ── Kaart voor logboeken: blauwe header accent ── */
+.card:has(#logboek-list) .card-title {
+  color: #1D4ED8;
+}
+
+/* ── Lege staat in logboeklijst ── */
+#logboek-list .loading,
+#student-list .loading {
+  padding: 32px;
+}
+
+/* ── Student list item hover: zachte schaduw ── */
+.student-item:hover {
+  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.1);
+}
+
+/* ── "Alle logboeken →" link knop ── */
+.card-header .btn-secondary {
+  border-color: #BFDBFE;
+  color: #1D4ED8;
+  background: #EFF6FF;
+}
+
+.card-header .btn-secondary:hover {
+  background: #DBEAFE;
+  border-color: #93C5FD;
+}

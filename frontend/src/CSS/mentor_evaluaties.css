@@ -1,0 +1,120 @@
+/* ============================================
+   DOCENT EVALUATIE — pagina-specifieke stijlen
+   Gebruik naast mentor_shared.css
+   ============================================ */
+
+/* ── Totaalscore display: opvallend blok ── */
+#totaal-score {
+  background: #EFF6FF;
+  border: 2px solid #BFDBFE;
+  border-radius: 10px;
+  padding: 10px 18px;
+  min-width: 130px;
+}
+
+/* ── Tabs: actieve tab met gradient onderstreping ── */
+.tab.active {
+  background: linear-gradient(to bottom, transparent 80%, #EFF6FF 100%);
+}
+
+/* ── Competentie cards: focus state ── */
+.competentie-card {
+  transition: box-shadow 0.2s;
+}
+
+.competentie-card:focus-within {
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.12), 0 1px 3px rgba(0,0,0,0.06);
+}
+
+/* ── Competentie score badge ── */
+.competentie-score {
+  background: #EFF6FF;
+  border: 1px solid #BFDBFE;
+  border-radius: 6px;
+  padding: 3px 10px;
+  font-size: 13px;
+}
+
+/* ── Gekozen optie: sterker visueel onderscheid ── */
+.competentie-option.selected {
+  border-color: #3B82F6;
+  background: linear-gradient(135deg, #EFF6FF, #DBEAFE);
+  box-shadow: 0 1px 4px rgba(59, 130, 246, 0.18);
+}
+
+.competentie-option.selected .competentie-option-label {
+  color: #1D4ED8;
+}
+
+.competentie-option.selected .competentie-option-desc {
+  color: #374151;
+}
+
+/* ── Punten badge per niveau ── */
+.competentie-option:nth-child(1) .competentie-option-points { background: #FEE2E2; color: #991B1B; }
+.competentie-option:nth-child(2) .competentie-option-points { background: #FEF3C7; color: #92400E; }
+.competentie-option:nth-child(3) .competentie-option-points { background: #D1FAE5; color: #065F46; }
+.competentie-option:nth-child(4) .competentie-option-points { background: #DBEAFE; color: #1D4ED8; }
+
+/* Geselecteerde staat overschrijft kleur naar blauw */
+.competentie-option.selected .competentie-option-points {
+  background: #1D4ED8;
+  color: white;
+}
+
+/* ── Feedback textarea in competentie ── */
+.competentie-feedback textarea:focus {
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.12);
+}
+
+/* ── Opslaan knoppen ── */
+button.btn-primary[onclick="slaEvaluatieOp()"] {
+  background: linear-gradient(135deg, #2563EB, #1D4ED8);
+  box-shadow: 0 2px 8px rgba(37, 99, 235, 0.3);
+  transition: all 0.2s;
+}
+
+button.btn-primary[onclick="slaEvaluatieOp()"]:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.35);
+}
+
+button.btn-secondary[onclick="slaConceptOp()"] {
+  border-color: #BFDBFE;
+  color: #1D4ED8;
+  background: #EFF6FF;
+}
+
+button.btn-secondary[onclick="slaConceptOp()"]:hover {
+  background: #DBEAFE;
+}
+
+/* ── Detail avatar: paars tint voor evaluatiepagina ── */
+.detail-avatar {
+  background: linear-gradient(135deg, #8B5CF6, #6D28D9);
+}
+
+/* ── Student select: geselecteerde student ── */
+#student-select .student-item.selected .student-avatar {
+  background: linear-gradient(135deg, #8B5CF6, #6D28D9);
+}
+
+#student-select .student-item.selected {
+  border-color: #8B5CF6;
+  background: #F5F3FF;
+}
+
+/* ── Titelbalk: paarse gradient tekst ── */
+.header-title {
+  background: linear-gradient(90deg, #1E293B 50%, #7C3AED);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* ── Milestone tab: onderscheidende kleur ── */
+#tab-milestone.active {
+  color: #7C3AED;
+  border-bottom-color: #7C3AED;
+  background: linear-gradient(to bottom, transparent 80%, #F5F3FF 100%);
+}
