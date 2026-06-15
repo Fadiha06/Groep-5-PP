@@ -111,6 +111,34 @@ const getStageHeader = async (gebruikerId) => {
     return rows[0];
 };
 
+// Alle beschikbare competenties ophalen
+const getAlleCompetenties = async () => {
+    const [rows] = await pool.query(
+        `SELECT competentie_id, naam FROM COMPETENTIE ORDER BY naam ASC`
+    );
+    return rows;
+};
+
+// Competenties van één dag ophalen
+const getCompetentiesVanDag = async (dagId) => {
+    const [rows] = await pool.query(
+        `SELECT competentie_id, commentaar FROM LOGBOEK_COMPETENTIE WHERE dag_id = ?`,
+        [dagId]
+    );
+    return rows;
+};
+
+// Competenties van een dag opslaan (eerst leegmaken, dan opnieuw invoegen)
+const slaCompetentiesOp = async (dagId, studentId, competenties) => {
+    await pool.query(`DELETE FROM LOGBOEK_COMPETENTIE WHERE dag_id = ?`, [dagId]);
+    if (!competenties || competenties.length === 0) return;
+    const values = competenties.map(c => [dagId, studentId, c.competentie_id, c.commentaar || null]);
+    await pool.query(
+        `INSERT INTO LOGBOEK_COMPETENTIE (dag_id, student_id, competentie_id, commentaar) VALUES ?`,
+        [values]
+    );
+};
+
 module.exports = {
     getStudentMetStage,
     findWeek,
@@ -121,5 +149,8 @@ module.exports = {
     getDagenVanWeek,
     dienWeekIn,
     getLaatsteDag,
-    getStageHeader
+    getStageHeader,
+    getAlleCompetenties,
+    getCompetentiesVanDag,
+    slaCompetentiesOp
 };
