@@ -138,6 +138,7 @@ const getLaatste = async (req, res) => {
         if (!dag) {
             return res.status(404).json({ error: 'Nog geen logboek ingevuld' });
         }
+        dag.competenties = await studentModel.getCompetentiesVanDag(dag.dag_id);
         res.json(dag);
     } catch (err) {
         console.error(err);
@@ -181,4 +182,15 @@ const getDagCompetenties = async (req, res) => {
     }
 };
 
-module.exports = { vulDagIn, getWeek, dienWeekIn, getLaatste, getStageInfo, getCompetenties, getDagCompetenties };
+const getProfiel = async (req, res) => {
+    try {
+        const gebruiker = await studentModel.getGebruiker(req.user.id);
+        if (!gebruiker) return res.status(404).json({ error: 'Gebruiker niet gevonden' });
+        res.json(gebruiker);
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: 'Serverfout bij ophalen profiel' });
+    }
+};
+
+module.exports = { vulDagIn, getWeek, dienWeekIn, getLaatste, getStageInfo, getCompetenties, getDagCompetenties, getProfiel };

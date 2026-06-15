@@ -19,6 +19,13 @@
             <a href="#" class="nav-item active"><span class="nav-item__icon"></span> Logboek</a>
             <a href="#" class="nav-item"><span class="nav-item__icon"></span> Evaluaties</a>
         </nav>
+        <div class="sidebar__user">
+            <div class="sidebar__user-info">
+                <span class="sidebar__user-name" id="account-naam">—</span>
+                <span class="sidebar__user-mail" id="account-mail"></span>
+            </div>
+            <button class="sidebar__logout" onclick="uitloggen()">Uitloggen</button>
+        </div>
     </aside>
 
     <main class="main">
@@ -146,6 +153,24 @@
             return Math.floor((d - s) / (1000 * 60 * 60 * 24 * 7)) + 1;
         }
 
+        async function laadProfiel() {
+            if (!token) return;
+            try {
+                const res = await fetch(`${API}/profiel`, { headers: { 'Authorization': 'Bearer ' + token } });
+                if (!res.ok) return;
+                const u = await res.json();
+                document.getElementById('account-naam').textContent = u.naam || '—';
+                document.getElementById('account-mail').textContent = u.email || '';
+            } catch (err) {
+                console.error(err);
+            }
+        }
+
+        function uitloggen() {
+            localStorage.removeItem('token');
+            window.location.href = 'index.html';
+        }
+
         async function laadStageHeader() {
             if (!token) return;
             try {
@@ -228,11 +253,22 @@
                 const dag = await res.json();
                 const d = new Date(dag.datum).toLocaleDateString('nl-BE', { day: 'numeric', month: 'long', year: 'numeric' });
                 document.getElementById('laatste-datum').textContent = d;
+
+                const compHtml = (dag.competenties && dag.competenties.length)
+                    ? dag.competenties.map(c => `
+                        <div class="last-entry__comp">
+                            <span>${c.naam}</span>
+                            <span class="last-entry__comp-score">${c.score != null ? c.score + '/5' : '–'}</span>
+                        </div>`).join('')
+                    : '<div class="last-entry__row">Geen competenties gescoord.</div>';
+
                 document.getElementById('laatste-body').innerHTML = `
                     <div class="last-entry__row"><strong>Uitgevoerde taken</strong>${dag.taken_beschrijving || '—'}</div>
                     <div class="last-entry__row"><strong>Reflectie</strong>${dag.reflectie || '—'}</div>
                     <div class="last-entry__row"><strong>Problemen</strong>${dag.leerpunten || '—'}</div>
                     <div class="last-entry__row"><strong>Gewerkte uren</strong>${dag.uren ?? 0} uur</div>
+                    <div class="last-entry__row"><strong>Competenties</strong></div>
+                    ${compHtml}
                 `;
             } catch (err) {
                 console.error(err);
@@ -365,6 +401,7 @@
             }
         }
 
+        laadProfiel();
         laadStageHeader();
         laadLaatste();
         laadCompetenties();

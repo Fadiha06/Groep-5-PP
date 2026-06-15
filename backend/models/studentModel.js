@@ -86,13 +86,13 @@ const dienWeekIn = async (weekId) => {
 
 const getLaatsteDag = async (gebruikerId) => {
     const [rows] = await pool.query(
-        `SELECT ld.datum, ld.uren, ld.taken_beschrijving, ld.reflectie, ld.leerpunten
+        `SELECT ld.dag_id, ld.datum, ld.uren, ld.taken_beschrijving, ld.reflectie, ld.leerpunten
         FROM LOGBOEK_DAG ld
         JOIN STAGE st ON st.stage_id = ld.stage_id
         JOIN STUDENT s ON s.student_id = st.student_id
         WHERE s.gebruiker_id = ?
         ORDER BY ld.datum DESC
-        LIMIT 1`,
+        LIMIT 1`,   
         [gebruikerId]
     );
     return rows[0];
@@ -129,7 +129,10 @@ const getAlleCompetenties = async () => {
 // Competenties van één dag ophalen
 const getCompetentiesVanDag = async (dagId) => {
     const [rows] = await pool.query(
-        `SELECT competentie_id, commentaar FROM LOGBOEK_COMPETENTIE WHERE dag_id = ?`,
+        `SELECT lc.competentie_id, c.naam, lc.score, lc.commentaar
+        FROM LOGBOEK_COMPETENTIE lc
+        JOIN COMPETENTIE c ON c.competentie_id = lc.competentie_id
+        WHERE lc.dag_id = ?`,
         [dagId]
     );
     return rows;
@@ -146,6 +149,14 @@ const slaCompetentiesOp = async (dagId, studentId, competenties) => {
     );
 };
 
+const getGebruiker = async (gebruikerId) => {
+    const [rows] = await pool.query(
+        `SELECT id, naam, email, rol FROM GEBRUIKER WHERE id = ?`,
+        [gebruikerId]
+    );
+    return rows[0];
+};
+
 module.exports = {
     getStudentMetStage,
     findWeek,
@@ -159,5 +170,6 @@ module.exports = {
     getStageHeader,
     getAlleCompetenties,
     getCompetentiesVanDag,
-    slaCompetentiesOp
+    slaCompetentiesOp,
+    getGebruiker
 };

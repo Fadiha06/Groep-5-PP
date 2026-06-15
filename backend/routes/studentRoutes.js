@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { vulDagIn, getWeek, dienWeekIn, getLaatste, getStageInfo, getCompetenties, getDagCompetenties } = require('../controllers/studentController');
+const { vulDagIn, getWeek, dienWeekIn, getLaatste, getStageInfo, getCompetenties, getDagCompetenties, getProfiel } = require('../controllers/studentController');
 const { verifyToken, requireRole } = require('../middleware/authMiddleware');
 
 // POST /api/student/logboek — een dag invullen of bijwerken
@@ -20,4 +20,5 @@ router.get('/competenties', verifyToken, requireRole('student'), getCompetenties
 
 router.get('/logboek/dag/:dagId/competenties', verifyToken, requireRole('student'), getDagCompetenties);
 
+router.get('/profiel', verifyToken, requireRole('student'), getProfiel);
 module.exports = router;

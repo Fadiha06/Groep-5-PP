@@ -94,6 +94,34 @@ body {
   text-align: center;
 }
 
+/* Account + uitloggen onderaan sidebar */
+.sidebar__user {
+  margin-top: auto;
+  padding-top: 16px;
+  border-top: 1px solid rgba(255,255,255,0.1);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.sidebar__user-name { color: #fff; font-weight: 600; font-size: 14px; }
+.sidebar__user-mail { color: #6B7280; font-size: 12px; margin-top: 2px; display: block; }
+
+.sidebar__logout {
+  background: rgba(255,255,255,0.08);
+  color: #fff;
+  border: none;
+  padding: 10px;
+  border-radius: 6px;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.sidebar__logout:hover { background: var(--ehb-red); }
+
 /* ── MAIN ── */
 .main {
   margin-left: var(--sidebar-width);
@@ -205,14 +233,12 @@ body {
 
 .form-group input[type="date"] { cursor: pointer; }
 
-/* Datum + uren naast elkaar */
 .form-row {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 16px;
 }
 
-/* Lucht tussen velden */
 .form-section .card > .form-group,
 .form-section .card > .form-row {
   margin-bottom: 16px;
@@ -270,7 +296,7 @@ body {
   font-family: inherit;
 }
 
-/* ── LAATSTE LOGBOEK / RECHTERKOLOM ── */
+/* ── RECHTERKOLOM ── */
 .right-col {
   display: flex;
   flex-direction: column;
@@ -301,6 +327,17 @@ body {
   display: block;
   margin-bottom: 2px;
 }
+
+/* Competenties in laatste-logboek widget */
+.last-entry__comp {
+  display: flex;
+  justify-content: space-between;
+  font-size: 13px;
+  padding: 6px 0;
+  border-bottom: 1px solid #F1F5F9;
+}
+.last-entry__comp:last-child { border-bottom: none; }
+.last-entry__comp-score { font-weight: 700; color: var(--blue); }
 
 .card__title {
   font-size: 16px;
@@ -577,4 +614,5 @@ body {
   .main { margin-left: 0; }
   .stage-meta { flex-direction: column; gap: 8px; }
   .form-row { grid-template-columns: 1fr; }
+  .sidebar__user { margin-top: 0; width: 100%; }
 }
