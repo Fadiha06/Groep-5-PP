@@ -7,6 +7,10 @@ exports.submitStage = async (req, res) => {
         
         const { bedrijfsnaam, mentorNaam, mentorEmail, telefoon, adres, sector, titel, omschrijving, startdatum, einddatum } = req.body;
 
+        if (!bedrijfsnaam || !titel || !omschrijving) {
+            return res.status(400).json({ error: 'Bedrijfsnaam, titel en omschrijving zijn verplicht.' });
+        }
+
         const start = startdatum ? startdatum : null;
         const eind = einddatum ? einddatum : null;
 
@@ -55,7 +59,7 @@ exports.submitStage = async (req, res) => {
 
     } catch (error) {
         console.error('Submit stage error:', error);
-        res.status(500).json({ error: error.message || 'Fout bij het indienen van stageaanvraag' });
+        res.status(500).json({ error: 'Fout bij het indienen van stageaanvraag' });
     }
 };
 
@@ -111,6 +115,11 @@ exports.updateStatus = async (req, res) => {
     try {
         const stage_id = req.params.id;
         const { status } = req.body;
+        
+        const allowedStatuses = ['in_aanvraag', 'goedgekeurd', 'geweigerd', 'conditie', 'actief'];
+        if (!allowedStatuses.includes(status)) {
+            return res.status(400).json({ error: 'Ongeldige status' });
+        }
         
         await db.query('UPDATE STAGE SET status = ? WHERE stage_id = ?', [status, stage_id]);
         res.json({ message: 'Status bijgewerkt naar ' + status });

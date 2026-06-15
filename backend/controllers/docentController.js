@@ -116,6 +116,17 @@ const getDossiers = async (req, res) => {
 // GET /api/docent/student/:gebruikerId/meldingen
 const getMeldingen = async (req, res) => {
     try {
+        const docent = await docentModel.getDocent(req.user.id);
+        if (!docent) {
+            return res.status(404).json({ error: 'Geen docent gevonden' });
+        }
+        
+        const dossiers = await docentModel.getDossiers(docent.docent_id);
+        const hasAccess = dossiers.some(d => String(d.gebruiker_id) === String(req.params.gebruikerId));
+        if (!hasAccess) {
+            return res.status(403).json({ error: 'Niet bevoegd om deze meldingen te bekijken' });
+        }
+
         const meldingen = await docentModel.getMeldingenVoorStudent(req.params.gebruikerId);
         res.json({ meldingen });
     } catch (err) {
