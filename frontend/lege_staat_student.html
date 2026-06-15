@@ -21,20 +21,21 @@
       <a class="sb-item" href="#">Contract</a>
       <a class="sb-item" href="#">Evaluaties</a>
       
+      <a class="sb-item active" href="#">Mijn aanvraag</a>     
     </div>
     <div class="sb-footer">Ingelogd als Student</div>
   </nav>
   <div class="main">
     <div>
-      <div class="page-title">Welkom, Jan!</div>
+      <div class="page-title">Welkom, <span id="student-naam">...</span>!
+      </div>
       <div class="page-sub">Je hebt nog geen stage ingediend. Volg de stappen hieronder om te starten.</div>
     </div>
     <div class="empty-hero">
       <div class="empty-icon">📋</div>
       <div class="empty-title">Nog geen stageaanvraag ingediend</div>
       <div class="empty-sub">Dien je stagevoorstel in via de knop hieronder. De stagecommissie beoordeelt je aanvraag en je ontvangt een melding zodra er een beslissing is.</div>
-      <a href="stageaanvraag_indienen.html" class="btn-primary">+ Stage indienen</a>
-
+      <button class="btn-primary" onclick="window.location.href='stageaanvraag_indienen.html'">+ Stage indienen</button> 
     </div>
     <div class="info-row">
       <div class="info-card">
@@ -61,5 +62,6 @@
     </div>
   </div>
 </div>
+<script src="/frontend/src/JS/lege_staat_student.js"></script>
 </body>
 </html>
