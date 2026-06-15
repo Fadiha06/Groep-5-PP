@@ -1,98 +1,73 @@
-const mysql = require('mysql2/promise');
-const jwt = require('jsonwebtoken');
-require('dotenv').config();
+const fs = require('fs');
+const path = require('path');
+const db = require('./config/db');
+const argon2 = require('argon2');
 
 async function seed() {
-    const conn = await mysql.createConnection({
-        host: process.env.DB_HOST,
-        user: process.env.DB_USER,
-        password: process.env.DB_PASSWORD,
-        database: process.env.DB_NAME
-    });
+    try {
+        console.log('Starting Database Seed...');
+        const mysql = require('mysql2/promise');
+        const rootConn = await mysql.createConnection({
+            host: process.env.DB_HOST || 'localhost',
+            user: process.env.DB_USER || 'root',
+            password: process.env.DB_PASSWORD || 'root'
+        });
+        
+        await rootConn.query(`CREATE DATABASE IF NOT EXISTS ${process.env.DB_NAME || 'stagebeheer'}`);
+        await rootConn.end();
+        console.log('Database created.');
 
-    // Stage loopt van 6 weken geleden tot 6 weken in de toekomst (midden van de stage)
-    const start = new Date();
-    start.setDate(start.getDate() - 42); // 6 weken geleden
-    const einde = new Date();
-    einde.setDate(einde.getDate() + 42); // 6 weken later
-    const goedkeuring = new Date(start);
-    goedkeuring.setDate(goedkeuring.getDate() - 14);
-
-    const fmt = d => d.toISOString().split('T')[0];
-
-    // Gebruiker
-    const [g] = await conn.query(
-        `INSERT INTO GEBRUIKER (naam, email, wachtwoord, rol) VALUES ('Samer', 'samer@ehb.be', 'wachtwoord123', 'student')`
-    );
-    const gebruikerId = g.insertId;
-
-    // Student
-    const [s] = await conn.query(
-        `INSERT INTO STUDENT (gebruiker_id, studentnummer, opleiding) VALUES (?, 'S20055', 'Toegepaste Informatica')`,
-        [gebruikerId]
-    );
-    const studentId = s.insertId;
-
-    // Bedrijf
-    const [b] = await conn.query(
-        `INSERT INTO BEDRIJF (naam, adres, stad) VALUES ('Accenture Belgium', 'Havenlaan 86', 'Brussel')`
-    );
-
-    // Stage
-    const [st] = await conn.query(
-        `INSERT INTO STAGE (student_id, bedrijf_id, titel, startdatum, einddatum, status, goedkeuringsdatum)
-         VALUES (?, ?, 'Full Stack Developer', ?, ?, 'actief', ?)`,
-        [studentId, b.insertId, fmt(start), fmt(einde), fmt(goedkeuring)]
-    );
-    const stageId = st.insertId;
-
-    // Contract getekend
-    await conn.query(
-        `INSERT INTO CONTRACT (stage_id, student_getekend, mentor_getekend, leerkracht_getekend) VALUES (?, 1, 1, 1)`,
-        [stageId]
-    );
-
-    // Logboek — 5 weken ingediend, huidige week open
-    for (let w = 1; w <= 6; w++) {
-        const status = w < 6 ? 'ingediend' : 'open';
-        const ingediend = w < 6 ? `'${fmt(new Date(start.getTime() + w * 7 * 86400000))}'` : 'NULL';
-
-        const [week] = await conn.query(
-            `INSERT INTO LOGBOEK_WEEK (stage_id, weeknummer, status, ingediend_op) VALUES (?, ?, ?, ${ingediend})`,
-            [stageId, w, status]
-        );
-
-        // Dagen voor elke week (ma-vrij)
-        for (let d = 0; d < 5; d++) {
-            const dag = new Date(start.getTime() + ((w - 1) * 7 + d) * 86400000);
-            const taken = ['Backend API ontwikkeld', 'Database queries geoptimaliseerd', 'Frontend componenten gebouwd', 'Code review + documentatie', 'Testing & bugfixes'][d];
-            await conn.query(
-                `INSERT INTO LOGBOEK_DAG (week_id, stage_id, datum, uren, taken_beschrijving, reflectie, leerpunten)
-                 VALUES (?, ?, ?, 8, ?, 'Goede dag', 'Veel bijgeleerd')`,
-                [week.insertId, stageId, fmt(dag), taken]
-            );
+        const connection = await db.getConnection();
+        const schemaPath = path.join(__dirname, 'schema.sql');
+        const schema = fs.readFileSync(schemaPath, 'utf8');
+        
+        // Split by semicolons, filtering out empty statements
+        const statements = schema.split(';').filter(stmt => stmt.trim().length > 0);
+        
+        console.log('Executing schema.sql...');
+        // Execute one by one (to avoid multiple statements error if multipleStatements is not enabled in pool)
+        // Note: some CREATE TABLE statements might fail if they already exist, so we might want to drop them first or just ignore if they exist.
+        // Actually, the original schema doesn't have "IF NOT EXISTS", so it might throw an error if already seeded.
+        for (let stmt of statements) {
+            try {
+                await connection.query(stmt);
+            } catch(e) {
+                if (e.code === 'ER_TABLE_EXISTS_ERROR') {
+                    // Ignore already exists
+                } else {
+                    console.error('Error executing statement:', stmt.substring(0, 50) + '...', e.message);
+                }
+            }
         }
+        console.log('Schema setup completed.');
+
+        // 3. Add default Admin user
+        const hashedPassword = await argon2.hash('admin123');
+        
+        // Check if admin already exists
+        const [rows] = await connection.query('SELECT * FROM GEBRUIKER WHERE email = ?', ['admin@ehb.be']);
+        if (rows.length === 0) {
+            const [result] = await connection.query(
+                'INSERT INTO GEBRUIKER (naam, email, wachtwoord, rol) VALUES (?, ?, ?, ?)',
+                ['Systeembeheerder', 'admin@ehb.be', hashedPassword, 'admin']
+            );
+            
+            await connection.query(
+                'INSERT INTO ADMINISTRATIE (gebruiker_id, bevoegdheidsniveau) VALUES (?, ?)',
+                [result.insertId, 'hoofdadmin']
+            );
+            console.log('Test Admin created: admin@ehb.be / admin123');
+        } else {
+            console.log('Test Admin already exists.');
+        }
+
+        connection.release();
+        console.log('Seed completed successfully!');
+        process.exit(0);
+    } catch (error) {
+        console.error('Seed failed:', error);
+        process.exit(1);
     }
-
-    // Notificatie
-    await conn.query(
-        `INSERT INTO NOTIFICATIE (gebruiker_id, stage_id, titel, bericht, type)
-         VALUES (?, ?, 'Logboek week 6', 'Vul je logboek in voor deze week!', 'herinnering')`,
-        [gebruikerId, stageId]
-    );
-
-    // Token
-    const token = jwt.sign(
-        { id: gebruikerId, email: 'samer@ehb.be', rol: 'student' },
-        process.env.JWT_SECRET,
-        { expiresIn: '24h' }
-    );
-
-    console.log('\n✓ Samer aangemaakt — stage loopt al 6 weken, nog 6 weken te gaan\n');
-    console.log('TOKEN:');
-    console.log(token);
-
-    await conn.end();
 }
 
-seed().catch(console.error);
+seed();

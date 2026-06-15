@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EhB StageTool — Aanvaard onder conditie</title>
+    <link href="https://fonts.googleapis.com/css?family=Inter:400,500,600,700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="src/CSS/commissie_conditie.css">
+</head>
+<body>
+    <div class="app-layout">
+
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar__brand">
+                <span class="sidebar__app-name">EhB StageTool</span>
+                <span class="sidebar__app-sub">Stagecommissie</span>
+            </div>
+            <nav class="sidebar__nav">
+                <ul class="sidebar__nav-list">
+                    <li>
+                        <a href="#" class="sidebar__nav-item sidebar__nav-item--active">
+                            <span>Nieuwe aanvragen</span>
+                            <span class="sidebar__badge"></span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="commissie_dashboard.html" class="sidebar__nav-item">Dashboard</a>
+                    </li>
+                    <li>
+                        <a href="commissie_dossiers.html" class="sidebar__nav-item">Alle dossiers</a>
+                    </li>
+                </ul>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+
+            <!-- Breadcrumbs -->
+            <nav class="breadcrumbs">
+                <a href="#">Nieuwe aanvragen</a>
+                <span class="breadcrumbs__separator">›</span>
+                <span class="breadcrumbs__current" id="student-name">...</span>
+                <span class="breadcrumbs__separator">›</span>
+                <span class="status-badge-inline status-badge-inline--conditie" id="status-tag">Onder conditie</span>
+            </nav>
+
+            <!-- Page Header -->
+            <header class="page-header">
+                <div class="page-header__text">
+                    <h1 class="page-header__title" id="page-title">...</h1>
+                    <p class="page-header__subtitle" id="page-subtitle">...</p>
+                </div>
+            </header>
+
+            <!-- Status Banner -->
+            <div class="status-banner status-banner--conditie" id="status-banner">
+                <div class="status-banner__icon" id="banner-icon">!</div>
+                <div class="status-banner__text">
+                    <h2 id="banner-title">Aanvaard onder conditie</h2>
+                    <p id="banner-desc">Student moet het dossier aanpassen.</p>
+                </div>
+                <div class="status-banner__badge" id="banner-meta">Wacht op aanpassing</div>
+            </div>
+
+            <!-- Two Column Grid -->
+            <div class="detail-grid">
+
+                <!-- Links: Dossiersamenvatting -->
+                <section class="card">
+                    <h3 class="card__title">Dossiersamenvatting</h3>
+                    <dl class="summary-list">
+                        <div class="summary-item">
+                            <dt>Student</dt>
+                            <dd id="info-student">-</dd>
+                        </div>
+                        <div class="summary-item">
+                            <dt>Bedrijf</dt>
+                            <dd id="info-company">-</dd>
+                        </div>
+                        <div class="summary-item">
+                            <dt>Opdracht</dt>
+                            <dd id="info-assignment">-</dd>
+                        </div>
+                        <div class="summary-item">
+                            <dt>Periode</dt>
+                            <dd id="info-period">-</dd>
+                        </div>
+                        <div class="summary-item">
+                            <dt>Beoordelaar</dt>
+                            <dd id="info-reviewer">-</dd>
+                        </div>
+                        <div class="summary-item">
+                            <dt>Aanpassingsdeadline</dt>
+                            <dd id="info-deadline" class="info-deadline">-</dd>
+                        </div>
+                    </dl>
+                </section>
+
+                <!-- Rechts: Verloop -->
+                <section class="card">
+                    <h3 class="card__title">Verloop</h3>
+                    <div class="timeline" id="timeline">
+                        <div class="timeline-item timeline-item--completed">
+                            <div class="timeline-badge timeline-badge--success">✓</div>
+                            <div class="timeline-panel">
+                                <h4>Conditie meegedeeld</h4>
+                                <p id="timeline-meegedeeld">Student verwittigd.</p>
+                            </div>
+                        </div>
+                        <div class="timeline-item timeline-item--current">
+                            <div class="timeline-badge timeline-badge--conditie">2</div>
+                            <div class="timeline-panel">
+                                <h4>Student past dossier aan</h4>
+                                <p id="timeline-deadline">Deadline: — wachtend</p>
+                            </div>
+                        </div>
+                        <div class="timeline-item">
+                            <div class="timeline-badge">3</div>
+                            <div class="timeline-panel">
+                                <h4>Commissie herbeoordeelt</h4>
+                                <p>Na ontvangst aangepast dossier.</p>
+                            </div>
+                        </div>
+                        <div class="timeline-item timeline-item--last">
+                            <div class="timeline-badge">4</div>
+                            <div class="timeline-panel">
+                                <h4>Definitieve beslissing</h4>
+                                <p>Goedkeuren of weigeren.</p>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+
+            <!-- Gevraagde aanpassing -->
+            <section class="card card--comment" id="comment-section">
+                <h3 class="card__title">Gevraagde aanpassing</h3>
+                <div class="comment-box comment-box--conditie">
+                    <p id="commission-comment">Geen aanpassing opgegeven.</p>
+                </div>
+            </section>
+
+            <!-- Action Footer -->
+            <footer class="action-footer">
+                <button class="btn btn--ghost" id="btn-back">← Terug naar lijst</button>
+                <span class="action-footer__status" id="footer-notification">✉ Melding met aanpassing verstuurd naar student</span>
+                <button class="btn btn--primary" id="btn-next">Volgend dossier →</button>
+            </footer>
+
+        </main>
+    </div>
+
+    <script src="src/JS/api.js"></script>
+    <script src="src/JS/commissie_conditie.js"></script>
+</body>
+</html>

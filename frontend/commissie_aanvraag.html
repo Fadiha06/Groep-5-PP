@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>EhB StageTool — Dossier beoordelen</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="src/CSS/commissie_aanvraag.css" />
+</head>
+<body>
+
+  <!-- ===== SIDEBAR ===== -->
+  <aside class="sidebar" role="navigation" aria-label="Hoofdnavigatie">
+    <div class="sidebar__brand">
+      <span class="sidebar__app-name">EhB StageTool</span>
+      <span class="sidebar__app-sub">Toegepaste Informatica</span>
+    </div>
+
+    <nav class="sidebar__nav">
+      <ul class="sidebar__nav-list">
+        <li>
+          <a href="commissie_dashboard.html" class="sidebar__nav-item" data-page="dashboard">
+            <span class="sidebar__nav-icon"></span>
+            Dashboard
+          </a>
+        </li>
+        <li>
+          <a href="#" class="sidebar__nav-item sidebar__nav-item--active" data-page="nieuwe-aanvragen">
+            <span class="sidebar__nav-icon"></span>
+            Nieuwe aanvragen
+            <span class="sidebar__badge" id="badge-nieuwe-aanvragen">—</span>
+          </a>
+        </li>
+        <li>
+          <a href="commissie_dossiers.html" class="sidebar__nav-item" data-page="alle-dossiers">
+            <span class="sidebar__nav-icon"></span>
+            Alle dossiers
+          </a>
+        </li>
+        
+      </ul>
+    </nav>
+  </aside>
+
+  <!-- ===== MAIN CONTENT ===== -->
+  <main class="main" id="main-content">
+
+    <!-- Loading state -->
+    <div class="loading-overlay" id="loading-overlay" aria-live="polite">
+      <div class="loading-spinner"></div>
+      <p>Dossier laden…</p>
+    </div>
+
+    <!-- Error state -->
+    <div class="error-banner" id="error-banner" role="alert" hidden>
+      <strong>Fout bij laden</strong>
+      <span id="error-message">Er is een probleem opgetreden.</span>
+      <button class="btn btn--ghost btn--sm" onclick="loadDossier()">Opnieuw proberen</button>
+    </div>
+
+    <!-- Page header -->
+    <header class="page-header">
+      <div class="page-header__text">
+        <h1 class="page-header__title" id="dossier-title">Dossier beoordelen</h1>
+        <p class="page-header__subtitle">Lees het stagevoorstel grondig na en neem een beslissing.</p>
+      </div>
+      <div class="page-header__nav">
+        <button class="btn btn--ghost btn--sm" id="btn-vorige" onclick="navigateDossier(-1)" disabled>← Vorige</button>
+        <button class="btn btn--ghost btn--sm" id="btn-volgende" onclick="navigateDossier(1)">Volgende →</button>
+      </div>
+    </header>
+
+    <!-- Status bar -->
+    <div class="status-bar">
+      <span class="status-badge status-badge--pending" id="dossier-status">—</span>
+      <span class="status-bar__meta" id="dossier-ingediend">—</span>
+      <span class="status-bar__dot" aria-hidden="true">•</span>
+      <span class="status-bar__meta" id="dossier-opleiding">—</span>
+    </div>
+
+    <!-- Detail panels -->
+    <div class="detail-grid">
+
+      <!-- LEFT COLUMN -->
+      <div class="detail-col detail-col--main">
+
+        <!-- Studentgegevens -->
+        <section class="card" aria-labelledby="section-student">
+          <h2 class="card__title" id="section-student">Studentgegevens</h2>
+          <dl class="field-list">
+            <div class="field-list__row">
+              <dt>Naam</dt>
+              <dd id="student-naam">—</dd>
+            </div>
+            <div class="field-list__row">
+              <dt>Studentnummer</dt>
+              <dd id="student-nummer">—</dd>
+            </div>
+            <div class="field-list__row">
+              <dt>Opleiding</dt>
+              <dd id="student-opleiding">—</dd>
+            </div>
+            <div class="field-list__row">
+              <dt>Jaar</dt>
+              <dd id="student-jaar">—</dd>
+            </div>
+          </dl>
+        </section>
+
+        <!-- Bedrijf & mentor -->
+        <section class="card" aria-labelledby="section-bedrijf">
+          <h2 class="card__title" id="section-bedrijf">Bedrijf &amp; mentor</h2>
+          <dl class="field-list">
+            <div class="field-list__row">
+              <dt>Bedrijf</dt>
+              <dd id="bedrijf-naam">—</dd>
+            </div>
+            <div class="field-list__row">
+              <dt>Afdeling</dt>
+              <dd id="bedrijf-afdeling">—</dd>
+            </div>
+            <div class="field-list__row">
+              <dt>Stagementor</dt>
+              <dd id="bedrijf-mentor">—</dd>
+            </div>
+            <div class="field-list__row">
+              <dt>E-mail mentor</dt>
+              <dd><a id="bedrijf-email" href="#">—</a></dd>
+            </div>
+            <div class="field-list__row">
+              <dt>Adres</dt>
+              <dd id="bedrijf-adres">—</dd>
+            </div>
+            <div class="field-list__row">
+              <dt>Sector</dt>
+              <dd id="bedrijf-sector">—</dd>
+            </div>
+          </dl>
+        </section>
+
+        <!-- Stageopdracht -->
+        <section class="card" aria-labelledby="section-opdracht">
+          <h2 class="card__title" id="section-opdracht">Stageopdracht</h2>
+          <div class="field-block">
+            <p class="field-label">Titel</p>
+            <p class="field-value" id="opdracht-titel">—</p>
+          </div>
+          <div class="field-block">
+            <p class="field-label">Omschrijving</p>
+            <p class="field-value" id="opdracht-omschrijving">—</p>
+          </div>
+          <div class="field-block">
+            <p class="field-label">Verwachte competenties</p>
+            <p class="field-value" id="opdracht-competenties">—</p>
+          </div>
+        </section>
+
+        <!-- Planning -->
+        <section class="card" aria-labelledby="section-planning">
+          <h2 class="card__title" id="section-planning">Planning</h2>
+          <dl class="field-list field-list--2col">
+            <div class="field-list__row">
+              <dt>Startdatum</dt>
+              <dd id="planning-start">—</dd>
+            </div>
+            <div class="field-list__row">
+              <dt>Einddatum</dt>
+              <dd id="planning-eind">—</dd>
+            </div>
+            <div class="field-list__row">
+              <dt>Werkregeling</dt>
+              <dd id="planning-regeling">—</dd>
+            </div>
+            <div class="field-list__row">
+              <dt>Totaal uren</dt>
+              <dd id="planning-uren">—</dd>
+            </div>
+          </dl>
+        </section>
+
+      </div><!-- /detail-col--main -->
+
+      <!-- RIGHT COLUMN -->
+      <div class="detail-col detail-col--side">
+
+        <!-- Beslissing nemen -->
+        <section class="card card--decision" aria-labelledby="section-beslissing">
+          <h2 class="card__title" id="section-beslissing">Beslissing nemen</h2>
+
+          <div class="decision-options" role="radiogroup" aria-labelledby="section-beslissing">
+
+            <label class="decision-option decision-option--approve">
+              <input type="radio" name="beslissing" value="goedkeuren" />
+              <span class="decision-option__icon">✓</span>
+              <span class="decision-option__content">
+                <strong>Goedkeuren</strong>
+                <span>Het dossier voldoet aan alle vereisten.</span>
+              </span>
+            </label>
+
+            <label class="decision-option decision-option--condition">
+              <input type="radio" name="beslissing" value="conditie" />
+              <span class="decision-option__icon">⚠</span>
+              <span class="decision-option__content">
+                <strong>Aanvaarden onder conditie</strong>
+                <span>Goedgekeurd mits aanpassing. Student moet reageren.</span>
+              </span>
+            </label>
+
+            <label class="decision-option decision-option--refuse">
+              <input type="radio" name="beslissing" value="weigeren" />
+              <span class="decision-option__icon">✕</span>
+              <span class="decision-option__content">
+                <strong>Weigeren</strong>
+                <span>Het dossier voldoet niet aan de vereisten.</span>
+              </span>
+            </label>
+
+          </div>
+
+          <div class="decision-note">
+            <label class="decision-note__label" for="interne-nota">
+              Interne nota <span class="optional">(optioneel)</span>
+            </label>
+            <p class="decision-note__hint">Notitie voor de commissie — niet zichtbaar voor de student.</p>
+            <textarea
+              id="interne-nota"
+              class="decision-note__textarea"
+              rows="4"
+              placeholder="Typ hier eventuele opmerkingen over de beslissing…"
+            ></textarea>
+          </div>
+
+          <button class="btn btn--primary btn--full" id="btn-bevestigen" onclick="submitBeslissing()">
+            Beslissing bevestigen
+          </button>
+
+          <!-- Submit feedback -->
+          <div class="submit-feedback" id="submit-feedback" hidden role="status"></div>
+        </section>
+
+        <!-- Vorige opmerkingen -->
+        <section class="card" aria-labelledby="section-opmerkingen">
+          <h2 class="card__title" id="section-opmerkingen">Vorige opmerkingen</h2>
+          <div id="opmerkingen-list">
+            <p class="empty-state">Laden…</p>
+          </div>
+        </section>
+
+      </div><!-- /detail-col--side -->
+
+    </div><!-- /detail-grid -->
+  </main>
+<script src="src/JS/api.js"></script>
+<script src="src/JS/commissie_aanvraag.js"></script>
+
+</body>
+</html>
