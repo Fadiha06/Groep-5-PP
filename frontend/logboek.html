@@ -275,6 +275,58 @@
             }
         }
 
+        function resetRubriek() {
+            document.querySelectorAll('.comp-kaart').forEach(k => {
+                k.querySelectorAll('.niveau-vak').forEach(v => v.classList.remove('geselecteerd'));
+                delete k.dataset.score;
+                k.querySelector('[data-score-label]').textContent = 'Score: –/5';
+                k.querySelector('.comp-feedback').value = '';
+            });
+            updateTotaal();
+        }
+
+        function vulRubriekIn(competenties) {
+            resetRubriek();
+            (competenties || []).forEach(c => {
+                const kaart = document.querySelector(`.comp-kaart[data-comp="${c.competentie_id}"]`);
+                if (!kaart) return;
+                if (c.score != null) {
+                    const vak = kaart.querySelector(`.niveau-vak[data-punten="${c.score}"]`);
+                    if (vak) {
+                        vak.classList.add('geselecteerd');
+                        kaart.dataset.score = c.score;
+                        kaart.querySelector('[data-score-label]').textContent = `Score: ${c.score}/5`;
+                    }
+                }
+                kaart.querySelector('.comp-feedback').value = c.commentaar || '';
+            });
+            updateTotaal();
+        }
+
+        async function laadDagVoorDatum(datum) {
+            if (!token || !datum) return;
+            try {
+                const res = await fetch(`${API}/logboek/dag?datum=${datum}`, { headers: { 'Authorization': 'Bearer ' + token } });
+                if (res.status === 404) {
+                    document.getElementById('taken').value = '';
+                    document.getElementById('reflectie').value = '';
+                    document.getElementById('problemen').value = '';
+                    document.getElementById('uren').value = '';
+                    resetRubriek();
+                    return;
+                }
+                if (!res.ok) return;
+                const dag = await res.json();
+                document.getElementById('taken').value = dag.taken_beschrijving || '';
+                document.getElementById('reflectie').value = dag.reflectie || '';
+                document.getElementById('problemen').value = dag.leerpunten || '';
+                document.getElementById('uren').value = dag.uren ?? '';
+                vulRubriekIn(dag.competenties);
+            } catch (err) {
+                console.error(err);
+            }
+        }
+
         async function laadWeek(nr) {
             huidigeWeek = nr;
             document.getElementById('week-label').textContent = `Week ${nr}`;
@@ -405,6 +457,8 @@
         laadStageHeader();
         laadLaatste();
         laadCompetenties();
+
+        document.getElementById('datum').addEventListener('change', (e) => laadDagVoorDatum(e.target.value));
     </script>
 
 </body>

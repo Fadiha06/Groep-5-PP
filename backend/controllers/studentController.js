@@ -31,6 +31,11 @@ const vulDagIn = async (req, res) => {
             return res.status(400).json({ error: 'Datum valt vóór de start van de stage' });
         }
 
+        // Datum mag niet ná het einde van de stage liggen
+        if (info.einddatum && new Date(datum) > new Date(info.einddatum)) {
+            return res.status(400).json({ error: 'Datum valt ná het einde van de stage' });
+        }
+
         // Week zoeken
         let week = await studentModel.findWeek(info.stage_id, weeknummer);
 
@@ -70,7 +75,8 @@ const vulDagIn = async (req, res) => {
             dag_id: dagId,
             weeknummer
         });
-    } catch (err) {
+    }
+    catch (err) {
         console.error(err);
         res.status(500).json({ error: 'Serverfout bij invullen logboek' });
     }
@@ -193,4 +199,23 @@ const getProfiel = async (req, res) => {
     }
 };
 
-module.exports = { vulDagIn, getWeek, dienWeekIn, getLaatste, getStageInfo, getCompetenties, getDagCompetenties, getProfiel };
+// GET /api/student/logboek/dag?datum=YYYY-MM-DD — één dag + zijn competenties ophalen
+const getDagOpDatum = async (req, res) => {
+    const datum = req.query.datum;
+    if (!datum) return res.status(400).json({ error: 'Datum ontbreekt' });
+    try {
+        const info = await studentModel.getStudentMetStage(req.user.id);
+        if (!info) return res.status(404).json({ error: 'Geen student of stage gevonden' });
+
+        const dag = await studentModel.findDag(info.stage_id, datum);
+        if (!dag) return res.status(404).json({ error: 'Nog geen logboek voor deze datum' });
+
+        dag.competenties = await studentModel.getCompetentiesVanDag(dag.dag_id);
+        res.json(dag);
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: 'Serverfout bij ophalen dag' });
+    }
+};
+
+module.exports = { vulDagIn, getWeek, dienWeekIn, getLaatste, getStageInfo, getCompetenties, getDagCompetenties, getProfiel, getDagOpDatum };

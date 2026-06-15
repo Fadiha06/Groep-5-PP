@@ -3,7 +3,7 @@ const pool = require('../config/db');
 // Haal studentprofiel + de actieve stage op (voor de ingelogde gebruiker)
 const getStudentMetStage = async (gebruikerId) => {
     const [rows] = await pool.query(
-        `SELECT s.student_id, st.stage_id, st.startdatum
+        `SELECT s.student_id, st.stage_id, st.startdatum, st.einddatum
         FROM STUDENT s
         JOIN STAGE st ON st.student_id = s.student_id
         WHERE s.gebruiker_id = ?
@@ -11,7 +11,7 @@ const getStudentMetStage = async (gebruikerId) => {
         LIMIT 1`,
         [gebruikerId]
     );
-    return rows[0]; // undefined als student of stage niet bestaat
+    return rows[0];
 };
 
 // Zoek een week van een stage op weeknummer
