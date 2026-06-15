@@ -84,6 +84,33 @@ const dienWeekIn = async (weekId) => {
     );
 };
 
+const getLaatsteDag = async (gebruikerId) => {
+    const [rows] = await pool.query(
+        `SELECT ld.datum, ld.uren, ld.taken_beschrijving, ld.reflectie, ld.leerpunten
+        FROM LOGBOEK_DAG ld
+        JOIN STAGE st ON st.stage_id = ld.stage_id
+        JOIN STUDENT s ON s.student_id = st.student_id
+        WHERE s.gebruiker_id = ?
+        ORDER BY ld.datum DESC
+        LIMIT 1`,
+        [gebruikerId]
+    );
+    return rows[0];
+};
+
+const getStageHeader = async (gebruikerId) => {
+    const [rows] = await pool.query(
+        `SELECT st.titel, st.startdatum, st.einddatum, b.naam AS bedrijf_naam
+        FROM STUDENT s
+        JOIN STAGE st ON st.student_id = s.student_id
+        LEFT JOIN BEDRIJF b ON b.bedrijf_id = st.bedrijf_id
+        WHERE s.gebruiker_id = ?
+        ORDER BY st.startdatum DESC LIMIT 1`,
+        [gebruikerId]
+    );
+    return rows[0];
+};
+
 module.exports = {
     getStudentMetStage,
     findWeek,
@@ -92,5 +119,7 @@ module.exports = {
     createDag,
     updateDag,
     getDagenVanWeek,
-    dienWeekIn
+    dienWeekIn,
+    getLaatsteDag,
+    getStageHeader
 };

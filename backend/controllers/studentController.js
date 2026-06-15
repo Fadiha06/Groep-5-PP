@@ -118,4 +118,30 @@ const dienWeekIn = async (req, res) => {
     }
 };
 
-module.exports = { vulDagIn, getWeek, dienWeekIn };
+const getLaatste = async (req, res) => {
+    try {
+        const dag = await studentModel.getLaatsteDag(req.user.id);
+        if (!dag) {
+            return res.status(404).json({ error: 'Nog geen logboek ingevuld' });
+        }
+        res.json(dag);
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: 'Serverfout bij ophalen laatste logboek' });
+    }
+};
+
+const getStageInfo = async (req, res) => {
+    try {
+        const stage = await studentModel.getStageHeader(req.user.id);
+        if (!stage) {
+            return res.status(404).json({ error: 'Geen stage gevonden' });
+        }
+        res.json(stage);
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: 'Serverfout bij ophalen stage-info' });
+    }
+};
+
+module.exports = { vulDagIn, getWeek, dienWeekIn, getLaatste, getStageInfo };
