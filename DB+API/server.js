@@ -15,6 +15,7 @@ app.use(express.json());
 
 // Routes
 app.use('/api/auth', require('./routes/userRoutes'));
+app.use('/api/student', require('./routes/studentRoutes'));
 
 // Test route — database connectie
 app.get('/api/health', async (req, res) => {
