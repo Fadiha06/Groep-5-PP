@@ -10,7 +10,7 @@ const berekenWeeknummer = (datum, startdatum) => {
 
 // POST /api/student/logboek — een dag invullen of bijwerken
 const vulDagIn = async (req, res) => {
-    const { datum, taken_beschrijving } = req.body;
+    const { datum, taken_beschrijving, competenties } = req.body;
     const uren = req.body.uren ?? null;
     const reflectie = req.body.reflectie ?? null;
     const leerpunten = req.body.leerpunten ?? null;
@@ -49,13 +49,27 @@ const vulDagIn = async (req, res) => {
 
         // Upsert: dag bijwerken als hij bestaat, anders aanmaken
         const bestaandeDag = await studentModel.findDag(info.stage_id, datum);
+        let dagId;
+        let nieuw;
         if (bestaandeDag) {
             await studentModel.updateDag(bestaandeDag.dag_id, uren, taken_beschrijving, reflectie, leerpunten);
-            return res.json({ message: 'Dag bijgewerkt', dag_id: bestaandeDag.dag_id, weeknummer });
+            dagId = bestaandeDag.dag_id;
+            nieuw = false;
         } else {
-            const dagId = await studentModel.createDag(weekId, info.stage_id, datum, uren, taken_beschrijving, reflectie, leerpunten);
-            return res.status(201).json({ message: 'Dag toegevoegd', dag_id: dagId, weeknummer });
+            dagId = await studentModel.createDag(weekId, info.stage_id, datum, uren, taken_beschrijving, reflectie, leerpunten);
+            nieuw = true;
         }
+
+        // Competenties van de dag opslaan (als ze meegestuurd zijn)
+        if (Array.isArray(competenties)) {
+            await studentModel.slaCompetentiesOp(dagId, info.student_id, competenties);
+        }
+
+        return res.status(nieuw ? 201 : 200).json({
+            message: nieuw ? 'Dag toegevoegd' : 'Dag bijgewerkt',
+            dag_id: dagId,
+            weeknummer
+        });
     } catch (err) {
         console.error(err);
         res.status(500).json({ error: 'Serverfout bij invullen logboek' });
@@ -144,4 +158,27 @@ const getStageInfo = async (req, res) => {
     }
 };
 
-module.exports = { vulDagIn, getWeek, dienWeekIn, getLaatste, getStageInfo };
+// GET /api/student/competenties — alle competenties ophalen
+const getCompetenties = async (req, res) => {
+    try {
+        const lijst = await studentModel.getAlleCompetenties();
+        res.json(lijst);
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: 'Serverfout bij ophalen competenties' });
+    }
+};
+
+// GET /api/student/logboek/dag/:dagId/competenties — competenties van een dag
+const getDagCompetenties = async (req, res) => {
+    const dagId = Number(req.params.dagId);
+    try {
+        const lijst = await studentModel.getCompetentiesVanDag(dagId);
+        res.json(lijst);
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: 'Serverfout bij ophalen dag-competenties' });
+    }
+};
+
+module.exports = { vulDagIn, getWeek, dienWeekIn, getLaatste, getStageInfo, getCompetenties, getDagCompetenties };
