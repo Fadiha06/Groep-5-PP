@@ -31,6 +31,4 @@ const requireRole = (allowedRoles) => {
     };
 };
 
-module.exports = verifyToken;
-module.exports.verifyToken = verifyToken;
-module.exports.requireRole = requireRole;
+module.exports = { verifyToken, requireRole };

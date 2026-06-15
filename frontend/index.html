@@ -62,6 +62,14 @@
     </div>
   </div>
 
+  <script>
+    function switchTab(el, tabId) {
+      document.querySelectorAll('.tab').forEach(t => t.classList.remove('tab--active'));
+      el.classList.add('tab--active');
+      document.getElementById('tab-ehb').style.display = tabId === 'ehb' ? 'block' : 'none';
+      document.getElementById('tab-extern').style.display = tabId === 'extern' ? 'block' : 'none';
+    }
+  </script>
   <script src="/src/JS/api.js"></script>
   <script src="/src/JS/login.js"></script>
   

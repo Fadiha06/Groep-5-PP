@@ -155,6 +155,7 @@ CREATE TABLE LOGBOEK_COMPETENTIE (
     dag_id INT NOT NULL,
     student_id INT NOT NULL,
     competentie_id INT NOT NULL,
+    score INT,
     commentaar TEXT,
     FOREIGN KEY (dag_id) REFERENCES LOGBOEK_DAG(dag_id) ON DELETE CASCADE,
     FOREIGN KEY (student_id) REFERENCES STUDENT(student_id) ON DELETE CASCADE,

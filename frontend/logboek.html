@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>EhB StageTool — Logboek</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="src/CSS/logboek.css" />
+</head>
+<body>
+
+    <aside class="sidebar">
+        <div class="sidebar__brand">
+            <span class="sidebar__brand-name">EhB StageTool</span>
+            <span class="sidebar__brand-sub">Toegepaste Informatica</span>
+        </div>
+        <nav class="sidebar__nav">
+            <a href="student_dashboard.html" class="nav-item"><span class="nav-item__icon"></span> Dashboard</a>
+            <a href="#" class="nav-item active"><span class="nav-item__icon"></span> Logboek</a>
+            <a href="#" class="nav-item"><span class="nav-item__icon"></span> Evaluaties</a>
+        </nav>
+        <div class="sidebar__user">
+            <div class="sidebar__user-info">
+                <span class="sidebar__user-name" id="account-naam">—</span>
+                <span class="sidebar__user-mail" id="account-mail"></span>
+            </div>
+            <button class="sidebar__logout" onclick="uitloggen()">Uitloggen</button>
+        </div>
+    </aside>
+
+    <main class="main">
+
+        <div class="page-header">
+            <h1>Dagelijks Logboek</h1>
+            <p>Vul hier je dagelijkse reflecties en activiteiten in</p>
+        </div>
+
+        <div class="card">
+            <div class="stage-info">
+                <div>
+                    <div class="stage-info__title" id="stage-titel">Laden...</div>
+                    <div class="stage-meta">
+                        <div class="stage-meta__item">📅 <span>Periode: <strong id="stage-periode">—</strong></span></div>
+                        <div class="stage-meta__item">👤 <span>Stagementor: <strong id="stage-mentor">—</strong></span></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="content-grid">
+
+            <div class="form-section">
+                <div class="card">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="datum">Datum <span class="required">*</span></label>
+                            <input type="date" id="datum" required />
+                        </div>
+                        <div class="form-group">
+                            <label for="uren">Gewerkte uren <span class="required">*</span></label>
+                            <input type="number" id="uren" placeholder="Bijv. 6" min="0" max="24" required />
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="taken">Uitgevoerde taken <span class="required">*</span></label>
+                        <textarea id="taken" rows="3" placeholder="Beschrijf de taken die je vandaag hebt uitgevoerd..." required></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="reflectie">Reflectie <span class="required">*</span></label>
+                        <textarea id="reflectie" rows="3" placeholder="Wat heb je geleerd? Wat vond je moeilijk?" required></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="problemen">Problemen of uitdagingen <span class="required">*</span></label>
+                        <textarea id="problemen" rows="2" placeholder="Meld eventuele problemen of vragen..." required></textarea>
+                    </div>
+
+                    <div class="rubriek-blok">
+                        <div class="rubriek-blok__head">
+                            <div>
+                                <div class="rubriek-blok__titel">Competentie-rubriek</div>
+                                <div class="rubriek-blok__sub">Klik op een vak om jezelf een score te geven per competentie.</div>
+                            </div>
+                            <div class="rubriek-totaal" id="rubriek-totaal">Totaal: 0/0 ptn</div>
+                        </div>
+                        <div id="competenties-lijst">Laden...</div>
+                    </div>
+
+                    <div class="form-actions">
+                        <button class="btn btn-primary" onclick="slaOp()">Logboek opslaan</button>
+                        <button class="btn btn-secondary">Annuleren</button>
+                    </div>
+                    <div id="feedback-box" class="feedback-box" style="display:none;">
+                        ✅ Logboek succesvol opgeslagen!
+                    </div>
+                </div>
+            </div>
+
+            <div class="right-col">
+                <div class="card">
+                    <div class="card__title">Laatste logboek</div>
+                    <div class="last-entry__date" id="laatste-datum">—</div>
+                    <div class="last-entry__body" id="laatste-body">
+                        <div class="last-entry__row">Nog geen logboek ingevuld.</div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card__title">
+                        <span>Weekoverzicht</span>
+                        <span id="week-status-pill" class="badge">—</span>
+                    </div>
+                    <div class="week-nav">
+                        <button class="btn-link" onclick="vorigeWeek()">← Vorige</button>
+                        <strong id="week-label">Week —</strong>
+                        <button class="btn-link" onclick="volgendeWeek()">Volgende →</button>
+                    </div>
+                    <div id="week-dagen">Laden...</div>
+                    <div class="form-actions" style="margin-top:14px;">
+                        <button class="btn btn-primary" id="indien-knop" onclick="dienWeekInUI()" style="width:100%;">Week indienen</button>
+                    </div>
+                </div>
+
+                <div class="status-banner" style="margin-top:0;">
+                    <div class="status-pill">
+                        <span class="status-dot">✓</span>
+                        <span class="status-text">Actieve stage</span>
+                    </div>
+                    <span class="status-banner__label" id="week-teller">Week — van —</span>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <script>
+        const API = 'http://localhost:3000/api/student';
+        const token = localStorage.getItem('token');
+
+        let huidigeWeek = 1;
+        let totaalWeken = 1;
+
+        function labelVoorPunten(p) {
+            if (p <= 1) return 'Onvoldoende';
+            if (p <= 3) return 'Goed';
+            return 'Uitstekend';
+        }
+
+        function berekenWeek(datum, start) {
+            const d = new Date(datum), s = new Date(start);
+            return Math.floor((d - s) / (1000 * 60 * 60 * 24 * 7)) + 1;
+        }
+
+        async function laadProfiel() {
+            if (!token) return;
+            try {
+                const res = await fetch(`${API}/profiel`, { headers: { 'Authorization': 'Bearer ' + token } });
+                if (!res.ok) return;
+                const u = await res.json();
+                document.getElementById('account-naam').textContent = u.naam || '—';
+                document.getElementById('account-mail').textContent = u.email || '';
+            } catch (err) {
+                console.error(err);
+            }
+        }
+
+        function uitloggen() {
+            localStorage.removeItem('token');
+            window.location.href = 'index.html';
+        }
+
+        async function laadStageHeader() {
+            if (!token) return;
+            try {
+                const res = await fetch(`${API}/stage-info`, { headers: { 'Authorization': 'Bearer ' + token } });
+                if (!res.ok) return;
+                const stage = await res.json();
+                const opt = { day: 'numeric', month: 'long', year: 'numeric' };
+                document.getElementById('stage-titel').textContent = `Stage bij ${stage.bedrijf_naam || '—'}`;
+                document.getElementById('stage-periode').textContent =
+                    `${new Date(stage.startdatum).toLocaleDateString('nl-BE', opt)} – ${new Date(stage.einddatum).toLocaleDateString('nl-BE', opt)}`;
+                document.getElementById('stage-mentor').textContent = '—';
+
+                const start = new Date(stage.startdatum);
+                const eind = new Date(stage.einddatum);
+                totaalWeken = Math.max(1, Math.ceil((eind - start) / (1000 * 60 * 60 * 24 * 7)));
+                huidigeWeek = Math.min(totaalWeken, Math.max(1, berekenWeek(new Date(), stage.startdatum)));
+                laadWeek(huidigeWeek);
+            } catch (err) {
+                console.error(err);
+            }
+        }
+
+        function updateTotaal() {
+            const kaarten = document.querySelectorAll('.comp-kaart');
+            let totaal = 0, max = 0;
+            kaarten.forEach(k => {
+                max += 5;
+                if (k.dataset.score) totaal += Number(k.dataset.score);
+            });
+            document.getElementById('rubriek-totaal').textContent = `Totaal: ${totaal}/${max} ptn`;
+        }
+
+        async function laadCompetenties() {
+            if (!token) return;
+            try {
+                const res = await fetch(`${API}/competenties`, { headers: { 'Authorization': 'Bearer ' + token } });
+                if (!res.ok) return;
+                const lijst = await res.json();
+                const box = document.getElementById('competenties-lijst');
+                box.innerHTML = lijst.map(c => `
+                    <div class="comp-kaart" data-comp="${c.competentie_id}">
+                        <div class="comp-kaart__head">
+                            <span class="comp-kaart__naam">${c.naam} <span class="comp-kaart__max">(Max 5 ptn)</span></span>
+                            <span class="comp-kaart__score" data-score-label>Score: –/5</span>
+                        </div>
+                        <div class="comp-kaart__niveaus">
+                            ${c.niveaus.map(n => `
+                                <div class="niveau-vak" data-punten="${n.punten}">
+                                    <div class="niveau-vak__titel">${n.punten} ptn – ${labelVoorPunten(n.punten)}</div>
+                                    <div class="niveau-vak__desc">${n.omschrijving}</div>
+                                </div>
+                            `).join('')}
+                        </div>
+                        <input type="text" class="comp-feedback" placeholder="Voeg specifieke feedback toe (optioneel)..." />
+                    </div>
+                `).join('');
+
+                box.querySelectorAll('.niveau-vak').forEach(vak => {
+                    vak.addEventListener('click', () => {
+                        const kaart = vak.closest('.comp-kaart');
+                        kaart.querySelectorAll('.niveau-vak').forEach(v => v.classList.remove('geselecteerd'));
+                        vak.classList.add('geselecteerd');
+                        kaart.dataset.score = vak.dataset.punten;
+                        kaart.querySelector('[data-score-label]').textContent = `Score: ${vak.dataset.punten}/5`;
+                        updateTotaal();
+                    });
+                });
+
+                updateTotaal();
+            } catch (err) {
+                console.error(err);
+            }
+        }
+
+        async function laadLaatste() {
+            if (!token) return;
+            try {
+                const res = await fetch(`${API}/logboek/laatste`, { headers: { 'Authorization': 'Bearer ' + token } });
+                if (!res.ok) return;
+                const dag = await res.json();
+                const d = new Date(dag.datum).toLocaleDateString('nl-BE', { day: 'numeric', month: 'long', year: 'numeric' });
+                document.getElementById('laatste-datum').textContent = d;
+
+                const compHtml = (dag.competenties && dag.competenties.length)
+                    ? dag.competenties.map(c => `
+                        <div class="last-entry__comp">
+                            <span>${c.naam}</span>
+                            <span class="last-entry__comp-score">${c.score != null ? c.score + '/5' : '–'}</span>
+                        </div>`).join('')
+                    : '<div class="last-entry__row">Geen competenties gescoord.</div>';
+
+                document.getElementById('laatste-body').innerHTML = `
+                    <div class="last-entry__row"><strong>Uitgevoerde taken</strong>${dag.taken_beschrijving || '—'}</div>
+                    <div class="last-entry__row"><strong>Reflectie</strong>${dag.reflectie || '—'}</div>
+                    <div class="last-entry__row"><strong>Problemen</strong>${dag.leerpunten || '—'}</div>
+                    <div class="last-entry__row"><strong>Gewerkte uren</strong>${dag.uren ?? 0} uur</div>
+                    <div class="last-entry__row"><strong>Competenties</strong></div>
+                    ${compHtml}
+                `;
+            } catch (err) {
+                console.error(err);
+            }
+        }
+
+        function resetRubriek() {
+            document.querySelectorAll('.comp-kaart').forEach(k => {
+                k.querySelectorAll('.niveau-vak').forEach(v => v.classList.remove('geselecteerd'));
+                delete k.dataset.score;
+                k.querySelector('[data-score-label]').textContent = 'Score: –/5';
+                k.querySelector('.comp-feedback').value = '';
+            });
+            updateTotaal();
+        }
+
+        function vulRubriekIn(competenties) {
+            resetRubriek();
+            (competenties || []).forEach(c => {
+                const kaart = document.querySelector(`.comp-kaart[data-comp="${c.competentie_id}"]`);
+                if (!kaart) return;
+                if (c.score != null) {
+                    const vak = kaart.querySelector(`.niveau-vak[data-punten="${c.score}"]`);
+                    if (vak) {
+                        vak.classList.add('geselecteerd');
+                        kaart.dataset.score = c.score;
+                        kaart.querySelector('[data-score-label]').textContent = `Score: ${c.score}/5`;
+                    }
+                }
+                kaart.querySelector('.comp-feedback').value = c.commentaar || '';
+            });
+            updateTotaal();
+        }
+
+        async function laadDagVoorDatum(datum) {
+            if (!token || !datum) return;
+            try {
+                const res = await fetch(`${API}/logboek/dag?datum=${datum}`, { headers: { 'Authorization': 'Bearer ' + token } });
+                if (res.status === 404) {
+                    document.getElementById('taken').value = '';
+                    document.getElementById('reflectie').value = '';
+                    document.getElementById('problemen').value = '';
+                    document.getElementById('uren').value = '';
+                    resetRubriek();
+                    return;
+                }
+                if (!res.ok) return;
+                const dag = await res.json();
+                document.getElementById('taken').value = dag.taken_beschrijving || '';
+                document.getElementById('reflectie').value = dag.reflectie || '';
+                document.getElementById('problemen').value = dag.leerpunten || '';
+                document.getElementById('uren').value = dag.uren ?? '';
+                vulRubriekIn(dag.competenties);
+            } catch (err) {
+                console.error(err);
+            }
+        }
+
+        async function laadWeek(nr) {
+            huidigeWeek = nr;
+            document.getElementById('week-label').textContent = `Week ${nr}`;
+            document.getElementById('week-teller').textContent = `Week ${nr} van ${totaalWeken}`;
+            const box = document.getElementById('week-dagen');
+            const pill = document.getElementById('week-status-pill');
+            const knop = document.getElementById('indien-knop');
+            if (!token) return;
+            try {
+                const res = await fetch(`${API}/logboek/week/${nr}`, { headers: { 'Authorization': 'Bearer ' + token } });
+                if (res.status === 404) {
+                    box.innerHTML = '<div class="last-entry__row">Nog geen logboeken voor deze week.</div>';
+                    pill.textContent = 'Open';
+                    knop.disabled = true;
+                    knop.style.opacity = 0.5;
+                    knop.textContent = 'Week indienen';
+                    return;
+                }
+                const week = await res.json();
+                const ingediend = week.status === 'ingediend';
+                pill.textContent = ingediend ? 'Ingediend' : 'Open';
+                knop.disabled = ingediend;
+                knop.style.opacity = ingediend ? 0.5 : 1;
+                knop.textContent = ingediend ? 'Reeds ingediend' : 'Week indienen';
+                if (!week.dagen.length) {
+                    box.innerHTML = '<div class="last-entry__row">Nog geen dagen ingevuld deze week.</div>';
+                    return;
+                }
+                box.innerHTML = week.dagen.map(d => `
+                    <div class="week-dag-rij">
+                        <div class="week-dag-rij__top">
+                            <span class="week-dag-rij__datum">${new Date(d.datum).toLocaleDateString('nl-BE', { weekday: 'short', day: 'numeric', month: 'short' })}</span>
+                            <span class="week-dag-rij__uren">${d.uren ?? 0} u</span>
+                        </div>
+                        <div class="week-dag-rij__taken">${d.taken_beschrijving || '—'}</div>
+                    </div>
+                `).join('');
+            } catch (err) {
+                console.error(err);
+            }
+        }
+
+        function vorigeWeek() {
+            if (huidigeWeek > 1) laadWeek(huidigeWeek - 1);
+        }
+
+        function volgendeWeek() {
+            if (huidigeWeek < totaalWeken) laadWeek(huidigeWeek + 1);
+        }
+
+        async function dienWeekInUI() {
+            if (!confirm(`Week ${huidigeWeek} indienen? Daarna kun je deze week niet meer bewerken.`)) return;
+            try {
+                const res = await fetch(`${API}/logboek/week/${huidigeWeek}/indienen`, {
+                    method: 'PUT',
+                    headers: { 'Authorization': 'Bearer ' + token }
+                });
+                const r = await res.json();
+                if (res.ok) {
+                    alert(r.message || 'Week ingediend');
+                    laadWeek(huidigeWeek);
+                } else {
+                    alert(r.error || 'Er ging iets mis');
+                }
+            } catch (err) {
+                alert('Kan geen verbinding maken met de server');
+            }
+        }
+
+        async function slaOp() {
+            const datum = document.getElementById('datum');
+            const taken = document.getElementById('taken');
+            const reflectie = document.getElementById('reflectie');
+            const problemen = document.getElementById('problemen');
+            const uren = document.getElementById('uren');
+
+            if (!datum.value || !taken.value || !reflectie.value || !problemen.value || !uren.value) {
+                alert('Alle velden zijn verplicht! Vul aub alle velden in.');
+                return;
+            }
+            if (!token) {
+                alert('Je bent niet ingelogd.');
+                return;
+            }
+
+            const competenties = [...document.querySelectorAll('.comp-kaart')]
+                .filter(k => k.dataset.score)
+                .map(k => ({
+                    competentie_id: Number(k.dataset.comp),
+                    score: Number(k.dataset.score),
+                    commentaar: k.querySelector('.comp-feedback').value
+                }));
+
+            const data = {
+                datum: datum.value,
+                taken_beschrijving: taken.value,
+                reflectie: reflectie.value,
+                leerpunten: problemen.value,
+                uren: uren.value,
+                competenties
+            };
+
+            try {
+                const res = await fetch(`${API}/logboek`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + token
+                    },
+                    body: JSON.stringify(data)
+                });
+                const result = await res.json();
+                if (res.ok) {
+                    const fb = document.getElementById('feedback-box');
+                    fb.style.display = 'block';
+                    setTimeout(() => fb.style.display = 'none', 3000);
+                    laadLaatste();
+                    laadWeek(huidigeWeek);
+                } else {
+                    alert(result.error || 'Er ging iets mis');
+                }
+            } catch (err) {
+                alert('Kan geen verbinding maken met de server');
+            }
+        }
+
+        laadProfiel();
+        laadStageHeader();
+        laadLaatste();
+        laadCompetenties();
+
+        document.getElementById('datum').addEventListener('change', (e) => laadDagVoorDatum(e.target.value));
+    </script>
+
+</body>
+</html>
