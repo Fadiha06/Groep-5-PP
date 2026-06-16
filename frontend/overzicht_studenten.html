@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Overzicht Studenten — EhB StageTool</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/frontend/src/CSS/overzicht_studenten.css">
+</head>
+<body>
+<div class="root">
+
+  <nav class="sidebar">
+    <div class="sb-logo">
+      <div class="sb-logo-title">EhB StageTool</div>
+      <div class="sb-logo-sub">Toegepaste Informatica</div>
+    </div>
+    <div class="sb-nav">
+      <a class="sb-item" href="docent_dashboard.html">Docent Dashboard</a>
+      <a class="sb-item active" href="#">Overzicht Studenten</a>
+      <a class="sb-item" href="docent_logboeken.html">Logboeken</a>
+      <a class="sb-item" href="#">Evaluaties</a>
+    </div>
+    <div class="sb-footer">Ingelogd als Docent</div>
+  </nav>
+
+  <div class="main">
+    <div class="page-title">Studentendossiers</div>
+
+    <div class="content-grid">
+
+      <!-- Student lijst -->
+      <div class="student-list-card">
+        <div class="student-list-search">
+          <input class="search" type="text" placeholder="Zoek leerling..." oninput="filterStudents()">
+        </div>
+        <div class="student-items" id="student-items">
+          <div style="padding:20px;font-size:13px;color:#9CA3AF">Laden...</div>
+        </div>
+      </div>
+
+      <!-- Detail paneel -->
+      <div class="detail-col" id="detail-container">
+
+        <!-- Info -->
+        <div class="card">
+          <div class="card-title">Informatie van student</div>
+          <div class="info-grid">
+            <div class="info-block">
+              <div class="info-label">Student & Opleiding</div>
+              <div class="info-value" id="info-naam">laden...</div>
+              <div class="info-sub" id="info-contact">laden...</div>
+            </div>
+            <div class="info-block">
+              <div class="info-label">Bedrijf & Locatie</div>
+              <div class="info-value" id="info-bedrijf">laden...</div>
+              <div class="info-sub" id="info-adres">laden...</div>
+            </div>
+            <div class="info-block">
+              <div class="info-label">Stagementor (Bedrijf)</div>
+              <div class="info-value" id="info-mentor">laden...</div>
+              <div class="info-sub" id="info-mentor-email">laden...</div>
+            </div>
+            <div class="info-block">
+              <div class="info-label">Stageperiode</div>
+              <div class="info-value" id="info-periode">laden...</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Voortgang -->
+        <div class="card">
+          <div class="card-title">Voortgang stage</div>
+          <div class="timeline-wrap">
+            <div class="tl-line"></div>
+            <div class="tl-progress" id="tl-progress" style="width:0%"></div>
+            <div class="tl-steps" id="tl-steps"></div>
+          </div>
+        </div>
+
+        <!-- Meldingen -->
+        <div class="card">
+          <div class="card-title" id="meldingen-titel">Actuele Meldingen & Rapporten</div>
+          <div class="melding-filters">
+            <button class="filter-btn active" id="filter-alles-count" data-filter="alles" onclick="setMeldingFilter('alles', this)">Alles (0)</button>
+            <button class="filter-btn" data-filter="kritiek" onclick="setMeldingFilter('kritiek', this)">Kritiek</button>
+            <button class="filter-btn" data-filter="waarschuwing" onclick="setMeldingFilter('waarschuwing', this)">Waarschuwing</button>
+            <button class="filter-btn" data-filter="info" onclick="setMeldingFilter('info', this)">Info</button>
+          </div>
+          <div class="meldingen-grid" id="meldingen-grid">
+            <div style="font-size:13px;color:#9CA3AF;padding:20px">Laden...</div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="/frontend/src/JS/api.js"></script>
+<script src="/frontend/src/JS/overzicht_studenten.js"></script>
+</body>
+</html>

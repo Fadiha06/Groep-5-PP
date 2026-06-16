@@ -1,0 +1,67 @@
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Inter',system-ui,sans-serif;background:#F9FAFB;min-height:100vh;display:flex}
+.root{display:flex;width:100%;min-height:100vh}
+
+/* Sidebar */
+.sidebar{width:240px;flex-shrink:0;background:#1F2937;display:flex;flex-direction:column;min-height:100vh}
+.sb-logo{padding:20px 20px 16px;border-bottom:1px solid rgba(255,255,255,0.08)}
+.sb-logo-title{color:white;font-size:16px;font-weight:700}
+.sb-logo-sub{color:#6B7280;font-size:12px;margin-top:2px}
+.sb-nav{padding:12px 0;flex:1}
+.sb-item{display:flex;align-items:center;gap:10px;padding:10px 16px;font-size:14px;color:#9CA3AF;cursor:pointer;text-decoration:none}
+.sb-item.active{background:#D1193E;color:white;font-weight:500;border-radius:6px}
+.sb-item:not(.active):hover{background:rgba(255,255,255,0.05)}
+.sb-footer{padding:14px 16px;border-top:1px solid rgba(255,255,255,0.08);font-size:12px;color:#6B7280;margin-top:auto}
+
+/* Main */
+.main{flex:1;padding:28px;display:flex;flex-direction:column;gap:16px;overflow:auto}
+
+/* Header */
+.page-header{display:flex;align-items:center;justify-content:space-between}
+.page-title{font-size:26px;font-weight:700;color:#111827}
+.btn-uitloggen{padding:8px 16px;border-radius:6px;border:0.8px solid #E5E7EB;background:white;font-size:13px;font-weight:500;color:#111827;cursor:pointer}
+.btn-uitloggen:hover{background:#F9FAFB}
+
+/* Next step banner */
+.next-banner{background:#EFF6FF;border:0.8px solid #BFDBFE;border-radius:8px;padding:16px 20px}
+.next-banner-title{font-size:17px;font-weight:700;color:#1E40AF}
+.next-banner-sub{font-size:14px;font-weight:500;color:#1E40AF;margin-top:6px}
+
+/* Metric cards */
+.metrics{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.metric-card{background:white;border-radius:12px;border:0.8px solid #E5E7EB;box-shadow:0 1px 3px rgba(0,0,0,0.05);padding:22px 24px}
+.metric-label{font-size:14px;color:#6B7280;margin-bottom:10px}
+.metric-value{font-size:34px;font-weight:700;color:#111827;line-height:1}
+.metric-bar-wrap{height:8px;background:#E5E7EB;border-radius:4px;overflow:hidden;margin-top:16px}
+.metric-bar{height:8px;border-radius:4px}
+.bar-blue{background:#3B82F6}
+.bar-orange{background:#F59E0B}
+.metric-sub{font-size:13px;font-weight:500;color:#6B7280;margin-top:8px}
+
+/* Bottom grid */
+.bottom-grid{display:grid;grid-template-columns:1fr 1.5fr;gap:14px}
+
+/* Timeline card */
+.card{background:white;border-radius:12px;border:0.8px solid #E5E7EB;box-shadow:0 1px 3px rgba(0,0,0,0.05);padding:22px 24px}
+.card-title{font-size:17px;font-weight:600;color:#111827;margin-bottom:18px}
+.timeline{border-left:1.6px solid #E5E7EB;padding-left:20px;display:flex;flex-direction:column;gap:0}
+.tl-item{position:relative;padding-bottom:24px}
+.tl-item:last-child{padding-bottom:0}
+.tl-dot{width:14px;height:14px;border-radius:50%;position:absolute;left:-27px;top:2px;border:2.4px solid #E5E7EB;background:white}
+.tl-dot.done{background:#10B981;border-color:#10B981}
+.tl-dot.active{background:white;border-color:#3B82F6}
+.tl-title{font-size:15px;font-weight:700;color:#111827}
+.tl-title.active{color:#3B82F6}
+.tl-sub{font-size:13px;color:#6B7280;margin-top:4px}
+
+/* Logboek card */
+.logboek-table{width:100%;border-collapse:collapse}
+.logboek-table tr{border-bottom:0.8px solid #E5E7EB}
+.logboek-table tr:last-child{border-bottom:none}
+.logboek-table td{padding:14px 16px;font-size:14px}
+.dag-naam{font-weight:700;color:#111827}
+.dag-taak{font-size:13px;color:#6B7280;margin-top:3px}
+.badge{display:inline-block;padding:5px 10px;border-radius:20px;font-size:12px;font-weight:500}
+.badge-ok{background:#EEFBF6;color:#047857;border:0.8px solid #A7F3D0}
+.badge-open{background:#FEF2F2;color:#B91C1C;border:0.8px solid #FECACA}
+.badge-col{text-align:right}

@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gebruikersbeheer — EhB StageTool</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="src/CSS/admin_gebruikersbeheer.css">
+</head>
+<body>
+<div class="root">
+
+  <nav class="sidebar">
+    <div class="sb-logo">
+      <div class="sb-logo-title">EhB StageTool</div>
+      <div class="sb-logo-sub">Administratie</div>
+    </div>
+    <div class="sb-nav">
+      <a class="sb-item" href="admin_dashboard.html">Dashboard</a>
+      <a class="sb-item" href="#">Overeenkomsten</a>
+      <a class="sb-item" href="#">Competenties (Config)</a>
+      <a class="sb-item" href="#">Rapporten</a>
+      <a class="sb-item active" href="#">Gebruikers</a>
+    </div>
+    <div class="sb-footer">Ingelogd als Administrator</div>
+  </nav>
+
+  <div class="main">
+    <div>
+      <div class="page-title">Gebruikersbeheer</div>
+      <div class="page-sub">Beheer accounts, rollen en toegangsrechten. Alleen administrators kunnen accounts deactiveren of rollen wijzigen.</div>
+    </div>
+
+    <div class="card">
+      <div class="toolbar">
+        <div class="search-wrap">
+          <span>🔍</span>
+          <input class="search" type="text" placeholder="Zoek op naam of e-mail..." oninput="filterTable()">
+        </div>
+        <select class="filter-select" id="filter-rol" onchange="filterTable()">
+          <option value="">Alle rollen</option>
+          <option>Administrator</option>
+          <option>Student</option>
+          <option>Docent</option>
+          <option>Mentor</option>
+          <option>Stagecommissie</option>
+        </select>
+        <select class="filter-select" id="filter-status" onchange="filterTable()">
+          <option value="">Alle statussen</option>
+          <option>Actief</option>
+          <option>Inactief</option>
+        </select>
+        <span class="count-label" id="count-label">6 gebruikers gevonden</span>
+        <button class="btn-new" onclick="openModal()">+ Nieuw account</button>
+      </div>
+
+      <div class="table-header-row">
+        <div class="th">Naam</div>
+        <div class="th">E-mailadres</div>
+        <div class="th">Systeem Rol</div>
+        <div class="th">Status</div>
+        <div class="th">Acties</div>
+      </div>
+
+      <div class="table-body" id="table-body"></div>
+    </div>
+  </div>
+</div>
+
+<!-- Nieuw account modal -->
+<div class="modal-overlay" id="modal">
+  <div class="modal">
+    <div>
+      <div class="modal-title">Nieuw account aanmaken</div>
+      <div class="modal-sub">Vul de gegevens in. De gebruiker ontvangt een e-mail met inloggegevens.</div>
+    </div>
+    <div class="modal-grid">
+      <div class="field">
+        <label>Voornaam</label>
+        <input type="text" placeholder="Jan" id="inp-voornaam">
+      </div>
+      <div class="field">
+        <label>Achternaam</label>
+        <input type="text" placeholder="Peeters" id="inp-achternaam">
+      </div>
+      <div class="field modal-grid-full">
+        <label>E-mailadres</label>
+        <input type="email" placeholder="naam@ehb.be of naam@bedrijf.be" id="inp-email">
+      </div>
+      <div class="field">
+        <label>Rol</label>
+        <select id="inp-rol">
+          <option value="">Selecteer een rol</option>
+          <option>Student</option>
+          <option>Docent</option>
+          <option>Mentor</option>
+          <option>Stagecommissie</option>
+          <option>Administrator</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Status</label>
+        <select id="inp-status">
+          <option>Actief</option>
+          <option>Inactief</option>
+        </select>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancel" onclick="closeModal()">Annuleren</button>
+      <button class="btn-create" onclick="createAccount()">Account aanmaken</button>
+    </div>
+  </div>
+</div>
+
+<!-- Bevestiging -->
+<div class="confirm-overlay" id="confirm">
+  <div class="confirm-box">
+    <div class="confirm-icon">✓</div>
+    <div class="confirm-title" id="confirm-title">Account aangemaakt</div>
+    <div class="confirm-sub" id="confirm-sub">Het account is aangemaakt en de gebruiker is verwittigd.</div>
+    <button class="btn-ok" onclick="closeConfirm()">OK</button>
+  </div>
+</div>
+
+<!-- Verwijder Bevestiging -->
+<div class="confirm-overlay" id="delete-confirm">
+  <div class="confirm-box">
+    <div class="confirm-icon" style="background: #fee2e2; color: #ef4444;">⚠️</div>
+    <div class="confirm-title">Account Verwijderen</div>
+    <div class="confirm-sub" id="delete-confirm-sub">Weet je zeker dat je dit account wilt verwijderen? Dit kan niet ongedaan gemaakt worden.</div>
+    <div style="display: flex; gap: 12px; margin-top: 24px; justify-content: center;">
+      <button class="btn-cancel" onclick="closeDeleteConfirm()">Annuleren</button>
+      <button class="btn-deactiveer" onclick="executeDelete()">Ja, verwijder</button>
+    </div>
+  </div>
+</div>
+
+<script src="/src/JS/api.js"></script>
+<script src="/src/JS/admin_panel.js"></script>
+</body>
+</html>

@@ -1,0 +1,83 @@
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Inter',system-ui,sans-serif;background:#F9FAFB;min-height:100vh;display:flex}
+.root{display:flex;width:100%;min-height:100vh}
+.sidebar{width:240px;flex-shrink:0;background:#1F2937;display:flex;flex-direction:column;min-height:100vh}
+.sb-logo{padding:20px 20px 16px;border-bottom:1px solid rgba(255,255,255,0.08)}
+.sb-logo-title{color:white;font-size:16px;font-weight:700}
+.sb-logo-sub{color:#6B7280;font-size:12px;margin-top:2px}
+.sb-nav{padding:12px 0;flex:1}
+.sb-item{display:flex;align-items:center;gap:10px;padding:10px 16px;font-size:14px;color:#9CA3AF;cursor:pointer;text-decoration:none;border-radius:6px;margin:0 8px}
+.sb-item.active{background:#D1193E;color:white;font-weight:500}
+.sb-item:not(.active):hover{background:rgba(255,255,255,0.05)}
+.sb-footer{padding:14px 16px;border-top:1px solid rgba(255,255,255,0.08);font-size:12px;color:#6B7280;margin-top:auto}
+
+/* Main layout */
+.main{flex:1;padding:28px;display:flex;flex-direction:column;gap:16px;overflow:auto}
+.page-title{font-size:22px;font-weight:700;color:#111827}
+.page-sub{font-size:13px;color:#6B7280;margin-top:4px}
+.content-grid{display:grid;grid-template-columns:220px 1fr;gap:16px;flex:1}
+
+/* Student lijst */
+.student-list-card{background:white;border-radius:12px;border:0.8px solid #E5E7EB;overflow:hidden;display:flex;flex-direction:column}
+.student-list-search{padding:14px 16px;border-bottom:0.8px solid #E5E7EB}
+.student-list-label{font-size:11px;font-weight:700;color:#6B7280;letter-spacing:0.4px;text-transform:uppercase;margin-bottom:10px}
+.search{width:100%;padding:7px 10px;border-radius:6px;border:0.8px solid #E5E7EB;background:#F9FAFB;font-size:12px;color:#111827;font-family:inherit}
+.search:focus{outline:none;border-color:#D1193E}
+.student-items{overflow-y:auto;flex:1;padding:8px}
+.student-item{display:flex;align-items:center;gap:10px;padding:9px 8px;border-radius:8px;cursor:pointer}
+.student-item:hover{background:#F9FAFB}
+.student-item.active{background:#FEF2F2;border:0.8px solid #FECACA}
+.avatar{width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:white;flex-shrink:0;background:#1F2937}
+.avatar.active{background:#D1193E}
+.avatar.te-laat{background:#EF4444}
+.student-naam{font-size:13px;font-weight:500;color:#111827}
+.student-meta{font-size:11px;color:#6B7280;margin-top:1px}
+.student-meta.te-laat{color:#EF4444}
+
+/* Header */
+.eval-header-title{font-size:22px;font-weight:700;color:#111827}
+.eval-header-sub{font-size:13px;color:#6B7280;margin-top:4px}
+
+/* Week tabs + legenda */
+.eval-toolbar{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px}
+.week-tabs{display:flex;gap:8px}
+.week-tab{padding:7px 18px;border-radius:6px;border:0.8px solid #E5E7EB;background:white;font-size:13px;color:#6B7280;cursor:pointer;font-family:inherit}
+.week-tab.active{background:#111827;border-color:#111827;color:white;font-weight:500}
+.legenda{display:flex;align-items:center;gap:18px;font-size:13px;color:#6B7280}
+.legenda-item{display:flex;align-items:center;gap:6px}
+.legenda-dot{width:9px;height:9px;border-radius:50%}
+.dot-student{background:#73ABFF}
+.dot-mentor{background:#FF7373}
+.totaal-badge{background:#FEF2F2;border:0.8px solid #FECACA;color:#D1193E;font-size:14px;font-weight:700;padding:6px 16px;border-radius:6px}
+
+/* Competentie rows */
+.competentie-card{background:white;border-radius:12px;border:0.8px solid #E5E7EB;overflow:hidden}
+.competentie-grid{display:grid;grid-template-columns:200px 1fr 70px}
+.competentie-label{background:#F9FAFB;border-right:0.8px solid #E5E7EB;padding:14px 16px}
+.competentie-naam{font-size:14px;font-weight:500;color:#111827}
+.competentie-domeinen{font-size:11px;color:#6B7280;margin-top:8px}
+.score-options{display:grid;grid-template-columns:1fr 1fr 1fr}
+.score-option{border-right:0.8px solid #E5E7EB;padding:14px 12px;cursor:pointer;position:relative;transition:opacity 0.15s}
+.score-option:last-child{border-right:none}
+.score-option.selected{background:#EFF6FF}
+.score-option:not(.selected){opacity:0.4}
+.score-option:hover{opacity:1}
+.score-ptn{font-size:14px;font-weight:700;color:#111827}
+.score-label{font-size:11px;color:#6B7280;margin-top:4px}
+.score-desc{font-size:11px;color:#6B7280;line-height:1.4;margin-top:4px}
+.score-dot{width:9px;height:9px;border-radius:50%;position:absolute;top:9px}
+.score-dot.student{background:#73ABFF;right:24px}
+.score-dot.mentor{background:#FF7373;right:10px}
+.competentie-totaal{background:white;border-left:0.8px solid #E5E7EB;display:flex;align-items:center;justify-content:center}
+.competentie-totaal-value{font-size:22px;font-weight:700;color:#D1193E}
+
+/* Feedback */
+.feedback-row{background:#F9FAFB;border-top:0.8px solid #E5E7EB;display:grid;grid-template-columns:1fr 1fr;padding:11px 16px;gap:24px}
+.feedback-label{font-size:10px;font-weight:700;color:#6B7280;letter-spacing:0.4px;text-transform:uppercase;margin-bottom:4px}
+.feedback-tekst{font-size:12px;color:#374151;line-height:1.5}
+
+/* Save button */
+.save-row{display:flex;justify-content:flex-end}
+.btn-opslaan{padding:10px 26px;border-radius:6px;border:none;background:#111827;color:white;font-size:13px;font-weight:500;cursor:pointer}
+.btn-opslaan:hover{background:#374151}
+.btn-opslaan:disabled{background:#9CA3AF;cursor:not-allowed}

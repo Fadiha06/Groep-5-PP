@@ -1,0 +1,93 @@
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Inter',system-ui,sans-serif;background:#F9FAFB;min-height:100vh;display:flex}
+.root{display:flex;width:100%;min-height:100vh}
+
+/* Sidebar */
+.sidebar{width:240px;flex-shrink:0;background:#1F2937;display:flex;flex-direction:column;min-height:100vh}
+.sb-logo{padding:20px 20px 16px;border-bottom:1px solid rgba(255,255,255,0.08)}
+.sb-logo-title{color:white;font-size:16px;font-weight:700}
+.sb-logo-sub{color:#6B7280;font-size:12px;margin-top:2px}
+.sb-nav{padding:12px 0;flex:1}
+.sb-item{display:flex;align-items:center;gap:10px;padding:10px 16px;font-size:14px;color:#9CA3AF;cursor:pointer;text-decoration:none;border-radius:6px;margin:0 8px}
+.sb-item.active{background:#D1193E;color:white;font-weight:500}
+.sb-item:not(.active):hover{background:rgba(255,255,255,0.05)}
+.sb-footer{padding:14px 16px;border-top:1px solid rgba(255,255,255,0.08);font-size:12px;color:#6B7280;margin-top:auto}
+
+/* Main */
+.main{flex:1;padding:28px;display:flex;flex-direction:column;gap:18px;overflow:auto}
+.page-title{font-size:26px;font-weight:700;color:#111827}
+.page-sub{font-size:13px;color:#6B7280;margin-top:4px;max-width:680px}
+
+/* Card */
+.card{background:white;border-radius:12px;border:0.8px solid #E5E7EB;box-shadow:0 1px 3px rgba(0,0,0,0.05);overflow:hidden}
+
+/* Toolbar */
+.toolbar{padding:18px 20px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;border-bottom:0.8px solid #E5E7EB}
+.search-wrap{position:relative;width:260px}
+.search-wrap span{position:absolute;left:10px;top:50%;transform:translateY(-50%);font-size:14px;color:#6B7280}
+.search{width:100%;padding:8px 10px 8px 32px;border-radius:8px;border:0.8px solid #D1D5DB;background:white;font-size:13px;color:#111827;font-family:inherit}
+.search:focus{outline:none;border-color:#D1193E}
+.filter-select{padding:8px 12px;border-radius:8px;border:0.8px solid #D1D5DB;background:white;font-size:13px;color:#111827;font-family:inherit;cursor:pointer}
+.filter-select:focus{outline:none}
+.count-label{font-size:13px;color:#6B7280;margin-left:auto}
+.btn-new{padding:9px 18px;border-radius:6px;border:none;background:#D1193E;color:white;font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap}
+.btn-new:hover{background:#B01530}
+
+/* Table */
+.table-header-row{display:grid;grid-template-columns:1.2fr 1.6fr 1fr 0.8fr 1fr;background:#F9FAFB;border-bottom:0.8px solid #E5E7EB;padding:0 20px}
+.th{padding:12px 8px;font-size:12px;font-weight:600;color:#6B7280;letter-spacing:0.4px;text-transform:uppercase}
+.table-body{}
+.table-row{display:grid;grid-template-columns:1.2fr 1.6fr 1fr 0.8fr 1fr;padding:0 20px;border-bottom:0.8px solid #E5E7EB;align-items:center;min-height:62px}
+.table-row:last-child{border-bottom:none}
+.table-row:hover{background:#FAFAFA}
+.td{padding:8px;font-size:13px;color:#111827}
+.td-name{font-weight:700}
+.td-email{color:#6B7280}
+.role-select{padding:6px 10px;border-radius:6px;border:0.8px solid #D1D5DB;background:#F9FAFB;font-size:12px;color:#111827;font-family:inherit;cursor:pointer}
+.role-select:focus{outline:none;border-color:#D1193E}
+
+/* Status badge */
+.status-badge{display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:500}
+.status-dot{width:8px;height:8px;border-radius:50%}
+.dot-actief{background:#22C55E}
+.dot-inactief{background:#9CA3AF}
+.text-actief{color:#15803D}
+.text-inactief{color:#6B7280}
+
+/* Action buttons */
+.actions{display:flex;gap:8px}
+.btn-bekijk{padding:6px 12px;border-radius:6px;border:0.8px solid #D1D5DB;background:#F3F4F6;color:#111827;font-size:12px;cursor:pointer}
+.btn-bekijk:hover{background:#E5E7EB}
+.btn-deactiveer{padding:6px 12px;border-radius:6px;border:0.8px solid #FECACA;background:#FEF2F2;color:#B91C1C;font-size:12px;cursor:pointer}
+.btn-deactiveer:hover{background:#FEE2E2}
+.btn-activeer{padding:6px 12px;border-radius:6px;border:0.8px solid #86EFAC;background:#F0FDF4;color:#166534;font-size:12px;cursor:pointer}
+.btn-activeer:hover{background:#DCFCE7}
+
+/* Modal overlay */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:100;display:none;align-items:center;justify-content:center}
+.modal-overlay.open{display:flex}
+.modal{background:white;border-radius:16px;padding:28px 32px;width:100%;max-width:520px;box-shadow:0 8px 40px rgba(0,0,0,0.15);display:flex;flex-direction:column;gap:18px}
+.modal-title{font-size:18px;font-weight:700;color:#111827}
+.modal-sub{font-size:13px;color:#6B7280;margin-top:3px}
+.modal-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.modal-grid-full{grid-column:span 2}
+.field{display:flex;flex-direction:column;gap:5px}
+.field label{font-size:12px;font-weight:600;color:#374151}
+.field input,.field select{font-size:13px;padding:9px 12px;border-radius:8px;border:0.8px solid #E5E7EB;background:#F9FAFB;color:#111827;width:100%;font-family:inherit}
+.field input:focus,.field select:focus{outline:none;border-color:#D1193E;background:white}
+.modal-footer{display:flex;justify-content:flex-end;gap:10px;padding-top:4px}
+.btn-cancel{padding:9px 20px;border-radius:8px;border:0.8px solid #E5E7EB;background:white;color:#374151;font-size:13px;font-weight:500;cursor:pointer}
+.btn-cancel:hover{background:#F9FAFB}
+.btn-create{padding:9px 20px;border-radius:8px;border:none;background:#D1193E;color:white;font-size:13px;font-weight:600;cursor:pointer}
+.btn-create:hover{background:#B01530}
+
+/* Bevestiging popup */
+.confirm-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:200;display:none;align-items:center;justify-content:center}
+.confirm-overlay.open{display:flex}
+.confirm-box{background:white;border-radius:14px;padding:28px 28px;max-width:380px;width:90%;text-align:center;display:flex;flex-direction:column;align-items:center;gap:12px}
+.confirm-icon{width:56px;height:56px;border-radius:50%;background:#E1F5EE;display:flex;align-items:center;justify-content:center;font-size:26px}
+.confirm-title{font-size:16px;font-weight:700;color:#111827}
+.confirm-sub{font-size:13px;color:#6B7280;line-height:1.6}
+.btn-ok{padding:10px 32px;border-radius:8px;border:none;background:#D1193E;color:white;font-size:14px;font-weight:600;cursor:pointer;margin-top:4px}
+.btn-ok:hover{background:#B01530}
+
