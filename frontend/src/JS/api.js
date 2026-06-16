@@ -1,12 +1,8 @@
 const API_BASE_URL = 'http://localhost:5000/api';
 
-/**
- * Wrapper for fetch that automatically includes the Authorization header if a token is present,
- * and handles common error scenarios.
- */
 async function apiFetch(endpoint, options = {}) {
   const token = localStorage.getItem('token');
-  
+
   const headers = {
     'Content-Type': 'application/json',
     ...options.headers,
@@ -31,10 +27,6 @@ async function apiFetch(endpoint, options = {}) {
   return data;
 }
 
-/**
- * Checks if the user is authenticated and optionally if they have the correct role.
- * Redirects to index.html if unauthenticated.
- */
 function requireAuth(requiredRole = null) {
   const token = localStorage.getItem('token');
   const rol = localStorage.getItem('rol');
@@ -47,8 +39,7 @@ function requireAuth(requiredRole = null) {
 
   if (requiredRole) {
     const roles = Array.isArray(requiredRole) ? requiredRole : [requiredRole];
-    
-    // Zorg ervoor dat zowel 'admin' als 'administrator' toegang krijgen
+
     if (roles.includes('administrator') && !roles.includes('admin')) {
       roles.push('admin');
     }
@@ -69,7 +60,6 @@ function logout() {
   window.location.href = 'index.html';
 }
 
-// Attach to window so other scripts can access it easily without modules (since we use regular script tags)
 window.API_BASE_URL = API_BASE_URL;
 window.apiFetch = apiFetch;
 window.requireAuth = requireAuth;
