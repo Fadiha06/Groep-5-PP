@@ -47,6 +47,18 @@ class ContractModel{
         return rows[0];
     }
 
+    static async getBedrijfEmail(contractId) {
+        const [rows] = await pool.query(
+            `SELECT b.email
+             FROM CONTRACT c
+             JOIN STAGE st ON st.stage_id = c.stage_id
+             LEFT JOIN BEDRIJF b ON b.bedrijf_id = st.bedrijf_id
+             WHERE c.contract_id = ?`,
+            [contractId]
+        );
+        return rows[0] ? rows[0].email : null;
+    }
+
     static async signAsDocent(contractId, signatureBase64) {
         await pool.query(
             `UPDATE CONTRACT

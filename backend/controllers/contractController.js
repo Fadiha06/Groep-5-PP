@@ -1,6 +1,6 @@
 const ContractModel = require('../models/contractModel');
 const jwt = require('jsonwebtoken');
-
+const { stuurContractLink } = require('../util/mail');
 const SECRET = process.env.JWT_SECRET || 'supersecret';
 
 class ContractController {
@@ -42,7 +42,26 @@ class ContractController {
                 return res.status(409).json({ error: 'Al ondertekend door de student' });
             }
             await ContractModel.signAsStudent(req.params.id, signature);
-            res.json({ message: 'Contract ondertekend door student' });
+
+            // Stuur automatisch de teken-link naar het stagebedrijf
+            let mailVerstuurd = false;
+            try {
+                const email = await ContractModel.getBedrijfEmail(req.params.id);
+                if (email) {
+                    const token = jwt.sign(
+                        { contractId: Number(req.params.id), type: 'mentor_sign' },
+                        SECRET,
+                        { expiresIn: '48h' }
+                    );
+                    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
+                    await stuurContractLink(email, `${frontendUrl}/mentor_contract.html?token=${token}`);
+                    mailVerstuurd = true;
+                }
+            } catch (mailErr) {
+                console.error('Mail versturen mislukt:', mailErr.message);
+            }
+
+            res.json({ message: 'Contract ondertekend door student', mailVerstuurd });
         } catch (err) {
             console.error(err);
             res.status(500).json({ error: 'Serverfout bij ondertekenen' });
@@ -54,7 +73,7 @@ class ContractController {
         try {
             const contract = await ContractModel.getById(req.params.id);
             if (!contract) return res.status(404).json({ error: 'Contract niet gevonden' });
-            const token = jwt.sign({ contractId: Number(req.params.id), type: 'mentor_sign' }, SECRET, { expiresIn: '7d' });
+            const token = jwt.sign({ contractId: Number(req.params.id), type: 'mentor_sign' }, SECRET, { expiresIn: '48h' });
             const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
             res.json({ link: `${frontendUrl}/mentor_contract.html?token=${token}` });
         } catch (err) {
