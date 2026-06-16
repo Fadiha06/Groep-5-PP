@@ -29,14 +29,18 @@ class ContractController {
         }
     }
 
-    // POST /api/contracten/:id/tekenen — student tekent
+    // POST /api/contracten/:id/tekenen — student tekent (enkel z'n eigen contract)
     static async tekenStudent(req, res) {
         const { signature } = req.body;
         if (!signature) return res.status(400).json({ error: 'Handtekening ontbreekt' });
         try {
-            const contract = await ContractModel.getById(req.params.id);
-            if (!contract) return res.status(404).json({ error: 'Contract niet gevonden' });
-            if (contract.student_getekend) return res.status(409).json({ error: 'Al ondertekend door de student' });
+            const eigen = await ContractModel.getByGebruiker(req.user.id);
+            if (!eigen || String(eigen.contract_id) !== String(req.params.id)) {
+                return res.status(403).json({ error: 'Dit is niet jouw contract' });
+            }
+            if (eigen.student_getekend) {
+                return res.status(409).json({ error: 'Al ondertekend door de student' });
+            }
             await ContractModel.signAsStudent(req.params.id, signature);
             res.json({ message: 'Contract ondertekend door student' });
         } catch (err) {

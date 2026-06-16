@@ -47,6 +47,29 @@ class ContractModel{
         return rows[0];
     }
 
+    static async signAsDocent(contractId, signatureBase64) {
+        await pool.query(
+            `UPDATE CONTRACT
+             SET docent_getekend = TRUE, docent_handtekening = ?
+             WHERE contract_id = ?`,
+            [signatureBase64, contractId]
+        );
+        await this.checkAllSigned(contractId);
+    }
+
+    // gebruiker_id van de docent die bij dit contract hoort (via STAGE.leerkracht_id)
+    static async getDocentGebruikerId(contractId) {
+        const [rows] = await pool.query(
+            `SELECT d.gebruiker_id
+             FROM CONTRACT c
+             JOIN STAGE st ON st.stage_id = c.stage_id
+             JOIN DOCENT d ON d.docent_id = st.leerkracht_id
+             WHERE c.contract_id = ?`,
+            [contractId]
+        );
+        return rows[0] ? rows[0].gebruiker_id : null;
+    }
+
     static async signAsStudent(contractId, signatureBase64) {
         await pool.query(
             `UPDATE CONTRACT 
@@ -69,7 +92,7 @@ class ContractModel{
 
     static async checkAllSigned(contractId) {
         const contract = await this.getById(contractId);
-        if (contract && contract.student_getekend && contract.mentor_getekend) {
+        if (contract && contract.student_getekend && contract.mentor_getekend && contract.docent_getekend) {
             await pool.query(
                 `UPDATE CONTRACT SET getekend_op = CURRENT_TIMESTAMP WHERE contract_id = ?`,
                 [contractId]
