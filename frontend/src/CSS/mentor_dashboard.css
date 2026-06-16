@@ -1,81 +1,121 @@
-/* ============================================
-   MENTOR DASHBOARD — pagina-specifieke stijlen
-   Gebruik naast mentor_shared.css
-   ============================================ */
+/* ============================================================
+   MENTOR_DASHBOARD.CSS
+   Pagina-specifieke stijlen voor het dashboard
+   ============================================================ */
 
-/* ── Stat cards: kleuraccenten per type ── */
-.stat-card:nth-child(1) .stat-icon { color: #3B82F6; }
-.stat-card:nth-child(2) .stat-icon { color: #F59E0B; }
-.stat-card:nth-child(3) .stat-icon { color: #8B5CF6; }
+/* ── Statistieken grid ── */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 16px;
+  margin-bottom: 24px;
+}
 
-.stat-card:nth-child(1) .stat-value { color: #1D4ED8; }
-.stat-card:nth-child(2) .stat-value { color: #B45309; }
-.stat-card:nth-child(3) .stat-value { color: #6D28D9; }
+.stat-card {
+  background: var(--color-white);
+  border: 1px solid var(--color-border);
+  border-left: 4px solid var(--color-blue);
+  border-radius: var(--radius-lg);
+  padding: 20px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  box-shadow: var(--shadow-sm);
+  transition: box-shadow 0.15s, transform 0.15s;
+}
 
-/* Subtiele gekleurde linker rand per stat card */
-.stat-card:nth-child(1) { border-left: 4px solid #3B82F6; }
-.stat-card:nth-child(2) { border-left: 4px solid #F59E0B; }
-.stat-card:nth-child(3) { border-left: 4px solid #8B5CF6; }
+.stat-card:nth-child(2) { border-left-color: var(--color-amber); }
+.stat-card:nth-child(3) { border-left-color: #8B5CF6; }
 
-/* ── Te beoordelen logboeken — rijen ── */
-#logboek-list .student-item {
+.stat-card:hover {
+  box-shadow: var(--shadow-md);
+  transform: translateY(-2px);
+}
+
+.stat-icon {
+  font-size: 32px;
+  width: 50px;
+  height: 50px;
+  background: var(--color-page-bg);
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.stat-content {
+  flex: 1;
+}
+
+.stat-label {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 4px;
+}
+
+.stat-value {
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--color-blue);
+}
+
+.stat-card:nth-child(2) .stat-value { color: var(--color-amber); }
+.stat-card:nth-child(3) .stat-value { color: #8B5CF6; }
+
+/* ── Logboeken lijst items ── */
+#logboek-list .student-item,
+#student-list .student-item {
   position: relative;
+  padding-left: 8px;
+  border-left: 3px solid transparent;
+  transition: border-color 0.15s, background 0.15s;
 }
 
-/* Rode stip voor wachtende items */
-#logboek-list .student-item::before {
-  content: '';
-  position: absolute;
-  left: -2px;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 4px;
-  height: 60%;
-  background: #F59E0B;
-  border-radius: 0 2px 2px 0;
+#logboek-list .student-item.status-pending {
+  border-left-color: var(--color-amber);
+  background: rgba(245, 158, 11, 0.03);
 }
 
-#logboek-list .student-item.status-late::before {
-  background: #EF4444;
+#logboek-list .student-item.status-late {
+  border-left-color: var(--color-red);
+  background: rgba(239, 68, 68, 0.03);
 }
 
-/* ── Welkomtitel animatie ── */
+/* ── Welkomtitel gradient ── */
 #welkom-titel {
-  background: linear-gradient(90deg, #1E293B 60%, #3B82F6);
+  background: linear-gradient(135deg, var(--color-text) 0%, var(--color-blue) 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
+  animation: fadeIn 0.6s ease;
 }
 
-/* ── Zoekbalk: focus ring ── */
-#student-zoeken:focus {
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-4px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
 
-/* ── Kaart voor logboeken: blauwe header accent ── */
-.card:has(#logboek-list) .card-title {
-  color: #1D4ED8;
-}
+/* ── Responsive ── */
+@media (max-width: 768px) {
+  .stats-grid {
+    grid-template-columns: 1fr;
+  }
 
-/* ── Lege staat in logboeklijst ── */
-#logboek-list .loading,
-#student-list .loading {
-  padding: 32px;
-}
+  .stat-card {
+    padding: 16px;
+  }
 
-/* ── Student list item hover: zachte schaduw ── */
-.student-item:hover {
-  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.1);
-}
+  .stat-icon {
+    width: 40px;
+    height: 40px;
+    font-size: 24px;
+  }
 
-/* ── "Alle logboeken →" link knop ── */
-.card-header .btn-secondary {
-  border-color: #BFDBFE;
-  color: #1D4ED8;
-  background: #EFF6FF;
-}
-
-.card-header .btn-secondary:hover {
-  background: #DBEAFE;
-  border-color: #93C5FD;
+  .stat-value {
+    font-size: 24px;
+  }
 }

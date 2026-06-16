@@ -1,81 +1,265 @@
-/* ============================================
-   MENTOR DASHBOARD — pagina-specifieke stijlen
-   Gebruik naast mentor_shared.css
-   ============================================ */
+/* ============================================================
+   MENTOR_LOGBOEKEN.CSS
+   Pagina-specifieke stijlen voor logboeken pagina
+   ============================================================ */
 
-/* ── Stat cards: kleuraccenten per type ── */
-.stat-card:nth-child(1) .stat-icon { color: #3B82F6; }
-.stat-card:nth-child(2) .stat-icon { color: #F59E0B; }
-.stat-card:nth-child(3) .stat-icon { color: #8B5CF6; }
-
-.stat-card:nth-child(1) .stat-value { color: #1D4ED8; }
-.stat-card:nth-child(2) .stat-value { color: #B45309; }
-.stat-card:nth-child(3) .stat-value { color: #6D28D9; }
-
-/* Subtiele gekleurde linker rand per stat card */
-.stat-card:nth-child(1) { border-left: 4px solid #3B82F6; }
-.stat-card:nth-child(2) { border-left: 4px solid #F59E0B; }
-.stat-card:nth-child(3) { border-left: 4px solid #8B5CF6; }
-
-/* ── Te beoordelen logboeken — rijen ── */
-#logboek-list .student-item {
-  position: relative;
+/* ── Logboek selectie knoppen ── */
+#logboek-select {
+  padding: 16px;
 }
 
-/* Rode stip voor wachtende items */
-#logboek-list .student-item::before {
-  content: '';
-  position: absolute;
-  left: -2px;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 4px;
-  height: 60%;
-  background: #F59E0B;
-  border-radius: 0 2px 2px 0;
+.logboek-select-btn {
+  display: inline-flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: 12px 16px;
+  margin: 0 8px 8px 0;
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-white);
+  cursor: pointer;
+  font-family: var(--font);
+  transition: border-color 0.15s, background 0.15s, box-shadow 0.15s;
 }
 
-#logboek-list .student-item.status-late::before {
-  background: #EF4444;
+.logboek-select-btn:hover {
+  border-color: var(--color-blue-border);
+  background: var(--color-blue-bg);
 }
 
-/* ── Welkomtitel animatie ── */
-#welkom-titel {
-  background: linear-gradient(90deg, #1E293B 60%, #3B82F6);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+.logboek-select-btn.active {
+  border-color: var(--color-blue);
+  background: var(--color-blue-bg);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.12);
 }
 
-/* ── Zoekbalk: focus ring ── */
-#student-zoeken:focus {
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+.logboek-select-btn__naam {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-text);
 }
 
-/* ── Kaart voor logboeken: blauwe header accent ── */
-.card:has(#logboek-list) .card-title {
-  color: #1D4ED8;
+.logboek-select-btn__week {
+  font-size: 11px;
+  color: var(--color-text-muted);
+  font-weight: 400;
 }
 
-/* ── Lege staat in logboeklijst ── */
-#logboek-list .loading,
-#student-list .loading {
-  padding: 32px;
+/* ── Logboek detail header ── */
+.logboek-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding-bottom: 20px;
+  margin-bottom: 20px;
+  border-bottom: 1px solid var(--color-border);
+  flex-wrap: wrap;
 }
 
-/* ── Student list item hover: zachte schaduw ── */
-.student-item:hover {
-  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.1);
+.logboek-avatar {
+  width: 48px;
+  height: 48px;
+  background: var(--color-blue-bg);
+  color: var(--color-blue-dark);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 18px;
+  flex-shrink: 0;
 }
 
-/* ── "Alle logboeken →" link knop ── */
-.card-header .btn-secondary {
-  border-color: #BFDBFE;
-  color: #1D4ED8;
-  background: #EFF6FF;
+.logboek-student-info {
+  flex: 1;
 }
 
-.card-header .btn-secondary:hover {
-  background: #DBEAFE;
-  border-color: #93C5FD;
+.logboek-student-info h2 {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--color-text);
+  margin-bottom: 2px;
+}
+
+.logboek-student-info p {
+  font-size: 13px;
+  color: var(--color-text-muted);
+}
+
+/* ── Week navigatie ── */
+.week-selector {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin: 20px 0;
+  padding: 16px;
+  background: var(--color-page-bg);
+  border-radius: var(--radius-md);
+}
+
+.week-nav-btn {
+  padding: 8px 14px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-white);
+  font-family: var(--font);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.week-nav-btn:hover:not(:disabled) {
+  background: var(--color-blue-bg);
+  border-color: var(--color-blue-border);
+}
+
+.week-nav-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.week-label {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-text);
+  min-width: 100px;
+  text-align: center;
+}
+
+/* ── Logboek tabel container ── */
+.logboek-table-container {
+  margin: 20px 0;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  background: var(--color-white);
+}
+
+.logboek-table-container .card-title {
+  padding: 16px 16px 0;
+  margin-bottom: 12px;
+}
+
+/* ── Logboek tabel (genomen uit shared.css maar extra styling) ── */
+.logboek-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.logboek-table th {
+  background: var(--color-page-bg);
+  color: var(--color-text-muted);
+  font-weight: 600;
+  text-align: left;
+  padding: 10px 14px;
+  border-bottom: 2px solid var(--color-border);
+  white-space: nowrap;
+}
+
+.logboek-table td {
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--color-border-soft);
+  color: var(--color-text);
+  vertical-align: top;
+}
+
+.logboek-table tr:last-child td { border-bottom: none; }
+
+.logboek-table tr:hover td {
+  background: var(--color-page-bg);
+}
+
+/* ── Mentor feedback sectie ── */
+.mentor-feedback {
+  background: var(--color-amber-bg);
+  border: 1px solid #FDE68A;
+  border-radius: var(--radius-md);
+  padding: 20px;
+  margin-top: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.mentor-feedback__label {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-amber-dark);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.mentor-feedback__textarea {
+  width: 100%;
+  min-height: 100px;
+  background: var(--color-white);
+  border: 1px solid #FDE68A;
+  border-radius: var(--radius-sm);
+  padding: 12px;
+  font-family: var(--font);
+  font-size: 14px;
+  color: var(--color-text);
+  resize: vertical;
+  outline: none;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.mentor-feedback__textarea:focus {
+  border-color: var(--color-amber);
+  box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.12);
+}
+
+.mentor-feedback__textarea::placeholder {
+  color: var(--color-text-muted);
+}
+
+.mentor-feedback__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+/* ── Logboek status badge ── */
+#logboek-status-badge {
+  margin-right: 12px;
+}
+
+/* ── Responsive ── */
+@media (max-width: 640px) {
+  .logboek-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .week-selector {
+    flex-wrap: wrap;
+  }
+
+  .week-nav-btn,
+  .week-label {
+    flex: 1;
+    min-width: 100px;
+  }
+
+  .logboek-table {
+    font-size: 12px;
+  }
+
+  .logboek-table th,
+  .logboek-table td {
+    padding: 8px 10px;
+  }
+
+  .mentor-feedback__actions {
+    flex-direction: column-reverse;
+  }
+
+  .mentor-feedback__actions .btn {
+    width: 100%;
+    justify-content: center;
+  }
 }

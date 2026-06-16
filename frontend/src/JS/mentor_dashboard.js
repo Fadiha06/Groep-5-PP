@@ -1,185 +1,147 @@
 // ============================================================
 //  mentor_dashboard.js
-//  Laadt statistieken, logboeken te checken en stagiairslijst
+//  Dashboard: laadt statistieken, logboeken en stagiairs
 // ============================================================
 
-let alleStudenten = [];   // volledige lijst (voor zoekfilter)
+let alleStudenten = [];
 
 document.addEventListener('DOMContentLoaded', () => {
-  if (!requireAuth(['mentor', 'administrator'])) return;
+  if (typeof requireAuth === 'function') {
+    if (!requireAuth(['mentor', 'administrator'])) return;
+  }
   laadDashboard();
 
-  // Live zoeken in stagiairslijst
   const zoekInput = document.getElementById('student-zoeken');
-  if (zoekInput) zoekInput.addEventListener('input', filterStudenten);
+  if (zoekInput) {
+    zoekInput.addEventListener('input', filterStudenten);
+  }
 });
 
-// ── Hoofdlaadfunctie ────────────────────────────────────────
+// ── Hoofdlaad ──────────────────────────────────────────────
 async function laadDashboard() {
   verbergError();
 
   try {
-    // Haal alle studenten op die aan deze mentor gekoppeld zijn
-    const studenten = await apiFetch('/mentor/studenten');
+    const [studenten, logboeken, evaluaties] = await Promise.all([
+      apiFetch('/mentor/studenten'),
+      apiFetch('/mentor/logboeken/pending'),
+      apiFetch('/mentor/evaluaties/open')
+    ]);
+
     alleStudenten = Array.isArray(studenten) ? studenten : [];
-
-    // Haal alle logboeken op die nog gecheckt moeten worden
-    const logboeken = await apiFetch('/mentor/logboeken/pending');
     const openLogboeken = Array.isArray(logboeken) ? logboeken : [];
-
-    // Tel openstaande evaluaties (studenten zonder ingevulde evaluatie)
-    const evaluaties = await apiFetch('/mentor/evaluaties/open');
     const openEvaluaties = Array.isArray(evaluaties) ? evaluaties : [];
 
-    // ── Stat cards ──
-    stel('stat-studenten',  alleStudenten.length);
-    stel('stat-logboeken',  openLogboeken.length);
+    // Stat cards bijwerken
+    stel('stat-studenten', alleStudenten.length);
+    stel('stat-logboeken', openLogboeken.length);
     stel('stat-evaluaties', openEvaluaties.length);
 
-    // ── Welkomsttitel ──
-    const profiel = await apiFetch('/auth/me').catch(() => null);
-    if (profiel) {
-      stel('welkom-titel', `Welkom, ${profiel.naam || profiel.voornaam || 'Mentor'}`);
-    }
-
-    // ── Te beoordelen logboeken ──
-    toonLogboeken(openLogboeken);
-
-    // ── Stagiairslijst ──
+    // Lijsten tonen
+    toonLogboeken(openLogboeken.slice(0, 5));
     toonStudenten(alleStudenten);
 
   } catch (err) {
-    console.error('Dashboard laad-fout:', err);
-    toonError(err.message);
+    toonError(err.message || 'Kan dashboard niet laden.');
   }
 }
 
-// ── Logboeken renderen ───────────────────────────────────────
-function toonLogboeken(logboeken) {
+// ── Logboeken tonen (top 5) ────────────────────────────────
+function toonLogboeken(lijst) {
   const container = document.getElementById('logboek-list');
   if (!container) return;
 
-  if (logboeken.length === 0) {
-    container.innerHTML = '<p class="empty-state">Geen logboeken te beoordelen. 🎉</p>';
+  if (!lijst || lijst.length === 0) {
+    container.innerHTML = '<p class="empty-state">Geen logboeken in beoordeling.</p>';
     return;
   }
 
-  container.innerHTML = logboeken.map(log => {
-    const student  = log.studentnaam  || log.student_naam  || '—';
-    const week     = log.week_nummer  || log.weeknummer    || '?';
-    const ingediend = log.ingediend_op || log.datum         || '';
-    const id       = log.logboek_id   || log.id            || '';
-    const stageId  = log.stage_id     || '';
+  container.innerHTML = `
+    <div style="display: flex; flex-direction: column; gap: 8px;">
+      ${lijst.map(log => {
+        const naam = log.studentnaam || log.naam || '—';
+        const week = log.week_nr || '?';
+        const status = log.status || 'pending';
 
-    return `
-      <div class="logboek-item">
-        <div class="logboek-item__info">
-          <p class="logboek-item__name">${student}</p>
-          <p class="logboek-item__meta">
-            Week ${week}
-            ${ingediend ? ' · Ingediend op ' + formatDatum(ingediend) : ''}
-          </p>
-        </div>
-        <span class="badge badge--pending">Te beoordelen</span>
-        <a
-          href="mentor_logboeken.html?student_id=${stageId}&logboek_id=${id}"
-          class="btn btn--sm btn--primary"
-          style="margin-left:12px;"
-        >
-          Bekijken →
-        </a>
-      </div>
-    `;
-  }).join('');
+        let statusClass = 'status-badge--blue';
+        let statusText = 'Te beoordelen';
+
+        if (status === 'late') {
+          statusClass = 'status-badge--red';
+          statusText = 'Te laat ingediend';
+        }
+
+        return `
+          <div class="student-item status-${status}">
+            <div>
+              <p class="student-name">${naam}</p>
+              <p class="student-meta">Week ${week}</p>
+            </div>
+            <span class="status-badge ${statusClass}">${statusText}</span>
+          </div>
+        `;
+      }).join('')}
+    </div>
+  `;
 }
 
-// ── Stagiairslijst renderen ──────────────────────────────────
+// ── Stagiairs tonen ───────────────────────────────────────
 function toonStudenten(lijst) {
   const container = document.getElementById('student-list');
   if (!container) return;
 
-  if (lijst.length === 0) {
+  if (!lijst || lijst.length === 0) {
     container.innerHTML = '<p class="empty-state">Geen stagiairs gevonden.</p>';
     return;
   }
 
-  container.innerHTML = `<ul class="student-list">${lijst.map(s => {
-    const naam     = s.studentnaam  || s.naam  || '—';
-    const bedrijf  = s.bedrijfsnaam || s.bedrijf || '—';
-    const stageId  = s.stage_id     || s.id     || '';
-    const initiaal = naam.charAt(0).toUpperCase();
+  container.innerHTML = `
+    <div style="display: flex; flex-direction: column; gap: 8px;">
+      ${lijst.map(s => {
+        const naam = s.studentnaam || s.naam || '—';
+        const bedrijf = s.bedrijfsnaam || s.bedrijf || '—';
+        const opleiding = s.opleiding || '';
 
-    return `
-      <li class="student-list__item">
-        <div class="student-list__avatar">${initiaal}</div>
-        <div style="flex:1;">
-          <p class="student-list__name">${naam}</p>
-          <p class="student-list__sub">${bedrijf}</p>
-        </div>
-        <a
-          href="mentor_logboeken.html?student_id=${stageId}"
-          class="btn btn--sm btn--ghost"
-        >
-          Logboek →
-        </a>
-        <a
-          href="mentor_evaluatie.html?student_id=${stageId}"
-          class="btn btn--sm btn--ghost"
-          style="margin-left:6px;"
-        >
-          Evaluatie →
-        </a>
-      </li>
-    `;
-  }).join('')}</ul>`;
+        return `
+          <div class="student-item">
+            <div class="student-avatar">${naam.charAt(0).toUpperCase()}</div>
+            <div style="flex: 1;">
+              <p class="student-name">${naam}</p>
+              <p class="student-meta">${opleiding ? opleiding + ' · ' : ''}${bedrijf}</p>
+            </div>
+          </div>
+        `;
+      }).join('')}
+    </div>
+  `;
 }
 
-// ── Live zoekfilter ──────────────────────────────────────────
+// ── Filter stagiairs ───────────────────────────────────────
 function filterStudenten() {
-  const zoekterm = document.getElementById('student-zoeken').value.toLowerCase().trim();
-  if (!zoekterm) {
-    toonStudenten(alleStudenten);
-    return;
-  }
-
+  const zoekterm = (document.getElementById('student-zoeken')?.value || '').toLowerCase();
   const gefilterd = alleStudenten.filter(s => {
-    const naam    = (s.studentnaam  || s.naam    || '').toLowerCase();
+    const naam = (s.studentnaam || s.naam || '').toLowerCase();
     const bedrijf = (s.bedrijfsnaam || s.bedrijf || '').toLowerCase();
-    return naam.includes(zoekterm) || bedrijf.includes(zoekterm);
+    const opleiding = (s.opleiding || '').toLowerCase();
+
+    return naam.includes(zoekterm) ||
+           bedrijf.includes(zoekterm) ||
+           opleiding.includes(zoekterm);
   });
 
   toonStudenten(gefilterd);
 }
 
-// ── Modal ────────────────────────────────────────────────────
-function sluitModal() {
-  const modal = document.getElementById('success-modal');
-  if (modal) modal.classList.add('hidden');
-}
-
-// ── Uitloggen ────────────────────────────────────────────────
-function logout() {
-  localStorage.removeItem('token');
-  window.location.href = 'login.html';
-}
-
-// ── Hulpfuncties ─────────────────────────────────────────────
+// ── Hulpfuncties ───────────────────────────────────────────
 function stel(id, tekst) {
   const el = document.getElementById(id);
   if (el) el.textContent = tekst;
 }
 
-function formatDatum(datum) {
-  if (!datum) return '—';
-  return new Date(datum).toLocaleDateString('nl-BE', {
-    day: '2-digit', month: '2-digit', year: 'numeric'
-  });
-}
-
 function toonError(bericht) {
   const el = document.getElementById('error-banner');
   if (el) {
-    el.textContent = `Kan geen verbinding maken: ${bericht}`;
+    el.textContent = `Fout: ${bericht}`;
     el.classList.remove('hidden');
   }
 }
@@ -187,4 +149,11 @@ function toonError(bericht) {
 function verbergError() {
   const el = document.getElementById('error-banner');
   if (el) el.classList.add('hidden');
+}
+
+function logout() {
+  localStorage.removeItem('token');
+  localStorage.removeItem('rol');
+  localStorage.removeItem('userId');
+  window.location.href = 'login.html';
 }

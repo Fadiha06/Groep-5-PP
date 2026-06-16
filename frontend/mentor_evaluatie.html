@@ -3,9 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="Beoordeel de competenties van je studenten via rubrics of milestones.">
   <title>Evaluatie — EhB StageTool</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="src/CSS/shared.css" rel="stylesheet">
   <link href="src/CSS/mentor_evaluaties.css" rel="stylesheet">
 </head>
 <body>
@@ -17,17 +17,17 @@
         <div class="sidebar-logo-icon">E</div>
         <div class="sidebar-logo-text">
           <span class="sidebar-logo-title">EhB StageTool</span>
-          <span class="sidebar-logo-subtitle">Docentenportaal</span>
+          <span class="sidebar-logo-subtitle">Mentorportaal</span>
         </div>
       </div>
       <nav class="sidebar-nav">
-        <a href="docent_dashboard.html" class="nav-item">
+        <a href="mentor_dashboard.html" class="nav-item">
           <span class="nav-icon">📊</span> Dashboard
         </a>
-        <a href="docent_logboeken.html" class="nav-item">
+        <a href="mentor_logboeken.html" class="nav-item">
           <span class="nav-icon">📋</span> Logboeken
         </a>
-        <a href="docent_evaluatie.html" class="nav-item active">
+        <a href="mentor_evaluatie.html" class="nav-item active">
           <span class="nav-icon">📝</span> Evaluatie
         </a>
       </nav>
@@ -38,7 +38,7 @@
       <div class="main-header">
         <div>
           <h1 class="header-title">Tussentijdse Evaluatie</h1>
-          <p class="header-subtitle">Beoordeel de competenties van je studenten</p>
+          <p class="header-subtitle">Beoordeel de competenties van je stagiairs</p>
         </div>
         <button class="logout-btn" onclick="logout()">Uitloggen</button>
       </div>
@@ -51,68 +51,72 @@
       <!-- Student Selectie -->
       <div class="card">
         <div class="card-header">
-          <h2 class="card-title">Selecteer Student</h2>
+          <h2 class="card-title">Selecteer Stagiair</h2>
         </div>
         <div id="student-select">
-          <div class="loading">Studenten laden</div>
+          <div class="loading">
+            <div class="loading-spinner"></div>
+            Stagiairs laden...
+          </div>
         </div>
       </div>
 
-      <!-- Evaluatie Detail (verborgen tot een student gekozen is) -->
+      <!-- Evaluatie Detail (verborgen tot student gekozen is) -->
       <div class="card hidden" id="evaluatie-detail">
 
         <!-- Student info + totaal -->
-        <div class="detail-header">
-          <div class="detail-avatar" id="student-avatar">?</div>
-          <div class="detail-info" style="flex:1;">
+        <div class="eval-student-header">
+          <div class="eval-avatar" id="student-avatar">?</div>
+          <div class="eval-student-info">
             <h2 id="student-naam">Student Naam</h2>
             <p id="student-meta">Opleiding · Bedrijf</p>
           </div>
-          <div id="totaal-score" style="font-size: 22px; font-weight: 700; color: #3B82F6; text-align:right;">
-            Totaal: 0 ptn
+          <div id="totaal-score" class="eval-totaal-score">
+            Totaal: 0 / 0 ptn
           </div>
         </div>
 
-        <!-- Evaluatie Type Tabs -->
-        <div class="tabs">
-          <div
-            class="tab active"
-            id="tab-tussentijds"
-            onclick="switchEvaluatieType('tussentijds')"
-          >
-            Tussentijdse Evaluatie (Rubrics)
-          </div>
-          <div
-            class="tab"
-            id="tab-milestone"
-            onclick="switchEvaluatieType('milestone')"
-          >
-            Milestones
-          </div>
-        </div>
-
-        <!-- Competenties worden hier dynamisch ingevuld -->
-        <div id="competenties-container">
-          <div class="loading">Competenties laden</div>
-        </div>
-
-        <!-- Opslaan knop -->
-        <div style="margin-top: 28px; display: flex; justify-content: flex-end; gap: 12px;">
-          <button class="btn btn-secondary" onclick="slaConceptOp()">Concept opslaan</button>
-          <button class="btn btn-primary" onclick="slaEvaluatieOp()" style="padding: 11px 22px; font-size: 14px;">
-            Evaluatie definitief opslaan & verzenden
+        <!-- Evaluatie type tabs -->
+        <div class="eval-tabs" id="eval-tabs">
+          <button class="eval-tab active" onclick="wisselType('tussentijds', this)">
+            📊 Tussentijds
+          </button>
+          <button class="eval-tab" onclick="wisselType('eindeval', this)">
+            🎯 Eindevaluatie
           </button>
         </div>
-      </div>
 
-      <!-- Lege state: geen student geselecteerd -->
-      <div class="card" id="no-student">
-        <div class="empty-state">
-          <div class="empty-state-icon">📝</div>
-          <div class="empty-state-title">Selecteer een student</div>
-          <p>Kies een student om hun evaluatie in te vullen.</p>
+        <!-- Filter bar -->
+        <div class="eval-filter-bar">
+          <input
+            type="text"
+            class="eval-search"
+            id="competentie-zoeken"
+            placeholder="🔍  Zoek competentie..."
+            oninput="filterCompetenties()"
+          >
+          <span class="eval-count" id="eval-count">0 competenties</span>
         </div>
-      </div>
+
+        <!-- Competenties lijst -->
+        <div id="competenties-container">
+          <div class="loading">
+            <div class="loading-spinner"></div>
+            Competenties laden...
+          </div>
+        </div>
+
+        <!-- Actiebalk -->
+        <div class="eval-actions">
+          <button class="btn btn--ghost" onclick="slaConceptOp()">
+            💾 Concept opslaan
+          </button>
+          <button class="btn btn--submit" onclick="slaEvaluatieOp()">
+            ✅ Definitief indienen
+          </button>
+        </div>
+
+      </div><!-- /evaluatie-detail -->
     </main>
   </div>
 
