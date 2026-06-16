@@ -59,6 +59,22 @@ class ContractController {
         }
     }
 
+    // GET /api/contracten/mentor-view?token=... — contract tonen aan de mentor (via token, geen login)
+    static async getMentorView(req, res) {
+        const { token } = req.query;
+        if (!token) return res.status(400).json({ error: 'Token ontbreekt' });
+        try {
+            const decoded = jwt.verify(token, SECRET);
+            if (decoded.type !== 'mentor_sign') return res.status(400).json({ error: 'Ongeldige token' });
+            const contract = await ContractModel.getDetailsById(decoded.contractId);
+            if (!contract) return res.status(404).json({ error: 'Contract niet gevonden' });
+            res.json(contract);
+        } catch (err) {
+            console.error(err);
+            res.status(400).json({ error: 'Ongeldige of verlopen token' });
+        }
+    }
+
     // POST /api/contracten/mentor-tekenen — mentor tekent via token (geen login)
     static async tekenMentor(req, res) {
         const { token, signature } = req.body;

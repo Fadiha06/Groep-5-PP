@@ -30,6 +30,23 @@ class ContractModel{
     }
     // ↑↑↑ EINDE NIEUW ↑↑↑
 
+    static async getDetailsById(contractId) {
+        const [rows] = await pool.query(
+            `SELECT c.*,
+                    g.naam AS student_naam, s.studentnummer,
+                    st.titel, st.startdatum, st.einddatum,
+                    b.naam AS bedrijf_naam
+             FROM CONTRACT c
+             JOIN STAGE st ON st.stage_id = c.stage_id
+             JOIN STUDENT s ON s.student_id = st.student_id
+             JOIN GEBRUIKER g ON g.id = s.gebruiker_id
+             LEFT JOIN BEDRIJF b ON b.bedrijf_id = st.bedrijf_id
+             WHERE c.contract_id = ?`,
+            [contractId]
+        );
+        return rows[0];
+    }
+
     static async signAsStudent(contractId, signatureBase64) {
         await pool.query(
             `UPDATE CONTRACT 
