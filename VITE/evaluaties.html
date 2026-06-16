@@ -20,7 +20,7 @@
       <a class="sb-item" href="logboek.html">Logboek</a>
       <a class="sb-item active" href="evaluaties.html">Evaluaties</a>
     </div>
-    <div class="sb-footer">Ingelogd als Student</div>
+    <div class="sb-footer" id="sidebar-naam">Ingelogd als Student</div>
   </nav>
 
   <div class="main">
@@ -34,175 +34,26 @@
       <div class="tab" onclick="switchTab('finaal', this)">Finale evaluatie</div>
     </div>
 
-    <!-- Tussentijdse evaluatie -->
     <div class="tab-content active" id="tab-tussent">
-      <div class="metrics">
-        <div class="metric-card">
-          <div class="metric-label">Beoordeling Docent</div>
-          <div class="metric-row"><div class="metric-value">Goed</div><div class="metric-sub">14/20</div></div>
-        </div>
-        <div class="metric-card">
-          <div class="metric-label">Beoordeling Mentor</div>
-          <div class="metric-value" style="color:#5A6A7E;font-size:20px">Wacht nog</div>
-        </div>
-        <div class="metric-card">
-          <div class="metric-label">Competenties beoordeeld</div>
-          <div class="metric-value">6 / 8</div>
-        </div>
-      </div>
-
-      <div class="eval-card">
-        <div class="eval-header">
-          <div style="display:flex;align-items:center">
-            <div class="eval-avatar avatar-blauw">AV</div>
-            <div style="margin-left:12px">
-              <div class="eval-naam">Prof. An Vermeersch</div>
-              <div class="eval-rol">Verantwoordelijk docent — Ingediend op 15 mei 2025</div>
-            </div>
-          </div>
-          <span class="badge-ontvangen">✓ Ontvangen</span>
-        </div>
-        <div class="eval-body">
-          <div class="feedback-quote">John toont een sterke technische basis en neemt initiatief. De communicatie met de mentor kan nog proactief verbeterd worden — wacht niet tot het wekelijks overleg maar stel vragen zodra ze zich stellen. De logboeken zijn zeer goed en consistent bijgehouden.</div>
-          <div class="competenties-label">Gedetailleerde competentiescores</div>
-          <div>
-            <div class="competentie-rij"><div><div class="comp-naam">Technische uitvoering</div><div class="comp-comment">"Solide implementatie, weinig bijsturing nodig."</div></div><div class="comp-score-wrap"><div class="comp-score score-5">5</div><div class="score-bar-wrap"><div class="score-bar bar-groen" style="width:100%"></div></div></div></div>
-            <div class="competentie-rij"><div><div class="comp-naam">Zelfstandigheid</div><div class="comp-comment">"Werkt goed zelfstandig, vraagt hulp op het juiste moment."</div></div><div class="comp-score-wrap"><div class="comp-score score-5">5</div><div class="score-bar-wrap"><div class="score-bar bar-groen" style="width:100%"></div></div></div></div>
-            <div class="competentie-rij"><div><div class="comp-naam">Communicatie</div><div class="comp-comment">"Kan proactief meer communiceren met de mentor. Soms te afwachtend."</div></div><div class="comp-score-wrap"><div class="comp-score score-2">2</div><div class="score-bar-wrap"><div class="score-bar bar-blauw" style="width:40%"></div></div></div></div>
-            <div class="competentie-rij"><div><div class="comp-naam">Professionele houding</div><div class="comp-comment">"Punctueel, betrokken, neemt altijd verantwoordelijkheid."</div></div><div class="comp-score-wrap"><div class="comp-score score-5">5</div><div class="score-bar-wrap"><div class="score-bar bar-groen" style="width:100%"></div></div></div></div>
-            <div class="competentie-rij"><div><div class="comp-naam">Probleemoplossend denken</div><div class="comp-comment">"Goede aanpak bij bugs, zoekt zelf naar structurele oplossingen."</div></div><div class="comp-score-wrap"><div class="comp-score score-5">5</div><div class="score-bar-wrap"><div class="score-bar bar-groen" style="width:100%"></div></div></div></div>
-            <div class="competentie-rij"><div><div class="comp-naam">Rapportering & logboek</div><div class="comp-comment">"Logboeken zijn correct en tijdig ingediend."</div></div><div class="comp-score-wrap"><div class="comp-score score-2">2</div><div class="score-bar-wrap"><div class="score-bar bar-blauw" style="width:40%"></div></div></div></div>
-          </div>
-        </div>
-      </div>
-
-      <div class="eval-card">
-        <div class="eval-header">
-          <div style="display:flex;align-items:center">
-            <div class="eval-avatar avatar-grijs">JD</div>
-            <div style="margin-left:12px">
-              <div class="eval-naam">Jonas Declercq</div>
-              <div class="eval-rol">Stagementor</div>
-            </div>
-          </div>
-          <span class="badge-wacht">Nog niet ingediend</span>
-        </div>
-        <div class="eval-body">
-          <div class="wacht-state">
-            <div class="wacht-icon">⏳</div>
-            <div>
-              <div class="wacht-titel">Jonas Declercq heeft nog niet geëvalueerd.</div>
-              <div class="wacht-sub">De mentor ontvangt automatisch een herinnering op vrijdag 6 juni. Je krijgt een melding zodra de evaluatie beschikbaar is.</div>
-            </div>
-          </div>
-        </div>
-      </div>
+      <div id="tussent-inhoud"><div style="padding:32px;color:#5A6A7E">Laden...</div></div>
     </div>
 
-    <!-- Finale evaluatie -->
     <div class="tab-content" id="tab-finaal">
-
-      <!-- ============================================================
-           VERANDER DIT:
-           "wacht"       = evaluatie nog niet beschikbaar
-           "beschikbaar" = evaluatie is ontvangen en toon je data
-           Later vervangen door API call.
-           ============================================================ -->
-
-      <!-- Lege staat -->
-      <div id="finaal-wacht">
-        <div class="eval-card">
-          <div class="eval-body" style="padding:48px 32px;text-align:center;align-items:center">
-            <div style="font-size:40px">📋</div>
-            <div style="font-size:16px;font-weight:700;color:#1A3C6E">Finale evaluatie nog niet beschikbaar</div>
-            <div style="font-size:13px;color:#5A6A7E;max-width:380px;line-height:1.7">De finale evaluatie wordt ingevuld na afloop van je stage. Je ontvangt een melding zodra ze beschikbaar is.</div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Beschikbare evaluatie -->
-      <div id="finaal-beschikbaar" style="display:none;flex-direction:column;gap:16px">
-        <div class="metrics">
-          <div class="metric-card">
-            <div class="metric-label">Eindbeoordeling Docent</div>
-            <div class="metric-row"><div class="metric-value">Zeer goed</div><div class="metric-sub">17/20</div></div>
-          </div>
-          <div class="metric-card">
-            <div class="metric-label">Eindbeoordeling Mentor</div>
-            <div class="metric-row"><div class="metric-value">Goed</div><div class="metric-sub">15/20</div></div>
-          </div>
-          <div class="metric-card">
-            <div class="metric-label">Competenties beoordeeld</div>
-            <div class="metric-value">8 / 8</div>
-          </div>
-        </div>
-
-        <div class="eval-card">
-          <div class="eval-header">
-            <div style="display:flex;align-items:center">
-              <div class="eval-avatar avatar-blauw">AV</div>
-              <div style="margin-left:12px">
-                <div class="eval-naam">Prof. An Vermeersch</div>
-                <div class="eval-rol">Verantwoordelijk docent — Ingediend op 3 december 2025</div>
-              </div>
-            </div>
-            <span class="badge-ontvangen">✓ Ontvangen</span>
-          </div>
-          <div class="eval-body">
-            <div class="feedback-quote">John heeft een uitstekende stage afgerond. De technische groei doorheen de stage was duidelijk zichtbaar. De communicatie is sterk verbeterd ten opzichte van de tussentijdse evaluatie. Een stageplaats met veel potentieel, goed benut.</div>
-            <div class="competenties-label">Gedetailleerde competentiescores</div>
-            <div>
-              <div class="competentie-rij"><div><div class="comp-naam">Technische uitvoering</div><div class="comp-comment">"Aanzienlijke groei, zelfstandig complexe taken opgelost."</div></div><div class="comp-score-wrap"><div class="comp-score score-5">5</div><div class="score-bar-wrap"><div class="score-bar bar-groen" style="width:100%"></div></div></div></div>
-              <div class="competentie-rij"><div><div class="comp-naam">Communicatie</div><div class="comp-comment">"Duidelijk verbeterd, neemt nu initiatief in overleg."</div></div><div class="comp-score-wrap"><div class="comp-score score-5">5</div><div class="score-bar-wrap"><div class="score-bar bar-groen" style="width:100%"></div></div></div></div>
-              <div class="competentie-rij"><div><div class="comp-naam">Professionele houding</div><div class="comp-comment">"Consistent professioneel gedurende de hele stage."</div></div><div class="comp-score-wrap"><div class="comp-score score-5">5</div><div class="score-bar-wrap"><div class="score-bar bar-groen" style="width:100%"></div></div></div></div>
-            </div>
-          </div>
-        </div>
-
-        <div class="eval-card">
-          <div class="eval-header">
-            <div style="display:flex;align-items:center">
-              <div class="eval-avatar avatar-grijs">JD</div>
-              <div style="margin-left:12px">
-                <div class="eval-naam">Jonas Declercq</div>
-                <div class="eval-rol">Stagementor — Ingediend op 5 december 2025</div>
-              </div>
-            </div>
-            <span class="badge-ontvangen">✓ Ontvangen</span>
-          </div>
-          <div class="eval-body">
-            <div class="feedback-quote">John was een aanwinst voor ons team. Hij paste zich snel aan onze werkwijze aan en leverde kwalitatief werk. We zouden hem zeker opnieuw verwelkomen als stagiair of medewerker.</div>
-            <div class="competenties-label">Gedetailleerde competentiescores</div>
-            <div>
-              <div class="competentie-rij"><div><div class="comp-naam">Teamwork</div><div class="comp-comment">"Werkte vlot samen met collega's."</div></div><div class="comp-score-wrap"><div class="comp-score score-5">5</div><div class="score-bar-wrap"><div class="score-bar bar-groen" style="width:100%"></div></div></div></div>
-              <div class="competentie-rij"><div><div class="comp-naam">Inzet & motivatie</div><div class="comp-comment">"Altijd gemotiveerd en bereid extra inspanning te leveren."</div></div><div class="comp-score-wrap"><div class="comp-score score-5">5</div><div class="score-bar-wrap"><div class="score-bar bar-groen" style="width:100%"></div></div></div></div>
-              <div class="competentie-rij"><div><div class="comp-naam">Kwaliteit van werk</div><div class="comp-comment">"Nette code, goed gedocumenteerd."</div></div><div class="comp-score-wrap"><div class="comp-score score-2">2</div><div class="score-bar-wrap"><div class="score-bar bar-blauw" style="width:40%"></div></div></div></div>
-            </div>
-          </div>
-        </div>
-      </div>
-
+      <div id="finaal-inhoud"><div style="padding:32px;color:#5A6A7E">Laden...</div></div>
     </div>
   </div>
 </div>
 
 <script>
-// ============================================================
-// VERANDER DIT naar "beschikbaar" als de finale evaluatie klaar is.
-// Later vervangen door API call.
-// ============================================================
-const FINALE_STATUS = "wacht"; // "wacht" | "beschikbaar"
+const API = 'http://localhost:3000';
 
-function renderFinaal() {
-  const wacht = document.getElementById('finaal-wacht');
-  const beschikbaar = document.getElementById('finaal-beschikbaar');
-  if (FINALE_STATUS === 'beschikbaar') {
-    wacht.style.display = 'none';
-    beschikbaar.style.display = 'flex';
-  } else {
-    wacht.style.display = 'block';
-    beschikbaar.style.display = 'none';
-  }
+function getToken() {
+  return localStorage.getItem('token');
+}
+
+function uitloggen() {
+  localStorage.removeItem('token');
+  window.location.href = 'index.html';
 }
 
 function switchTab(id, el) {
@@ -212,7 +63,149 @@ function switchTab(id, el) {
   document.getElementById('tab-' + id).classList.add('active');
 }
 
-renderFinaal();
+function scoreKleur(score) {
+  if (score >= 4) return 'bar-groen';
+  if (score >= 2) return 'bar-blauw';
+  return 'bar-rood';
+}
+
+function scoreBadge(score) {
+  if (score >= 4) return 'score-5';
+  if (score >= 2) return 'score-2';
+  return 'score-1';
+}
+
+function initialen(naam) {
+  return naam.split(' ').filter(Boolean).slice(0, 2).map(w => w[0]).join('').toUpperCase();
+}
+
+function formatDatum(datum) {
+  if (!datum) return '';
+  const d = new Date(datum);
+  return d.toLocaleDateString('nl-BE', { day: 'numeric', month: 'long', year: 'numeric' });
+}
+
+function renderEvalCard(evaluatie, competenties) {
+  const avatar = evaluatie.beoordelaar_rol === 'docent' ? 'avatar-blauw' : 'avatar-grijs';
+  const rol = evaluatie.beoordelaar_rol === 'docent' ? 'Verantwoordelijk docent' : 'Stagementor';
+  const init = initialen(evaluatie.beoordelaar_naam || '??');
+
+  const compRijen = competenties
+    .filter(c => c.beoordelaar_rol === evaluatie.beoordelaar_rol)
+    .map(c => `
+      <div class="competentie-rij">
+        <div>
+          <div class="comp-naam">${c.competentie_naam}</div>
+          <div class="comp-comment">"${c.commentaar || ''}"</div>
+        </div>
+        <div class="comp-score-wrap">
+          <div class="comp-score ${scoreBadge(c.score)}">${c.score}</div>
+          <div class="score-bar-wrap">
+            <div class="score-bar ${scoreKleur(c.score)}" style="width:${(c.score / 5) * 100}%"></div>
+          </div>
+        </div>
+      </div>`).join('');
+
+  return `
+    <div class="eval-card">
+      <div class="eval-header">
+        <div style="display:flex;align-items:center">
+          <div class="eval-avatar ${avatar}">${init}</div>
+          <div style="margin-left:12px">
+            <div class="eval-naam">${evaluatie.beoordelaar_naam}</div>
+            <div class="eval-rol">${rol} — Ingediend op ${formatDatum(evaluatie.datum)}</div>
+          </div>
+        </div>
+        <span class="badge-ontvangen">✓ Ontvangen</span>
+      </div>
+      <div class="eval-body">
+        <div class="feedback-quote">${evaluatie.feedback || ''}</div>
+        ${compRijen ? `<div class="competenties-label">Gedetailleerde competentiescores</div><div>${compRijen}</div>` : ''}
+      </div>
+    </div>`;
+}
+
+function renderTussentijds(data) {
+  const container = document.getElementById('tussent-inhoud');
+  if (!data || !data.evaluaties || data.evaluaties.length === 0) {
+    container.innerHTML = `
+      <div class="eval-card">
+        <div class="eval-body" style="padding:48px 32px;text-align:center;align-items:center">
+          <div style="font-size:40px">⏳</div>
+          <div style="font-size:16px;font-weight:700;color:#1A3C6E">Nog geen tussentijdse evaluatie ontvangen</div>
+          <div style="font-size:13px;color:#5A6A7E;max-width:380px;line-height:1.7">Je ontvangt een melding zodra de evaluatie beschikbaar is.</div>
+        </div>
+      </div>`;
+    return;
+  }
+
+  const aantalComp = data.competenties ? data.competenties.length : 0;
+  const metrics = `
+    <div class="metrics">
+      <div class="metric-card">
+        <div class="metric-label">Evaluaties ontvangen</div>
+        <div class="metric-value">${data.evaluaties.length}</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-label">Competenties beoordeeld</div>
+        <div class="metric-value">${aantalComp}</div>
+      </div>
+    </div>`;
+
+  const kaarten = data.evaluaties.map(e => renderEvalCard(e, data.competenties || [])).join('');
+  container.innerHTML = metrics + kaarten;
+}
+
+function renderFinaal(data) {
+  const container = document.getElementById('finaal-inhoud');
+  if (!data || !data.evaluaties || data.evaluaties.length === 0) {
+    container.innerHTML = `
+      <div class="eval-card">
+        <div class="eval-body" style="padding:48px 32px;text-align:center;align-items:center">
+          <div style="font-size:40px">📋</div>
+          <div style="font-size:16px;font-weight:700;color:#1A3C6E">Finale evaluatie nog niet beschikbaar</div>
+          <div style="font-size:13px;color:#5A6A7E;max-width:380px;line-height:1.7">De finale evaluatie wordt ingevuld na afloop van je stage. Je ontvangt een melding zodra ze beschikbaar is.</div>
+        </div>
+      </div>`;
+    return;
+  }
+
+  const aantalComp = data.competenties ? data.competenties.length : 0;
+  const metrics = `
+    <div class="metrics">
+      <div class="metric-card">
+        <div class="metric-label">Evaluaties ontvangen</div>
+        <div class="metric-value">${data.evaluaties.length}</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-label">Competenties beoordeeld</div>
+        <div class="metric-value">${aantalComp}</div>
+      </div>
+    </div>`;
+
+  const kaarten = data.evaluaties.map(e => renderEvalCard(e, data.competenties || [])).join('');
+  container.innerHTML = metrics + kaarten;
+}
+
+async function laadEvaluaties() {
+  const token = getToken();
+  if (!token) { window.location.href = 'index.html'; return; }
+
+  try {
+    const res = await fetch(`${API}/api/student/evaluaties`, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    if (res.status === 401 || res.status === 403) { uitloggen(); return; }
+    const data = await res.json();
+    renderTussentijds(data.tussentijds);
+    renderFinaal(data.finaal);
+  } catch (err) {
+    document.getElementById('tussent-inhoud').innerHTML = '<div style="padding:32px;color:red">Kon evaluaties niet laden.</div>';
+    document.getElementById('finaal-inhoud').innerHTML = '';
+  }
+}
+
+document.addEventListener('DOMContentLoaded', laadEvaluaties);
 </script>
 </body>
 </html>
