@@ -18,10 +18,12 @@ app.get('/', (req, res) => {
 const authRoutes = require('./routes/authRoutes');
 const userRoutes = require('./routes/userRoutes');
 const stageRoutes = require('./routes/stageRoutes');
+const contractRoutes = require('./routes/contractRoutes');
 
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/stage', stageRoutes);
+app.use('/api/contracten', contractRoutes);
 
 // Start Server
 app.listen(port, () => {
