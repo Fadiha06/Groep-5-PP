@@ -17,10 +17,10 @@ class ContractController {
         }
     }
 
-    // GET /api/contracten/:id — contract ophalen
+    // GET /api/contracten/:id — contract + weergavegegevens
     static async getContract(req, res) {
         try {
-            const contract = await ContractModel.getById(req.params.id);
+            const contract = await ContractModel.getDetailsById(req.params.id);
             if (!contract) return res.status(404).json({ error: 'Contract niet gevonden' });
             res.json(contract);
         } catch (err) {
@@ -76,6 +76,28 @@ class ContractController {
         } catch (err) {
             console.error(err);
             res.status(400).json({ error: 'Ongeldige of verlopen token' });
+        }
+    }
+
+    // POST /api/contracten/:id/docent-tekenen — verantwoordelijke docent tekent (ingelogd)
+    static async tekenDocent(req, res) {
+        const { signature } = req.body;
+        if (!signature) return res.status(400).json({ error: 'Handtekening ontbreekt' });
+        try {
+            const contract = await ContractModel.getById(req.params.id);
+            if (!contract) return res.status(404).json({ error: 'Contract niet gevonden' });
+            const docentGid = await ContractModel.getDocentGebruikerId(req.params.id);
+            if (!docentGid || docentGid !== req.user.id) {
+                return res.status(403).json({ error: 'Je bent niet de verantwoordelijke docent voor dit contract' });
+            }
+            if (contract.docent_getekend) {
+                return res.status(409).json({ error: 'Al ondertekend door de docent' });
+            }
+            await ContractModel.signAsDocent(req.params.id, signature);
+            res.json({ message: 'Contract ondertekend door docent' });
+        } catch (err) {
+            console.error(err);
+            res.status(500).json({ error: 'Serverfout bij ondertekenen' });
         }
     }
 

@@ -9,6 +9,7 @@ router.get('/mijn', verifyToken, ContractController.getMijnContract);
 router.get('/:id', verifyToken, ContractController.getContract);
 router.post('/:id/tekenen', verifyToken, ContractController.tekenStudent);
 router.get('/:id/mentor-link', verifyToken, ContractController.mentorLink);
+router.post('/:id/docent-tekenen', verifyToken, ContractController.tekenDocent);
 
 // Mentor tekent via token in de link (geen login)
 router.post('/mentor-tekenen', ContractController.tekenMentor);
