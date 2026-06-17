@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contract ondertekenen — Stagementor</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; background: #F8FAFC; color: #1E293B; display: flex; justify-content: center; padding: 40px 16px; }
+        .card { background: #fff; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,.08); padding: 28px 32px; max-width: 600px; width: 100%; }
+        h1 { font-size: 22px; margin: 0 0 6px; }
+        p.sub { color: #64748B; font-size: 14px; margin: 0 0 20px; }
+        .sectie { border: 1px solid #E2E8F0; border-radius: 8px; padding: 16px; margin-bottom: 18px; }
+        .sectie-titel { font-size: 13px; font-weight: 700; color: #6B7280; text-transform: uppercase; letter-spacing: .03em; margin-bottom: 10px; }
+        .rij { display: flex; justify-content: space-between; gap: 12px; font-size: 14px; padding: 5px 0; }
+        .rij-label { color: #64748B; }
+        .rij-waarde { font-weight: 600; color: #111827; text-align: right; }
+        .verplichting { font-size: 13px; color: #475569; line-height: 1.5; margin-bottom: 8px; }
+        .student-getekend { font-size: 13px; color: #15803D; font-weight: 600; margin-bottom: 18px; }
+        .label { font-size: 14px; font-weight: 600; margin-bottom: 8px; }
+        .canvas-wrap { border: 1.5px dashed #CBD5E1; border-radius: 8px; background: #fff; }
+        canvas { display: block; width: 100%; height: 160px; touch-action: none; }
+        .actions { display: flex; gap: 10px; margin-top: 12px; }
+        button { font-family: inherit; font-size: 14px; font-weight: 600; padding: 10px 18px; border-radius: 6px; border: none; cursor: pointer; }
+        .btn-wis { background: #fff; border: 1.5px solid #E2E8F0; color: #64748B; }
+        .btn-primary { background: #D1193E; color: #fff; }
+        .btn-primary:disabled { opacity: .5; cursor: not-allowed; }
+        .melding { margin-top: 16px; padding: 14px; border-radius: 6px; font-size: 14px; display: none; }
+        .ok { background: #F0FDF4; border: 1px solid #BBF7D0; color: #15803D; }
+        .fout { background: #FEF2F2; border: 1px solid #FECACA; color: #B91C1C; }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h1>Stagecontract ondertekenen</h1>
+        <p class="sub">Je tekent als <strong>stagementor</strong>. Lees het contract en zet onderaan je handtekening.</p>
+
+        <div class="sectie">
+            <div class="sectie-titel">Partijen & stage</div>
+            <div class="rij"><span class="rij-label">Student</span><span class="rij-waarde" id="c-student">—</span></div>
+            <div class="rij"><span class="rij-label">Bedrijf</span><span class="rij-waarde" id="c-bedrijf">—</span></div>
+            <div class="rij"><span class="rij-label">Titel</span><span class="rij-waarde" id="c-titel">—</span></div>
+            <div class="rij"><span class="rij-label">Periode</span><span class="rij-waarde" id="c-periode">—</span></div>
+        </div>
+
+        <div class="sectie">
+            <div class="sectie-titel">Verplichtingen</div>
+            <div class="verplichting"><strong>Student:</strong> houdt wekelijks een logboek bij, is aanwezig conform de werkregeling en respecteert de interne regels.</div>
+            <div class="verplichting"><strong>Bedrijf:</strong> stelt een werkplek en middelen ter beschikking, wijst een mentor aan en voorziet een tussentijdse en finale evaluatie.</div>
+        </div>
+
+        <div class="student-getekend" id="c-student-status"></div>
+
+        <div class="label">✎ Teken hieronder</div>
+        <div class="canvas-wrap"><canvas id="sig-canvas"></canvas></div>
+        <div class="actions">
+            <button class="btn-wis" id="btn-wis">Wissen</button>
+            <button class="btn-primary" id="btn-teken">Ondertekenen</button>
+        </div>
+
+        <div class="melding ok" id="melding-ok">✓ Bedankt! Het contract is door jou ondertekend.</div>
+        <div class="melding fout" id="melding-fout"></div>
+    </div>
+
+    <script>
+        const API = 'http://localhost:5000/api';
+        const params = new URLSearchParams(window.location.search);
+        const mentorToken = params.get('token');
+
+        function toonFout(tekst) {
+            const el = document.getElementById('melding-fout');
+            el.textContent = tekst;
+            el.style.display = 'block';
+        }
+
+        // ── Contract laden en tonen ──
+        async function laadContract() {
+            if (!mentorToken) { toonFout('Ongeldige link (geen token).'); return; }
+            try {
+                const res = await fetch(`${API}/contracten/mentor-view?token=${encodeURIComponent(mentorToken)}`);
+                const c = await res.json();
+                if (!res.ok) { toonFout(c.error || 'Kon contract niet laden'); return; }
+                document.getElementById('c-student').textContent = c.student_naam || '—';
+                document.getElementById('c-bedrijf').textContent = c.bedrijf_naam || '—';
+                document.getElementById('c-titel').textContent = c.titel || '—';
+                if (c.startdatum && c.einddatum) {
+                    const opt = { day: 'numeric', month: 'long', year: 'numeric' };
+                    document.getElementById('c-periode').textContent =
+                        new Date(c.startdatum).toLocaleDateString('nl-BE', opt) + ' – ' + new Date(c.einddatum).toLocaleDateString('nl-BE', opt);
+                }
+                document.getElementById('c-student-status').textContent =
+                    c.student_getekend ? '✓ De student heeft dit contract al ondertekend.' : 'Let op: de student heeft nog niet getekend.';
+                if (c.mentor_getekend) {
+                    toonFout('Dit contract is al door de mentor ondertekend.');
+                    document.getElementById('btn-teken').disabled = true;
+                }
+            } catch (e) {
+                toonFout('Kan geen verbinding maken met de server.');
+            }
+        }
+        laadContract();
+
+        // ── Handtekening-canvas ──
+        const canvas = document.getElementById('sig-canvas');
+        const ctx = canvas.getContext('2d');
+        function resizeCanvas() {
+            const ratio = window.devicePixelRatio || 1;
+            const w = canvas.clientWidth, h = 160;
+            canvas.width = w * ratio; canvas.height = h * ratio;
+            ctx.scale(ratio, ratio);
+            ctx.strokeStyle = '#1E40AF'; ctx.lineWidth = 2; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+        }
+        resizeCanvas();
+
+        let drawing = false, hasSig = false;
+        function getPos(e) {
+            const r = canvas.getBoundingClientRect();
+            const s = e.touches ? e.touches[0] : e;
+            return { x: s.clientX - r.left, y: s.clientY - r.top };
+        }
+        canvas.addEventListener('mousedown', e => { drawing = true; const p = getPos(e); ctx.beginPath(); ctx.moveTo(p.x, p.y); });
+        canvas.addEventListener('mousemove', e => { if (!drawing) return; const p = getPos(e); ctx.lineTo(p.x, p.y); ctx.stroke(); hasSig = true; });
+        canvas.addEventListener('mouseup', () => drawing = false);
+        canvas.addEventListener('mouseleave', () => drawing = false);
+        canvas.addEventListener('touchstart', e => { e.preventDefault(); drawing = true; const p = getPos(e); ctx.beginPath(); ctx.moveTo(p.x, p.y); }, { passive: false });
+        canvas.addEventListener('touchmove', e => { e.preventDefault(); if (!drawing) return; const p = getPos(e); ctx.lineTo(p.x, p.y); ctx.stroke(); hasSig = true; }, { passive: false });
+        canvas.addEventListener('touchend', () => drawing = false);
+
+        document.getElementById('btn-wis').addEventListener('click', resizeCanvas);
+
+        // ── Mentor tekent ──
+        document.getElementById('btn-teken').addEventListener('click', async () => {
+            document.getElementById('melding-fout').style.display = 'none';
+            if (!mentorToken) { toonFout('Ongeldige link (geen token).'); return; }
+            if (!hasSig) { toonFout('Teken eerst je handtekening.'); return; }
+            const signatureBase64 = canvas.toDataURL('image/png');
+            try {
+                const res = await fetch(`${API}/contracten/mentor-tekenen`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ token: mentorToken, signature: signatureBase64 })
+                });
+                const data = await res.json();
+                if (res.ok) {
+                    document.getElementById('melding-ok').style.display = 'block';
+                    document.getElementById('btn-teken').disabled = true;
+                } else {
+                    toonFout(data.error || 'Fout bij ondertekenen');
+                }
+            } catch (e) {
+                toonFout('Netwerkfout. Draait de server?');
+            }
+        });
+    </script>
+</body>
+</html>

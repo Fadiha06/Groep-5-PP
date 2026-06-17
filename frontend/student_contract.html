@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stagecontract — EhB StageTool</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="src/css/contract.css">
+</head>
+<body>
+    <div class="root">
+
+        <nav class="sidebar">
+            <div class="sb-logo">
+                <div class="sb-logo-title">EhB StageTool</div>
+                <div class="sb-logo-sub">Toegepaste Informatica</div>
+            </div>
+            <div class="sb-nav">
+                <a class="sb-item" href="#">Dashboard</a>
+                <a class="sb-item" href="#">Mijn stage</a>
+                <a class="sb-item" href="#">Logboek</a>
+                <a class="sb-item active" href="#">Contract</a>
+                <a class="sb-item" href="#">Evaluaties</a>
+            </div>
+            <div class="sb-footer">Ingelogd als Student</div>
+        </nav>
+
+        <div class="main">
+            <div>
+                <div class="page-title">Stagecontract</div>
+                <div class="page-sub">Lees het contract, zet je handtekening onderaan en dien in. Daarna stuur je de mentor-link door.</div>
+            </div>
+
+            <div class="info-banner">
+                <span>ℹ️</span>
+                <span>Jouw handtekening is vereist. Na jouw ondertekening genereer je een link voor je stagementor zodat die ook kan tekenen.</span>
+            </div>
+
+            <div class="card">
+
+                <!-- Contractinhoud: Partijen -->
+                <div class="contract-section">
+                    <div class="contract-section-title">Contractinhoud</div>
+                    <div style="font-size:15px;font-weight:600;color:#111827;margin-bottom:14px">Partijen</div>
+                    <div class="info-rows">
+                        <div class="info-row">
+                            <span class="info-row-label">Student</span>
+                            <input class="info-input" id="f-student" type="text" value="—" readonly>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-row-label">Studentnummer</span>
+                            <input class="info-input" id="f-studentnr" type="text" value="—" readonly>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-row-label">Bedrijf</span>
+                            <input class="info-input" id="f-bedrijf" type="text" value="—" readonly>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Stagegegevens -->
+                <div class="contract-section">
+                    <div class="contract-section-title">Stagegegevens</div>
+                    <div class="info-rows">
+                        <div class="info-row">
+                            <span class="info-row-label">Titel</span>
+                            <input class="info-input" id="f-titel" type="text" value="—" readonly>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-row-label">Periode</span>
+                            <input class="info-input" id="f-periode" type="text" value="—" readonly>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Verplichtingen -->
+                <div class="contract-section">
+                    <div class="contract-section-title">Verplichtingen</div>
+                    <div class="verplichting-title">Verplichtingen student</div>
+                    <div class="verplichting-tekst">De student verbindt zich ertoe wekelijks een logboek bij te houden, aanwezig te zijn conform de werkregeling, en de interne regels van het bedrijf te respecteren.</div>
+                    <div class="verplichting-title">Verplichtingen bedrijf</div>
+                    <div class="verplichting-tekst">Het bedrijf stelt een werkplek en de nodige middelen ter beschikking, wijst een stagementor aan en verbindt zich tot een tussentijdse en finale evaluatie.</div>
+                </div>
+
+                <!-- Handtekeningen -->
+                <div class="contract-section">
+                    <div class="contract-section-title">Handtekeningen</div>
+
+                    <div class="sign-box">
+                        <div class="sign-name" id="sign-student-name">Student</div>
+                        <div class="sign-role">Student</div>
+                        <div class="sign-label">✎ Teken hieronder met je muis of vinger</div>
+                        <div class="sign-canvas-wrap" id="canvas-wrap">
+                            <canvas id="sig-canvas"></canvas>
+                        </div>
+                        <div class="sign-actions" id="sign-actions">
+                            <button class="btn-wis" id="btn-wis">Wissen</button>
+                            <button class="btn-bevestig" id="btn-bevestig">Bevestigen</button>
+                        </div>
+                        <div class="sign-confirmed" id="sign-confirmed" style="display:none">✓ Handtekening bevestigd</div>
+                    </div>
+                </div>
+
+                <div class="card-footer">
+                    <button class="btn-primary" id="btn-indienen" disabled>Indienen ter ondertekening</button>
+                </div>
+
+                <!-- Na ondertekening: mentor-link -->
+                <div class="contract-section" id="na-indienen" style="display:none;margin-top:20px">
+                    <div class="info-banner" style="background:#F0FDF4;border-color:#BBF7D0;color:#15803D">
+                        <span>✓</span><span>Je hebt getekend! Genereer nu de link voor je stagementor.</span>
+                    </div>
+                    <button class="btn-primary" id="btn-mentor-link" style="margin-top:12px">Genereer mentor-link</button>
+                    <div id="mentor-link-box" style="display:none;margin-top:12px">
+                        <div style="font-size:13px;color:#374151;margin-bottom:6px">Stuur deze link naar je stagementor:</div>
+                        <input id="mentor-link-input" type="text" readonly
+                            style="width:100%;padding:10px;border:1px solid #d1d5db;border-radius:6px;font-size:13px"
+                            onclick="this.select();navigator.clipboard.writeText(this.value);">
+                        <div style="font-size:11px;color:#6b7280;margin-top:4px">Klik op de link om te kopiëren.</div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API = 'http://localhost:5000/api';
+        const token = localStorage.getItem('token');
+        let contractId = null;
+
+        // ── Handtekening-canvas ──
+        const canvas = document.getElementById('sig-canvas');
+        const ctx = canvas.getContext('2d');
+        function resizeCanvas() {
+            const wrap = document.getElementById('canvas-wrap');
+            const ratio = window.devicePixelRatio || 1;
+            const w = wrap.clientWidth, h = 150;
+            canvas.width = w * ratio; canvas.height = h * ratio;
+            canvas.style.width = w + 'px'; canvas.style.height = h + 'px';
+            ctx.scale(ratio, ratio);
+            ctx.strokeStyle = '#1E40AF'; ctx.lineWidth = 2; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+        }
+        resizeCanvas();
+        window.addEventListener('resize', resizeCanvas);
+
+        let drawing = false, hasSig = false;
+        function getPos(e) {
+            const r = canvas.getBoundingClientRect();
+            const s = e.touches ? e.touches[0] : e;
+            return { x: s.clientX - r.left, y: s.clientY - r.top };
+        }
+        canvas.addEventListener('mousedown', e => { drawing = true; const p = getPos(e); ctx.beginPath(); ctx.moveTo(p.x, p.y); });
+        canvas.addEventListener('mousemove', e => { if (!drawing) return; const p = getPos(e); ctx.lineTo(p.x, p.y); ctx.stroke(); hasSig = true; });
+        canvas.addEventListener('mouseup', () => drawing = false);
+        canvas.addEventListener('mouseleave', () => drawing = false);
+        canvas.addEventListener('touchstart', e => { e.preventDefault(); drawing = true; const p = getPos(e); ctx.beginPath(); ctx.moveTo(p.x, p.y); }, { passive: false });
+        canvas.addEventListener('touchmove', e => { e.preventDefault(); if (!drawing) return; const p = getPos(e); ctx.lineTo(p.x, p.y); ctx.stroke(); hasSig = true; }, { passive: false });
+        canvas.addEventListener('touchend', () => drawing = false);
+
+        document.getElementById('btn-wis').addEventListener('click', () => {
+            resizeCanvas(); hasSig = false;
+            document.getElementById('btn-indienen').disabled = true;
+            document.getElementById('sign-confirmed').style.display = 'none';
+        });
+        document.getElementById('btn-bevestig').addEventListener('click', () => {
+            if (!hasSig) { alert('Teken eerst je handtekening.'); return; }
+            document.getElementById('sign-confirmed').style.display = 'block';
+            document.getElementById('btn-indienen').disabled = false;
+        });
+
+        // ── Contract laden ──
+        async function laadContract() {
+            if (!token) { alert('Je bent niet ingelogd. Log eerst in (zet een token in localStorage).'); return; }
+            try {
+                const res = await fetch(`${API}/contracten/mijn`, { headers: { 'Authorization': 'Bearer ' + token } });
+                const c = await res.json();
+                if (!res.ok) { alert(c.error || 'Kon contract niet laden'); return; }
+                contractId = c.contract_id;
+                document.getElementById('f-student').value = c.student_naam || '—';
+                document.getElementById('f-studentnr').value = c.studentnummer || '—';
+                document.getElementById('f-bedrijf').value = c.bedrijf_naam || '—';
+                document.getElementById('f-titel').value = c.titel || '—';
+                document.getElementById('sign-student-name').textContent = c.student_naam || 'Student';
+                if (c.startdatum && c.einddatum) {
+                    const opt = { day: 'numeric', month: 'long', year: 'numeric' };
+                    document.getElementById('f-periode').value =
+                        new Date(c.startdatum).toLocaleDateString('nl-BE', opt) + ' – ' + new Date(c.einddatum).toLocaleDateString('nl-BE', opt);
+                }
+                if (c.student_getekend) {
+                    document.getElementById('canvas-wrap').style.display = 'none';
+                    document.getElementById('sign-actions').style.display = 'none';
+                    document.getElementById('sign-confirmed').style.display = 'block';
+                    const btn = document.getElementById('btn-indienen');
+                    btn.disabled = true; btn.textContent = 'Al ondertekend ✓';
+                    document.getElementById('na-indienen').style.display = 'block';
+                }
+            } catch (e) {
+                console.error(e);
+                alert('Kan geen verbinding maken met de server.');
+            }
+        }
+        laadContract();
+
+        // ── Indienen (student tekent) ──
+        document.getElementById('btn-indienen').addEventListener('click', async () => {
+            if (!contractId) { alert('Geen contract geladen.'); return; }
+            const signatureBase64 = canvas.toDataURL('image/png');
+            try {
+                const res = await fetch(`${API}/contracten/${contractId}/tekenen`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+                    body: JSON.stringify({ signature: signatureBase64 })
+                });
+                const data = await res.json();
+                if (res.ok) {
+                    const btn = document.getElementById('btn-indienen');
+                    btn.disabled = true; btn.textContent = 'Ondertekend ✓';
+                    document.getElementById('na-indienen').style.display = 'block';
+                } else {
+                    alert(data.error || 'Fout bij ondertekenen');
+                }
+            } catch (e) {
+                alert('Netwerkfout. Draait de server?');
+            }
+        });
+
+        // ── Mentor-link genereren ──
+        document.getElementById('btn-mentor-link').addEventListener('click', async () => {
+            if (!contractId) return;
+            try {
+                const res = await fetch(`${API}/contracten/${contractId}/mentor-link`, { headers: { 'Authorization': 'Bearer ' + token } });
+                const data = await res.json();
+                if (res.ok) {
+                    document.getElementById('mentor-link-input').value = data.link;
+                    document.getElementById('mentor-link-box').style.display = 'block';
+                } else {
+                    alert(data.error || 'Fout bij genereren link');
+                }
+            } catch (e) {
+                alert('Netwerkfout.');
+            }
+        });
+    </script>
+</body>
+</html>
