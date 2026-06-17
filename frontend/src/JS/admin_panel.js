@@ -126,7 +126,7 @@ async function createAccount() {
   try {
     const data = await apiFetch('/users', {
       method: 'POST',
-      body: JSON.stringify({ naam, email, rol: rolFormatted })
+      body: JSON.stringify({ voornaam, achternaam, email, rol: rolFormatted })
     });
 
     gebruikers.unshift({ naam, email, rol, status });
