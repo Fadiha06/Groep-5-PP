@@ -29,4 +29,19 @@ const stuurWachtwoordLink = async (naarEmail, link) => {
     */
 };
 
-module.exports = { stuurWachtwoordLink };
+const stuurContractLink = async (naarEmail, link) => {
+    await transporter.sendMail({
+        from: process.env.SMTP_FROM || '"EhB StageTool" <noreply@ehb.be>',
+        to: naarEmail,
+        subject: 'Onderteken het stagecontract — EhB StageTool',
+        html: `
+            <p>Beste,</p>
+            <p>De student heeft het stagecontract ondertekend.</p>
+            <p>Klik op de onderstaande link om het contract te bekijken en als mentor te ondertekenen:</p>
+            <p><a href="${link}">Contract ondertekenen</a></p>
+            <p>Deze link verloopt over 48 uur.</p>
+        `
+    });
+};
+
+module.exports = { stuurWachtwoordLink, stuurContractLink };
