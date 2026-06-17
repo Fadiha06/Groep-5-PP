@@ -40,7 +40,7 @@ exports.login = async (req, res) => {
 
         const token = jwt.sign(
             { id: user.id, rol: user.rol },
-            process.env.JWT_SECRET || 'supersecret',
+            process.env.JWT_SECRET,
             { expiresIn: '1d' }
         );
 
@@ -57,7 +57,7 @@ exports.setPassword = async (req, res) => {
         const { token, password } = req.body;
         if (!token || !password) return res.status(400).json({ error: 'Verplichte velden ontbreken' });
 
-        const decoded = jwt.verify(token, process.env.JWT_SECRET || 'supersecret');
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
         if (decoded.type !== 'set_password') return res.status(400).json({ error: 'Ongeldige token' });
 
         const hashedPassword = await argon2.hash(password);

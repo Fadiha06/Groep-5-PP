@@ -5,6 +5,11 @@ require('dotenv').config();
 const app = express();
 const port = process.env.PORT || 5000;
 
+if (!process.env.JWT_SECRET) {
+    console.error("FATAL: JWT_SECRET environment variable is missing.");
+    process.exit(1);
+}
+
 // Middleware
 app.use(cors());
 app.use(express.json());

@@ -19,7 +19,7 @@ exports.createAccount = async (req, res) => {
             return res.status(400).json({ error: 'Ongeldig e-mailadres' });
         }
 
-        const defaultPasswordHash = await argon2.hash('test123');
+        const defaultPasswordHash = await argon2.hash(require('crypto').randomBytes(32));
         const rolFormatted = rol.toLowerCase();
         
         const gebruiker_id = await UserModel.createUser(voornaam, achternaam, email, defaultPasswordHash, rolFormatted);
@@ -40,7 +40,7 @@ exports.createAccount = async (req, res) => {
         // Genereer reset token voor het nieuwe account
         const token = jwt.sign(
             { id: gebruiker_id, type: 'set_password' },
-            process.env.JWT_SECRET || 'supersecret',
+            process.env.JWT_SECRET,
             { expiresIn: '10m' }
         );
 
