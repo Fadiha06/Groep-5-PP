@@ -1,0 +1,392 @@
+/* ============================================================
+   MENTOR_EVALUATIES.CSS
+   Pagina-specifieke stijlen voor de evaluatiepagina
+   ============================================================ */
+
+/* ── Student header bovenaan evaluatie card ── */
+.eval-student-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding-bottom: 20px;
+  margin-bottom: 20px;
+  border-bottom: 1px solid var(--color-border);
+  flex-wrap: wrap;
+}
+
+.eval-avatar {
+  width: 52px;
+  height: 52px;
+  background: var(--color-blue-bg);
+  color: var(--color-blue-dark);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 20px;
+  flex-shrink: 0;
+  border: 2px solid var(--color-blue-border);
+}
+
+.eval-student-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.eval-student-info h2 {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--color-text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.eval-student-info p {
+  font-size: 13px;
+  color: var(--color-text-muted);
+  margin-top: 3px;
+}
+
+/* ── Totaalscore badge ── */
+.eval-totaal-score {
+  background: var(--color-blue-bg);
+  border: 2px solid var(--color-blue-border);
+  border-radius: var(--radius-md);
+  padding: 10px 18px;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--color-blue-dark);
+  white-space: nowrap;
+  min-width: 140px;
+  text-align: center;
+}
+
+/* ── Tabs ── */
+.eval-tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 20px;
+  border-bottom: 2px solid var(--color-border);
+  padding-bottom: 0;
+}
+
+.eval-tab {
+  padding: 9px 18px;
+  font-family: var(--font);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--color-text-muted);
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -2px;
+  cursor: pointer;
+  border-radius: var(--radius-sm) var(--radius-sm) 0 0;
+  transition: color 0.15s, border-color 0.15s;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.eval-tab:hover {
+  color: var(--color-blue);
+  background: var(--color-blue-bg);
+}
+
+.eval-tab.active {
+  color: var(--color-blue);
+  border-bottom-color: var(--color-blue);
+  font-weight: 600;
+}
+
+/* ── Filter bar ── */
+.eval-filter-bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.eval-search {
+  flex: 1;
+  padding: 9px 14px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  font-family: var(--font);
+  font-size: 14px;
+  color: var(--color-text);
+  background: var(--color-page-bg);
+  outline: none;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.eval-search:focus {
+  border-color: var(--color-blue);
+  background: var(--color-white);
+  box-shadow: 0 0 0 3px rgba(59,130,246,0.10);
+}
+
+.eval-count {
+  font-size: 12px;
+  color: var(--color-text-muted);
+  white-space: nowrap;
+  background: var(--color-border-soft);
+  padding: 4px 10px;
+  border-radius: 999px;
+}
+
+/* ── Rubric competentie kaart ── */
+.rubric-card {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  margin-bottom: 14px;
+  transition: box-shadow 0.2s;
+  background: var(--color-white);
+}
+
+.rubric-card:focus-within {
+  box-shadow: 0 0 0 3px rgba(59,130,246,0.12), var(--shadow-sm);
+  border-color: var(--color-blue-border);
+}
+
+/* Header van de kaart */
+.rubric-card__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 18px;
+  background: var(--color-page-bg);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.rubric-card__title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.rubric-card__desc {
+  font-size: 12px;
+  color: var(--color-text-muted);
+  margin-top: 3px;
+  line-height: 1.5;
+}
+
+/* Score badge rechts in header */
+.rubric-card__score {
+  background: var(--color-blue-bg);
+  border: 1px solid var(--color-blue-border);
+  color: var(--color-blue-dark);
+  border-radius: 6px;
+  padding: 3px 10px;
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.rubric-card__score--low {
+  background: var(--color-border-soft);
+  border-color: var(--color-border);
+  color: var(--color-text-muted);
+}
+
+/* Opties grid */
+.rubric-options {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 10px;
+  padding: 14px 18px;
+}
+
+/* Individuele optie knop */
+.rubric-option {
+  padding: 12px 14px;
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-white);
+  cursor: pointer;
+  text-align: left;
+  transition: border-color 0.15s, background 0.15s, box-shadow 0.15s;
+  font-family: var(--font);
+}
+
+.rubric-option:hover {
+  border-color: var(--color-blue-border);
+  background: var(--color-blue-bg);
+}
+
+.rubric-option__code {
+  display: inline-block;
+  background: var(--color-border-soft);
+  border-radius: var(--radius-sm);
+  padding: 1px 6px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  color: var(--color-text-muted);
+  margin-bottom: 6px;
+  text-transform: uppercase;
+}
+
+.rubric-option__label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-text);
+  margin-bottom: 4px;
+  display: block;
+}
+
+.rubric-option__desc {
+  font-size: 11px;
+  color: var(--color-text-muted);
+  line-height: 1.5;
+}
+
+/* Geselecteerde optie – positief */
+.rubric-option--selected {
+  border-color: var(--color-blue);
+  background: linear-gradient(135deg, var(--color-blue-bg), #DBEAFE);
+  box-shadow: 0 1px 4px rgba(59,130,246,0.18);
+}
+
+.rubric-option--selected .rubric-option__code {
+  background: var(--color-blue);
+  color: #fff;
+}
+
+.rubric-option--selected .rubric-option__label {
+  color: var(--color-blue-dark);
+}
+
+.rubric-option--selected .rubric-option__desc {
+  color: #374151;
+}
+
+/* Geselecteerde optie – negatief (score 1) */
+.rubric-option--selected-bad {
+  border-color: var(--color-red);
+  background: var(--color-red-bg);
+  box-shadow: 0 1px 4px rgba(239,68,68,0.15);
+}
+
+.rubric-option--selected-bad .rubric-option__code {
+  background: var(--color-red);
+  color: #fff;
+}
+
+.rubric-option--selected-bad .rubric-option__label {
+  color: #991B1B;
+}
+
+/* Feedback textarea per competentie */
+.rubric-feedback {
+  padding: 0 18px 14px;
+  border-top: 1px solid var(--color-border-soft);
+}
+
+.rubric-feedback label {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-text-muted);
+  margin-bottom: 6px;
+  margin-top: 12px;
+}
+
+.rubric-feedback textarea {
+  width: 100%;
+  min-height: 70px;
+  padding: 10px 12px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  font-family: var(--font);
+  font-size: 13px;
+  color: var(--color-text);
+  resize: vertical;
+  outline: none;
+  transition: border-color 0.15s;
+  background: var(--color-page-bg);
+}
+
+.rubric-feedback textarea:focus {
+  border-color: var(--color-blue);
+  background: var(--color-white);
+}
+
+/* ── Actieknoppenbalk onderaan ── */
+.eval-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 24px;
+  padding-top: 20px;
+  border-top: 1px solid var(--color-border);
+}
+
+/* ── Studentknoppen in selectiepanel ── */
+.student-select-btn {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 3px;
+  padding: 10px 16px;
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-white);
+  cursor: pointer;
+  font-family: var(--font);
+  transition: border-color 0.15s, background 0.15s, box-shadow 0.15s;
+}
+
+.student-select-btn:hover {
+  border-color: var(--color-blue-border);
+  background: var(--color-blue-bg);
+}
+
+.student-select-btn.active {
+  border-color: var(--color-blue);
+  background: var(--color-blue-bg);
+  box-shadow: 0 0 0 3px rgba(59,130,246,0.12);
+}
+
+.student-select-btn__name {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.student-select-btn__bedrijf {
+  font-size: 11px;
+  color: var(--color-text-muted);
+  font-weight: 400;
+}
+
+/* ── Responsive ── */
+@media (max-width: 640px) {
+  .eval-student-header {
+    flex-wrap: wrap;
+  }
+
+  .eval-totaal-score {
+    width: 100%;
+    text-align: center;
+  }
+
+  .rubric-options {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .eval-actions {
+    flex-direction: column-reverse;
+  }
+
+  .eval-actions .btn {
+    width: 100%;
+    justify-content: center;
+  }
+}

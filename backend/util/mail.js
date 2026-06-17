@@ -11,6 +11,9 @@ const transporter = nodemailer.createTransport({
 });
 
 const stuurWachtwoordLink = async (naarEmail, link) => {
+    console.log(`[MAIL UITGESCHAKELD] E-mail zou verzonden worden naar: ${naarEmail}`);
+    console.log(`[MAIL UITGESCHAKELD] Inhoud (Wachtwoord link): ${link}`);
+    /*
     await transporter.sendMail({
         from: process.env.SMTP_FROM || '"EhB StageTool" <noreply@ehb.be>',
         to: naarEmail,
@@ -23,6 +26,7 @@ const stuurWachtwoordLink = async (naarEmail, link) => {
             <p>Deze link verloopt over 10 minuten.</p>
         `
     });
+    */
 };
 
 module.exports = { stuurWachtwoordLink };

@@ -5,11 +5,11 @@ function switchTab(el, tabId) {
   document.getElementById('tab-extern').style.display = tabId === 'extern' ? 'block' : 'none';
 }
 
-// Loginknop EhB koppelen aan de backend
+// Loginknop koppelen aan de backend
 document.addEventListener('DOMContentLoaded', () => {
-  document.querySelector('#tab-ehb .btn-submit').addEventListener('click', async () => {
-    const email = document.getElementById('email').value;
-    const password = document.getElementById('password').value;
+  const handleLogin = async (emailId, passwordId) => {
+    const email = document.getElementById(emailId).value;
+    const password = document.getElementById(passwordId).value;
 
     try {
       const data = await apiFetch('/auth/login', {
@@ -25,5 +25,19 @@ document.addEventListener('DOMContentLoaded', () => {
       console.error(err);
       alert(err.message || 'Kan geen verbinding maken met de server.');
     }
-  });
+  };
+
+  const ehbSubmit = document.querySelector('#tab-ehb .btn-submit');
+  if (ehbSubmit) {
+    ehbSubmit.addEventListener('click', () => {
+      handleLogin('email', 'password');
+    });
+  }
+
+  const externSubmit = document.querySelector('#tab-extern .btn-submit');
+  if (externSubmit) {
+    externSubmit.addEventListener('click', () => {
+      handleLogin('ext-email', 'ext-password');
+    });
+  }
 });

@@ -19,7 +19,7 @@ exports.createAccount = async (req, res) => {
             return res.status(400).json({ error: 'Ongeldig e-mailadres' });
         }
 
-        const defaultPasswordHash = await argon2.hash('niet_ingesteld');
+        const defaultPasswordHash = await argon2.hash('test123');
         const rolFormatted = rol.toLowerCase();
         
         const gebruiker_id = await UserModel.createUser(naam, email, defaultPasswordHash, rolFormatted);
@@ -32,6 +32,9 @@ exports.createAccount = async (req, res) => {
             await CommissieModel.createProfile(gebruiker_id);
         } else if (rolFormatted === 'administrator' || rolFormatted === 'admin') {
             await AdminModel.createProfile(gebruiker_id);
+        } else if (rolFormatted === 'mentor' || rolFormatted === 'stagementor') {
+            const MentorModel = require('../models/mentorModel');
+            await MentorModel.createProfile(gebruiker_id);
         }
 
         // Genereer reset token voor het nieuwe account
@@ -112,3 +115,4 @@ exports.updateUser = async (req, res) => {
         res.status(500).json({ error: 'Fout bij bewerken gebruiker' });
     }
 };
+    
