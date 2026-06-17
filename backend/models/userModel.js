@@ -11,10 +11,10 @@ class UserModel {
         return rows;
     }
 
-    static async createUser(naam, email, wachtwoord, rol) {
+    static async createUser(voornaam, achternaam, email, wachtwoord, rol) {
         const [result] = await db.query(
-            'INSERT INTO GEBRUIKER (naam, email, wachtwoord, rol) VALUES (?, ?, ?, ?)',
-            [naam, email, wachtwoord, rol]
+            'INSERT INTO GEBRUIKER (voornaam, achternaam, email, wachtwoord, rol) VALUES (?, ?, ?, ?, ?)',
+            [voornaam, achternaam, email, wachtwoord, rol]
         );
         return result.insertId;
     }
@@ -23,10 +23,12 @@ class UserModel {
 
     static async getAllUsers() {
         
-        const [rows] = await db.query('SELECT id, naam, email, rol FROM GEBRUIKER ORDER BY id DESC');
+        const [rows] = await db.query('SELECT id, voornaam, achternaam, email, rol FROM GEBRUIKER ORDER BY id DESC');
         return rows.map(u => ({
             id: u.id,
-            naam: u.naam,
+            naam: u.voornaam + ' ' + u.achternaam,
+            voornaam: u.voornaam,
+            achternaam: u.achternaam,
             email: u.email,
             rol: u.rol.charAt(0).toUpperCase() + u.rol.slice(1),
             status: 'Actief' // Dummy status, kan later uit DB komen indien nodig

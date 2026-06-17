@@ -68,7 +68,7 @@ exports.getAllStages = async (req, res) => {
         const query = `
             SELECT s.stage_id, s.titel, s.status, s.startdatum, s.einddatum,
                    b.naam as bedrijfsnaam,
-                   u.naam as studentnaam
+                   CONCAT(u.voornaam, ' ', u.achternaam) as studentnaam
             FROM STAGE s
             JOIN STUDENT st ON s.student_id = st.student_id
             JOIN GEBRUIKER u ON st.gebruiker_id = u.id

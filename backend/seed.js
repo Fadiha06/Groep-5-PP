@@ -48,8 +48,8 @@ async function seed() {
         const [rows] = await connection.query('SELECT * FROM GEBRUIKER WHERE email = ?', ['admin@ehb.be']);
         if (rows.length === 0) {
             const [result] = await connection.query(
-                'INSERT INTO GEBRUIKER (naam, email, wachtwoord, rol) VALUES (?, ?, ?, ?)',
-                ['Systeembeheerder', 'admin@ehb.be', hashedPassword, 'admin']
+                'INSERT INTO GEBRUIKER (voornaam, achternaam, email, wachtwoord, rol) VALUES (?, ?, ?, ?, ?)',
+                ['Systeem', 'Beheerder', 'admin@ehb.be', hashedPassword, 'admin']
             );
             
             await connection.query(

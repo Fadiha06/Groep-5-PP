@@ -9,9 +9,9 @@ const { stuurWachtwoordLink } = require('../util/mail');
 
 exports.createAccount = async (req, res) => {
     try {
-        const { naam, email, rol } = req.body;
-        if (!naam || !email || !rol) {
-            return res.status(400).json({ error: 'Naam, email en rol zijn verplicht' });
+        const { voornaam, achternaam, email, rol } = req.body;
+        if (!voornaam || !achternaam || !email || !rol) {
+            return res.status(400).json({ error: 'Voornaam, achternaam, email en rol zijn verplicht' });
         }
 
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -22,7 +22,7 @@ exports.createAccount = async (req, res) => {
         const defaultPasswordHash = await argon2.hash('test123');
         const rolFormatted = rol.toLowerCase();
         
-        const gebruiker_id = await UserModel.createUser(naam, email, defaultPasswordHash, rolFormatted);
+        const gebruiker_id = await UserModel.createUser(voornaam, achternaam, email, defaultPasswordHash, rolFormatted);
 
         if (rolFormatted === 'student') {
             await StudentModel.createProfile(gebruiker_id);

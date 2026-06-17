@@ -3,7 +3,8 @@
 
 CREATE TABLE GEBRUIKER (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    naam VARCHAR(255) NOT NULL,
+    voornaam VARCHAR(100) NOT NULL,
+    achternaam VARCHAR(150) NOT NULL,
     email VARCHAR(255) NOT NULL UNIQUE,
     wachtwoord VARCHAR(255) NOT NULL,
     rol VARCHAR(50) NOT NULL
@@ -31,6 +32,8 @@ CREATE TABLE STUDENT (
     gebruiker_id INT NOT NULL,
     studentnummer VARCHAR(50) UNIQUE,
     opleiding VARCHAR(100),
+    telefoonnummer VARCHAR(50),
+    academiejaar VARCHAR(50),
     FOREIGN KEY (gebruiker_id) REFERENCES GEBRUIKER(id) ON DELETE CASCADE
 );
 
@@ -81,10 +84,15 @@ CREATE TABLE STAGE (
     lid_id INT,
     titel VARCHAR(255),
     omschrijving TEXT,
+    leerdoelen TEXT,
+    uren_per_week INT,
+    werkregeling VARCHAR(255),
+    verwachte_competenties TEXT,
     startdatum DATE,
     einddatum DATE,
     status VARCHAR(50) DEFAULT 'in_aanvraag',
     reden_weigering TEXT,
+    feedback_commissie TEXT,
     goedkeuringsdatum DATE,
     FOREIGN KEY (student_id) REFERENCES STUDENT(student_id) ON DELETE CASCADE,
     FOREIGN KEY (leerkracht_id) REFERENCES DOCENT(docent_id) ON DELETE SET NULL,
@@ -137,6 +145,9 @@ CREATE TABLE CONTRACT (
     student_handtekening LONGTEXT,
     mentor_getekend BOOLEAN DEFAULT FALSE,
     mentor_handtekening LONGTEXT,
+    docent_getekend BOOLEAN DEFAULT FALSE,
+    docent_handtekening LONGTEXT,
+    docent_datum DATETIME,
     getekend_op DATETIME,
     FOREIGN KEY (stage_id) REFERENCES STAGE(stage_id) ON DELETE CASCADE
 );
