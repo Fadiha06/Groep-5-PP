@@ -1,4 +1,5 @@
 const db = require('../config/db');
+const argon2 = require('argon2');
 
 exports.submitStage = async (req, res) => {
     try {
@@ -26,10 +27,27 @@ exports.submitStage = async (req, res) => {
             );
             const bedrijf_id = bedrijfResult.insertId;
 
-            // 2. Insert Mentor
+            // 2. Create Mentor Gebruiker Account
+            let voornaam = mentorNaam || 'Onbekend';
+            let achternaam = 'Onbekend';
+            if (mentorNaam && mentorNaam.includes(' ')) {
+                const parts = mentorNaam.split(' ');
+                voornaam = parts[0];
+                achternaam = parts.slice(1).join(' ');
+            }
+            
+            const defaultPasswordHash = await argon2.hash('mentor123');
+            
+            const [gebruikerResult] = await connection.query(
+                'INSERT INTO GEBRUIKER (voornaam, achternaam, email, wachtwoord, rol) VALUES (?, ?, ?, ?, ?)',
+                [voornaam, achternaam, mentorEmail, defaultPasswordHash, 'mentor']
+            );
+            const mentor_gebruiker_id = gebruikerResult.insertId;
+
+            // 3. Insert Mentor
             const [mentorResult] = await connection.query(
-                'INSERT INTO STAGEMENTOR (bedrijf_id, telefoonnummer) VALUES (?, ?)',
-                [bedrijf_id, telefoon]
+                'INSERT INTO STAGEMENTOR (gebruiker_id, bedrijf_id, telefoonnummer) VALUES (?, ?, ?)',
+                [mentor_gebruiker_id, bedrijf_id, telefoon]
             );
             const mentor_id = mentorResult.insertId;
 
