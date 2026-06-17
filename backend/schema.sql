@@ -24,7 +24,8 @@ CREATE TABLE BEDRIJF (
 CREATE TABLE COMPETENTIE (
     competentie_id INT AUTO_INCREMENT PRIMARY KEY,
     naam VARCHAR(255) NOT NULL,
-    omschrijving TEXT
+    omschrijving TEXT,
+    opleiding VARCHAR(100) NOT NULL DEFAULT 'Toegepaste Informatica'
 );
 
 CREATE TABLE STUDENT (

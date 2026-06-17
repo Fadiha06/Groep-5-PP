@@ -61,6 +61,21 @@ async function seed() {
             console.log('Test Admin already exists.');
         }
 
+        // Seed Competenties
+        const [compRows] = await connection.query('SELECT * FROM COMPETENTIE');
+        if (compRows.length === 0) {
+            console.log('Seeding Competenties...');
+            await connection.query(`
+                INSERT INTO COMPETENTIE (naam, omschrijving, opleiding) VALUES
+                ('Programmeren & Ontwerpen', 'Ontwerpen en bouwen van complexe software applicaties', 'Toegepaste Informatica'),
+                ('Systeembeheer & Netwerken', 'Opzetten en onderhouden van netwerkinfrastructuren', 'Toegepaste Informatica'),
+                ('Projectmanagement', 'Leiden van een IT-project in teamverband', 'Toegepaste Informatica'),
+                ('UX/UI Design', 'Ontwerpen van gebruikersvriendelijke en esthetische interfaces', 'Multimedia en Creatieve Technologie'),
+                ('Audiovisuele Productie', 'Bewerken en produceren van audio en video', 'Multimedia en Creatieve Technologie'),
+                ('Creative Coding', 'Creatief gebruik van code voor visuele toepassingen', 'Multimedia en Creatieve Technologie')
+            `);
+        }
+
         connection.release();
         console.log('Seed completed successfully!');
         process.exit(0);
