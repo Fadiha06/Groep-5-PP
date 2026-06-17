@@ -115,7 +115,8 @@ class StudentController {
 
             const weeknummer = berekenWeeknummer(datum, info.startdatum);
             if (weeknummer < 1) return res.status(400).json({ error: 'Datum valt vóór de start van de stage' });
-            if (info.einddatum && new Date(datum) > new Date(info.einddatum)) {
+            const eindStr = info.einddatum instanceof Date ? info.einddatum.toISOString().split('T')[0] : String(info.einddatum).split('T')[0];
+            if (info.einddatum && datum > eindStr) {
                 return res.status(400).json({ error: 'Datum valt ná het einde van de stage' });
             }
 
