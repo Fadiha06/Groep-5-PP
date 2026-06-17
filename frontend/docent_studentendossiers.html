@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>EhB StageTool — Studentendossiers</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="src/CSS/docent_studentendossiers.css" />
+</head>
+<body>
+
+    <aside class="sidebar">
+        <div class="sidebar-brand">
+            <div class="sidebar-brand-title">EhB StageTool</div>
+            <div class="sidebar-brand-sub">Toegepaste Informatica</div>
+        </div>
+        <nav>
+            <a href="docent_dashboard.html" class="nav-item">Docent Dashboard</a>
+            <a href="#" class="nav-item active">Overzicht Studenten</a>
+            <a href="docent_logboeken.html" class="nav-item">Logboeken</a>
+            <a href="docent_evaluaties.html" class="nav-item">Evaluaties</a>
+        </nav>
+    </aside>
+
+    <main class="main">
+        <div class="page-title">Studentendossiers</div>
+
+        <div class="dossier-layout">
+            <div class="lijst-card">
+                <input class="zoek" id="zoek" type="text" placeholder="Zoek leerling..." oninput="filter()" />
+                <div id="student-lijst">
+                    <div class="placeholder">Laden...</div>
+                </div>
+            </div>
+
+            <div>
+                <div class="card">
+                    <div class="card-title">Informatie van student</div>
+                    <div id="info"><div class="placeholder">Selecteer een student.</div></div>
+                </div>
+
+                <div class="card">
+                    <div class="card-title">Voortgang stage</div>
+                    <div class="tijdlijn" id="tijdlijn"></div>
+                </div>
+
+                <div class="card">
+                    <div class="card-title">Actuele Meldingen &amp; Rapporten</div>
+                    <div id="meldingen"><div class="placeholder">—</div></div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script src="src/JS/api.js"></script>
+    <script src="src/JS/docent_studentendossiers.js"></script>
+
+</body>
+</html>

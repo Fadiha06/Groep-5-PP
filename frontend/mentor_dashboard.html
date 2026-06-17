@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard — EhB StageTool</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="src/CSS/shared.css" rel="stylesheet">
+  <link href="src/CSS/mentor_dashboard.css" rel="stylesheet">
+</head>
+<body>
+  <div class="app-container">
+
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="sidebar-logo">
+        <div class="sidebar-logo-icon">E</div>
+        <div class="sidebar-logo-text">
+          <span class="sidebar-logo-title">EhB StageTool</span>
+          <span class="sidebar-logo-subtitle">Mentorportaal</span>
+        </div>
+      </div>
+      <nav class="sidebar-nav">
+        <a href="mentor_dashboard.html" class="nav-item active">
+          <span class="nav-icon">📊</span> Dashboard
+        </a>
+        <a href="mentor_logboeken.html" class="nav-item">
+          <span class="nav-icon">📋</span> Logboeken
+        </a>
+        <a href="mentor_evaluatie.html" class="nav-item">
+          <span class="nav-icon">📝</span> Evaluatie
+        </a>
+      </nav>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+      <div class="main-header">
+        <div>
+          <h1 class="header-title" id="welkom-titel">Welkom!</h1>
+          <p class="header-subtitle">Overzicht van je stagiairs en openstaande taken</p>
+        </div>
+        <button class="logout-btn" onclick="logout()">Uitloggen</button>
+      </div>
+
+      <!-- Error banner -->
+      <div id="error-banner" class="alert alert-error hidden">
+        Kan geen verbinding maken met de server.
+      </div>
+
+      <!-- Statistieken cards -->
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-icon">👥</div>
+          <div class="stat-content">
+            <p class="stat-label">Stagiairs</p>
+            <p class="stat-value" id="stat-studenten">0</p>
+          </div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-icon">📋</div>
+          <div class="stat-content">
+            <p class="stat-label">Logboeken in beoordeling</p>
+            <p class="stat-value" id="stat-logboeken">0</p>
+          </div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-icon">📝</div>
+          <div class="stat-content">
+            <p class="stat-label">Evaluaties openstaand</p>
+            <p class="stat-value" id="stat-evaluaties">0</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Te beoordelen logboeken -->
+      <div class="card">
+        <div class="card-header">
+          <h2 class="card-title">Te Beoordelen Logboeken</h2>
+          <a href="mentor_logboeken.html" class="btn btn--secondary">Alle logboeken →</a>
+        </div>
+        <div id="logboek-list">
+          <div class="loading">
+            <div class="loading-spinner"></div>
+            Logboeken laden...
+          </div>
+        </div>
+      </div>
+
+      <!-- Mijn Stagiairs -->
+      <div class="card">
+        <div class="card-header">
+          <h2 class="card-title">Mijn Stagiairs</h2>
+        </div>
+        <div class="search-container">
+          <span class="search-icon">🔍</span>
+          <input
+            type="text"
+            class="search-input"
+            id="student-zoeken"
+            placeholder="Zoeken op naam of opleiding..."
+            oninput="filterStudenten()"
+          >
+        </div>
+        <div id="student-list">
+          <div class="loading">
+            <div class="loading-spinner"></div>
+            Stagiairs laden...
+          </div>
+        </div>
+      </div>
+
+    </main>
+  </div>
+
+  <!-- Success Modal -->
+  <div class="modal-overlay hidden" id="success-modal">
+    <div class="modal">
+      <div class="modal-icon">✓</div>
+      <h3 class="modal-title">Succesvol</h3>
+      <p class="modal-message" id="modal-msg">Actie voltooid.</p>
+      <button class="modal-btn" onclick="sluitModal()">OK</button>
+    </div>
+  </div>
+
+  <script src="src/JS/api.js"></script>
+  <script src="src/JS/mentor_dashboard.js"></script>
+</body>
+</html>

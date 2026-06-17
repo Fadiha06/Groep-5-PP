@@ -19,10 +19,10 @@ class UserModel {
         return result.insertId;
     }
 
-    // Profiel creatie gebeurt nu in de specifieke modellen (StudentModel, DocentModel, etc.)
+    
 
     static async getAllUsers() {
-        // Zorg dat we ook rollen netjes formateren
+        
         const [rows] = await db.query('SELECT id, naam, email, rol FROM GEBRUIKER ORDER BY id DESC');
         return rows.map(u => ({
             id: u.id,
@@ -34,8 +34,7 @@ class UserModel {
     }
 
     static async deleteUser(id) {
-        // Door ON DELETE CASCADE in de database (aangepast via fix-db.js), 
-        // verwijdert dit ook automatisch de rijen in STUDENT, DOCENT, STAGE, etc.
+       
         const [result] = await db.query('DELETE FROM GEBRUIKER WHERE id = ?', [id]);
         return result.affectedRows > 0;
     }

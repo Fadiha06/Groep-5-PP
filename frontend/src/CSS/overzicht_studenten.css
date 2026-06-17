@@ -1,0 +1,80 @@
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Inter',system-ui,sans-serif;background:#F9FAFB;min-height:100vh;display:flex}
+.root{display:flex;width:100%;min-height:100vh}
+.sidebar{width:240px;flex-shrink:0;background:#1F2937;display:flex;flex-direction:column;min-height:100vh}
+.sb-logo{padding:20px 20px 16px;border-bottom:1px solid rgba(255,255,255,0.08)}
+.sb-logo-title{color:white;font-size:16px;font-weight:700}
+.sb-logo-sub{color:#6B7280;font-size:12px;margin-top:2px}
+.sb-nav{padding:12px 0;flex:1}
+.sb-item{display:flex;align-items:center;gap:10px;padding:10px 16px;font-size:14px;color:#9CA3AF;cursor:pointer;text-decoration:none;border-radius:6px;margin:0 8px}
+.sb-item.active{background:#D1193E;color:white;font-weight:500}
+.sb-item:not(.active):hover{background:rgba(255,255,255,0.05)}
+.sb-footer{padding:14px 16px;border-top:1px solid rgba(255,255,255,0.08);font-size:12px;color:#6B7280;margin-top:auto}
+
+/* Main layout */
+.main{flex:1;padding:28px;display:flex;flex-direction:column;gap:16px;overflow:auto}
+.page-title{font-size:22px;font-weight:700;color:#111827}
+.content-grid{display:grid;grid-template-columns:300px 1fr;gap:16px;flex:1}
+
+/* Student lijst */
+.student-list-card{background:white;border-radius:12px;border:0.8px solid #D1D5DB;overflow:hidden;display:flex;flex-direction:column}
+.student-list-search{padding:14px 16px;border-bottom:0.8px solid #D1D5DB;background:#F9FAFB}
+.search{width:100%;padding:8px 12px;border-radius:8px;border:0.8px solid #D1D5DB;background:white;font-size:13px;color:#111827;font-family:inherit}
+.search:focus{outline:none;border-color:#D1193E}
+.student-items{overflow-y:auto;flex:1}
+.student-item{display:flex;align-items:center;gap:12px;padding:14px 16px;border-bottom:0.8px solid #D1D5DB;cursor:pointer}
+.student-item:last-child{border-bottom:none}
+.student-item:hover{background:#F9FAFB}
+.student-item.active{background:#EFF6FF;border-left:4px solid #3B82F6}
+.student-item:not(.active){border-left:4px solid transparent}
+.avatar{width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;color:white;flex-shrink:0}
+.av-blauw{background:#3B82F6}
+.av-grijs{background:#6B7280}
+.student-naam{font-size:13px;font-weight:600;color:#111827}
+.student-meta{font-size:11px;color:#6B7280;margin-top:2px}
+
+/* Detail paneel */
+.detail-col{display:flex;flex-direction:column;gap:14px}
+.card{background:white;border-radius:12px;border:0.8px solid #D1D5DB;box-shadow:0 1px 3px rgba(0,0,0,0.05);padding:22px 24px}
+.card-title{font-size:16px;font-weight:600;color:#111827;margin-bottom:16px}
+
+/* Info grid */
+.info-grid{background:#F9FAFB;border-radius:8px;border:0.8px solid #D1D5DB;padding:18px 20px;display:grid;grid-template-columns:1fr 1fr;gap:16px 32px}
+.info-block{}
+.info-label{font-size:11px;color:#6B7280;text-transform:uppercase;letter-spacing:0.4px;margin-bottom:4px}
+.info-value{font-size:13px;font-weight:500;color:#111827}
+.info-sub{font-size:12px;color:#6B7280;margin-top:2px}
+
+/* Voortgang tijdlijn */
+.timeline-wrap{position:relative;padding:12px 0 8px}
+.tl-line{position:absolute;top:23px;left:50px;right:50px;height:2px;background:#D1D5DB;z-index:0}
+.tl-progress{position:absolute;top:23px;left:50px;height:2px;background:#10B981;z-index:1;width:28%}
+.tl-steps{display:flex;justify-content:space-between;position:relative;z-index:2}
+.tl-step{display:flex;flex-direction:column;align-items:center;gap:6px;width:100px}
+.tl-dot{width:26px;height:26px;border-radius:50%;border:2px solid #D1D5DB;background:white;display:flex;align-items:center;justify-content:center;font-size:10px}
+.tl-dot.done{background:#10B981;border-color:#10B981}
+.tl-dot.current{background:white;border:4px solid #3B82F6}
+.tl-dot.todo{background:white;border-color:#D1D5DB}
+.tl-label{font-size:12px;color:#6B7280;text-align:center;line-height:1.4}
+.tl-label.done{color:#10B981}
+.tl-label.current{color:#3B82F6}
+.tl-sublabel{font-size:10px;color:#9CA3AF;text-align:center}
+
+/* Meldingen */
+.melding-filters{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap}
+.filter-btn{font-size:11px;font-weight:700;padding:5px 12px;border-radius:20px;border:0.8px solid #D1D5DB;background:white;color:#111827;cursor:pointer}
+.filter-btn.active{background:#EF4444;color:white;border-color:#EF4444}
+.meldingen-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.melding-card{background:white;border-radius:8px;border:0.8px solid #D1D5DB;border-left-width:4px;padding:14px 16px}
+.melding-card.kritiek{border-left-color:#EF4444}
+.melding-card.waarschuwing{border-left-color:#F59E0B}
+.melding-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+.melding-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+.dot-rood{background:#EF4444}
+.dot-oranje{background:#F59E0B}
+.melding-titel{font-size:13px;font-weight:700;color:#111827;margin-left:6px;flex:1}
+.melding-badge{font-size:10px;font-weight:700;padding:3px 8px;border-radius:20px}
+.badge-kritiek{background:#FEE2E2;color:#B91C1C}
+.badge-waarschuwing{background:#FEF3C7;color:#B45309}
+.melding-tekst{font-size:12px;color:#6B7280;line-height:1.6;margin-bottom:10px}
+.melding-footer{display:flex;justify-content:space-between;padding-top:8px;border-top:0.8px solid #F3F4F6;font-size:11px;color:#9CA3AF}

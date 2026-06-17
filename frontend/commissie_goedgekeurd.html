@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EhB StageTool — Dossier Details</title>
+    <link href="https://fonts.googleapis.com/css?family=Inter:400,500,600,700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="src/CSS/commissie_goedgekeurd.css">
+</head>
+<body>
+    <div class="app-layout">
+        
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar__brand">
+                <span class="sidebar__app-name">EhB StageTool</span>
+                <span class="sidebar__app-sub">Stagecommissie</span>
+            </div>
+            <nav class="sidebar__nav">
+                <ul class="sidebar__nav-list">
+                    <li>
+                        <a href="#" class="sidebar__nav-item sidebar__nav-item--active">
+                            <span>Nieuwe aanvragen</span>
+                            <span class="sidebar__badge"></span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="commissie_dashboard.html" class="sidebar__nav-item">Dashboard</a>
+                    </li>
+                    <li>
+                        <a href="commissie_dossiers.html" class="sidebar__nav-item">Alle dossiers</a>
+                    </li>
+                </ul>
+            </nav>
+        </aside>
+
+        <!-- Main Content Area -->
+        <main class="main-content">
+            
+            <!-- Breadcrumbs -->
+            <nav class="breadcrumbs">
+                <a href="#">Nieuwe aanvragen</a>
+                <span class="breadcrumbs__separator">›</span>
+                <span class="breadcrumbs__current" id="student-name">...</span>
+                <span class="breadcrumbs__separator">›</span>
+                <span class="status-badge-inline" id="status-tag">...</span>
+            </nav>
+
+            <!-- Page Title / Header -->
+            <header class="page-header">
+                <div class="page-header__text">
+                    <h1 class="page-header__title" id="page-title">...</h1>
+                    <p class="page-header__subtitle" id="page-subtitle">...</p>
+                </div>
+            </header>
+
+            <!-- Status Banner -->
+            <div class="status-banner" id="status-banner">
+                <div class="status-banner__icon" id="banner-icon">✓</div>
+                <div class="status-banner__text">
+                    <h2 id="banner-title">...</h2>
+                    <p id="banner-desc">...</p>
+                </div>
+                <div class="status-banner__badge" id="banner-meta">...</div>
+            </div>
+
+            <!-- Two Column Detail Grid -->
+            <div class="detail-grid">
+                
+                <!-- Left Column: Dossier Summary -->
+                <section class="card">
+                    <h3 class="card__title">Dossiersamenvatting</h3>
+                    <dl class="summary-list" id="summary-list">
+                        <!-- Dynamisch geladen via JS of direct in te vullen -->
+                        <div class="summary-item">
+                            <dt>Student</dt>
+                            <dd id="info-student">-</dd>
+                        </div>
+                        <div class="summary-item">
+                            <dt>Bedrijf</dt>
+                            <dd id="info-company">-</dd>
+                        </div>
+                        <div class="summary-item">
+                            <dt>Opdracht</dt>
+                            <dd id="info-assignment">-</dd>
+                        </div>
+                        <div class="summary-item">
+                            <dt>Periode</dt>
+                            <dd id="info-period">-</dd>
+                        </div>
+                        <div class="summary-item">
+                            <dt>Beoordelaar</dt>
+                            <dd id="info-reviewer">-</dd>
+                        </div>
+                        <div class="summary-item">
+                            <dt>Status</dt>
+                            <dd><span class="badge" id="info-status">-</span></dd>
+                        </div>
+                    </dl>
+                </section>
+
+                <!-- Right Column: Timeline / Next Steps -->
+                <section class="card">
+                    <h3 class="card__title">Volgende stappen</h3>
+                    <div class="timeline" id="timeline">
+                        <!-- Rijen kunnen dynamisch geladen worden, hier is de lege structuur -->
+                    </div>
+                </section>
+            </div>
+
+            <!-- Feedback / Comments Card -->
+            <section class="card card--comment" id="comment-section">
+                <h3 class="card__title">Opmerking commissie</h3>
+                <div class="comment-box">
+                    <p id="commission-comment">Geen opmerkingen geplaatst.</p>
+                </div>
+            </section>
+
+            <!-- Action Footer -->
+            <footer class="action-footer">
+                <button class="btn btn--ghost" id="btn-back">← Terug naar lijst</button>
+                <span class="action-footer__status" id="footer-notification">✉ Geen meldingen</span>
+                <button class="btn btn--primary" id="btn-next">Volgend dossier →</button>
+            </footer>
+
+        </main>
+    </div>
+    <script src="src/JS/api.js"></script>
+  <script src="src/JS/commissie_goedgekeurd.js"></script>
+</body>
+</body>
+</html>

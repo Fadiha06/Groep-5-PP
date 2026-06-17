@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Stagecontract — EhB StageTool</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/frontend/src/CSS/contract.css">
+</head>
+<body>
+<div class="root">
+
+  <nav class="sidebar">
+    <div class="sb-logo">
+      <div class="sb-logo-title">EhB StageTool</div>
+      <div class="sb-logo-sub">Toegepaste Informatica</div>
+    </div>
+    <div class="sb-nav">
+      <a class="sb-item active" href="/frontend/contract.html">Contract</a>
+    </div>
+    <div class="sb-footer">Ingelogd als Student</div>
+  </nav>
+
+  <div class="main">
+    <div>
+      <div class="page-title">Stagecontract</div>
+      <div class="page-sub">Lees het contract, zet je handtekening onderaan en dien in. Het contract wordt automatisch gearchiveerd.</div>
+    </div>
+
+    <div class="info-banner">
+      <span>ℹ️</span>
+      <span>Jouw handtekening is vereist. Na jouw ondertekening wordt het contract automatisch doorgestuurd naar je stagementor en daarna de verantwoordelijke docent.</span>
+    </div>
+
+    <div class="card">
+
+      <!-- Contractinhoud: Partijen -->
+      <div class="contract-section">
+        <div class="contract-section-title">Contractinhoud</div>
+        <div style="font-size:15px;font-weight:600;color:#111827;margin-bottom:14px">Partijen</div>
+        <div class="info-rows">
+          <div class="info-row">
+            <span class="info-row-label">Student</span>
+            <span class="info-row-value" id="contract-student">laden...</span>
+          </div>
+          <div class="info-row">
+            <span class="info-row-label">Studentnummer</span>
+            <span class="info-row-value" id="contract-studentnummer">laden...</span>
+          </div>
+          <div class="info-row">
+            <span class="info-row-label">Bedrijf</span>
+            <span class="info-row-value" id="contract-bedrijf">laden...</span>
+          </div>
+          <div class="info-row">
+            <span class="info-row-label">Stagementor</span>
+            <span class="info-row-value" id="contract-mentor">laden...</span>
+          </div>
+          <div class="info-row">
+            <span class="info-row-label">Verantwoordelijk docent</span>
+            <span class="info-row-value" id="contract-docent">laden...</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Stagegegevens -->
+      <div class="contract-section">
+        <div class="contract-section-title">Stagegegevens</div>
+        <div class="info-rows">
+          <div class="info-row">
+            <span class="info-row-label">Titel</span>
+            <span class="info-row-value" id="contract-titel">laden...</span>
+          </div>
+          <div class="info-row">
+            <span class="info-row-label">Periode</span>
+            <span class="info-row-value" id="contract-periode">laden...</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Verplichtingen -->
+      <div class="contract-section">
+        <div class="contract-section-title">Verplichtingen</div>
+        <div class="verplichting-title">Verplichtingen student</div>
+        <div class="verplichting-tekst">De student verbindt zich ertoe wekelijks een logboek bij te houden, aanwezig te zijn conform de werkregeling, en de interne regels van het bedrijf te respecteren. Afwezigheid dient tijdig gemeld te worden aan zowel de stagementor als de verantwoordelijke docent.</div>
+        <div class="verplichting-title">Verplichtingen bedrijf</div>
+        <div class="verplichting-tekst">Het bedrijf stelt een werkplek en de nodige middelen ter beschikking, wijst een stagementor aan en verbindt zich tot een tussentijdse en finale evaluatie van de student.</div>
+      </div>
+
+      <!-- Handtekeningen -->
+      <div class="contract-section">
+        <div class="contract-section-title">Handtekeningen</div>
+
+        <div class="sign-box">
+          <div class="sign-name" id="sign-student-naam">laden...</div>
+          <div class="sign-role">Student</div>
+          <div class="sign-label">✎ Teken hieronder met je muis of vinger</div>
+          <div class="sign-canvas-wrap" id="canvas-wrap">
+            <canvas id="sig-canvas"></canvas>
+          </div>
+          <div class="sign-actions" id="sign-actions">
+            <button class="btn-wis" id="btn-wis">Wissen</button>
+            <button class="btn-bevestig" id="btn-bevestig">Bevestigen</button>
+          </div>
+          <div class="sign-confirmed" id="sign-confirmed">✓ Handtekening bevestigd</div>
+        </div>
+
+        <div class="sign-grid">
+          <div class="sign-other">
+            <div class="sign-other-name" id="sign-mentor-naam">laden...</div>
+            <div class="sign-other-role">Stagementor</div>
+            <div class="sign-other-status">Wacht op handtekening student</div>
+            <div class="sign-placeholder">Nog niet beschikbaar</div>
+          </div>
+          <div class="sign-other">
+            <div class="sign-other-name" id="sign-docent-naam">laden...</div>
+            <div class="sign-other-role">Verantwoordelijk docent</div>
+            <div class="sign-other-status">Wacht op handtekening mentor</div>
+            <div class="sign-placeholder">Nog niet beschikbaar</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card-footer">
+        <button class="btn-primary" id="btn-indienen" disabled>Indienen ter ondertekening</button>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script src="/frontend/src/JS/api.js"></script>
+<script src="/frontend/src/JS/contract.js"></script>
+</body>
+</html>

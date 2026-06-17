@@ -1,14 +1,15 @@
 const express = require('express');
 const router = express.Router();
 const userController = require('../controllers/userController');
+const { verifyToken, requireRole } = require('../middleware/authMiddleware');
 
-// Alle gebruikers ophalen
-router.get('/', userController.getUsers);
+router.get('/', verifyToken, requireRole(['admin', 'administrator']), userController.getUsers);
 
-// Account aanmaken door Admin
-router.post('/', userController.createAccount);
+router.post('/', verifyToken, requireRole(['admin', 'administrator']), userController.createAccount);
 
-// Gebruiker verwijderen
-router.delete('/:id', userController.deleteUser);
+router.delete('/:id', verifyToken, requireRole(['admin', 'administrator']), userController.deleteUser);
+
+// Gebruiker bewerken (rol of status)
+router.put('/:id', userController.updateUser);
 
 module.exports = router;

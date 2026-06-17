@@ -10,19 +10,23 @@ const transporter = nodemailer.createTransport({
     }
 });
 
-async function stuurContractLink(naar, link) {
+const stuurWachtwoordLink = async (naarEmail, link) => {
+    console.log(`[MAIL UITGESCHAKELD] E-mail zou verzonden worden naar: ${naarEmail}`);
+    console.log(`[MAIL UITGESCHAKELD] Inhoud (Wachtwoord link): ${link}`);
+    /*
     await transporter.sendMail({
-        from: process.env.SMTP_FROM || process.env.SMTP_USER,
-        to: naar,
-        subject: 'Stagecontract ondertekenen — EhB StageTool',
+        from: process.env.SMTP_FROM || '"EhB StageTool" <noreply@ehb.be>',
+        to: naarEmail,
+        subject: 'Stel je wachtwoord in — EhB StageTool',
         html: `
-            <p>Beste,</p>
-            <p>De student heeft het stagecontract ondertekend. Gelieve het na te lezen en digitaal te ondertekenen via onderstaande link:</p>
-            <p><a href="${link}">Contract ondertekenen</a></p>
-            <p>Deze link is 48 uur geldig.</p>
-            <p>Met vriendelijke groeten,<br>EhB StageTool</p>
+            <p>Hallo,</p>
+            <p>Er is een account voor je aangemaakt bij de EhB StageTool.</p>
+            <p>Klik op de link om je wachtwoord in te stellen:</p>
+            <p><a href="${link}">Wachtwoord instellen</a></p>
+            <p>Deze link verloopt over 10 minuten.</p>
         `
     });
-}
+    */
+};
 
-module.exports = { stuurContractLink };
+module.exports = { stuurWachtwoordLink };

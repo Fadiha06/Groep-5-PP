@@ -7,7 +7,7 @@ CREATE TABLE GEBRUIKER (
     email VARCHAR(255) NOT NULL UNIQUE,
     wachtwoord VARCHAR(255) NOT NULL,
     rol VARCHAR(50) NOT NULL
-);
+    );
 
 CREATE TABLE BEDRIJF (
     bedrijf_id INT AUTO_INCREMENT PRIMARY KEY,
@@ -56,9 +56,11 @@ CREATE TABLE ADMINISTRATIE (
 
 CREATE TABLE STAGEMENTOR (
     mentor_id INT AUTO_INCREMENT PRIMARY KEY,
-    bedrijf_id INT NOT NULL,
+    gebruiker_id INT NOT NULL,
+    bedrijf_id INT NULL,
     afdeling VARCHAR(100),
     telefoonnummer VARCHAR(50),
+    FOREIGN KEY (gebruiker_id) REFERENCES GEBRUIKER(id) ON DELETE CASCADE,
     FOREIGN KEY (bedrijf_id) REFERENCES BEDRIJF(bedrijf_id) ON DELETE CASCADE
 );
 
@@ -109,6 +111,7 @@ CREATE TABLE LOGBOEK_WEEK (
     ingediend_op DATETIME,
     totaal_uren DECIMAL(5,2),
     status VARCHAR(50),
+    mentor_feedback TEXT,
     FOREIGN KEY (stage_id) REFERENCES STAGE(stage_id) ON DELETE CASCADE
 );
 
@@ -155,6 +158,7 @@ CREATE TABLE LOGBOEK_COMPETENTIE (
     dag_id INT NOT NULL,
     student_id INT NOT NULL,
     competentie_id INT NOT NULL,
+    score INT,
     commentaar TEXT,
     FOREIGN KEY (dag_id) REFERENCES LOGBOEK_DAG(dag_id) ON DELETE CASCADE,
     FOREIGN KEY (student_id) REFERENCES STUDENT(student_id) ON DELETE CASCADE,

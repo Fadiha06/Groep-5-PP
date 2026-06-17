@@ -1,0 +1,121 @@
+/* ============================================================
+   MENTOR_DASHBOARD.CSS
+   Pagina-specifieke stijlen voor het dashboard
+   ============================================================ */
+
+/* ── Statistieken grid ── */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.stat-card {
+  background: var(--color-white);
+  border: 1px solid var(--color-border);
+  border-left: 4px solid var(--color-blue);
+  border-radius: var(--radius-lg);
+  padding: 20px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  box-shadow: var(--shadow-sm);
+  transition: box-shadow 0.15s, transform 0.15s;
+}
+
+.stat-card:nth-child(2) { border-left-color: var(--color-amber); }
+.stat-card:nth-child(3) { border-left-color: #8B5CF6; }
+
+.stat-card:hover {
+  box-shadow: var(--shadow-md);
+  transform: translateY(-2px);
+}
+
+.stat-icon {
+  font-size: 32px;
+  width: 50px;
+  height: 50px;
+  background: var(--color-page-bg);
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.stat-content {
+  flex: 1;
+}
+
+.stat-label {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 4px;
+}
+
+.stat-value {
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--color-blue);
+}
+
+.stat-card:nth-child(2) .stat-value { color: var(--color-amber); }
+.stat-card:nth-child(3) .stat-value { color: #8B5CF6; }
+
+/* ── Logboeken lijst items ── */
+#logboek-list .student-item,
+#student-list .student-item {
+  position: relative;
+  padding-left: 8px;
+  border-left: 3px solid transparent;
+  transition: border-color 0.15s, background 0.15s;
+}
+
+#logboek-list .student-item.status-pending {
+  border-left-color: var(--color-amber);
+  background: rgba(245, 158, 11, 0.03);
+}
+
+#logboek-list .student-item.status-late {
+  border-left-color: var(--color-red);
+  background: rgba(239, 68, 68, 0.03);
+}
+
+/* ── Welkomtitel gradient ── */
+#welkom-titel {
+  background: linear-gradient(135deg, var(--color-text) 0%, var(--color-blue) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: fadeIn 0.6s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── Responsive ── */
+@media (max-width: 768px) {
+  .stats-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .stat-card {
+    padding: 16px;
+  }
+
+  .stat-icon {
+    width: 40px;
+    height: 40px;
+    font-size: 24px;
+  }
+
+  .stat-value {
+    font-size: 24px;
+  }
+}
