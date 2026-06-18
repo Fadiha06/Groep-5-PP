@@ -84,16 +84,24 @@ const getDossiers = async (docentId) => {
             g.naam AS student_naam,
             s.studentnummer,
             s.opleiding,
+            s.telefoonnummer AS student_telefoon,
             g.email,
             b.naam AS bedrijf_naam,
             b.adres AS bedrijf_adres,
             b.stad AS bedrijf_stad,
+            b.telefoon AS bedrijf_telefoon,
+            mg.naam AS mentor_naam,
+            sm.telefoonnummer AS mentor_telefoon,
             st.startdatum,
             st.einddatum
         FROM STAGE st
         JOIN STUDENT s ON s.student_id = st.student_id
         JOIN GEBRUIKER g ON g.id = s.gebruiker_id
         LEFT JOIN BEDRIJF b ON b.bedrijf_id = st.bedrijf_id
+        LEFT JOIN STAGEMENTOR sm
+            ON sm.mentor_id = st.mentor_id
+            OR (st.mentor_id IS NULL AND sm.bedrijf_id = st.bedrijf_id)
+        LEFT JOIN GEBRUIKER mg ON mg.id = sm.gebruiker_id
         WHERE st.leerkracht_id = ?`,
         [docentId]
     );

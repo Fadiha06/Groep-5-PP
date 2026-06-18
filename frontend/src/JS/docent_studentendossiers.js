@@ -69,17 +69,18 @@ function renderInfo(s) {
                 <div class="info-label">Student & Opleiding</div>
                 <div class="info-strong">${s.student_naam} (${s.opleiding || '—'})</div>
                 <div class="info-text">${s.email}</div>
-                <div class="info-text">— (geen telefoon in DB)</div>
+                <div class="info-text">${s.student_telefoon || '—'}</div>
             </div>
             <div>
                 <div class="info-label">Bedrijf & Locatie</div>
                 <div class="info-strong">${s.bedrijf_naam || '—'}</div>
                 <div class="info-text">${adres}</div>
+                <div class="info-text">${s.bedrijf_telefoon || '—'}</div>
             </div>
             <div>
                 <div class="info-label">Stagementor</div>
-                <div class="info-strong">—</div>
-                <div class="info-text">— (niet in DB)</div>
+                <div class="info-strong">${s.mentor_naam || '—'}</div>
+                <div class="info-text">${s.mentor_telefoon || '— (geen telefoon)'}</div>
             </div>
             <div>
                 <div class="info-label">Stageperiode</div>
