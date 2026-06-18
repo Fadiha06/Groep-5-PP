@@ -5,7 +5,7 @@ exports.submitStage = async (req, res) => {
     try {
         // We get the user id from the JWT token (set by authMiddleware)
         const gebruiker_id = req.user.id;
-        
+
         const { bedrijfsnaam, mentorNaam, mentorEmail, telefoon, adres, sector, titel, omschrijving, startdatum, einddatum } = req.body;
 
         if (!bedrijfsnaam || !titel || !omschrijving) {
@@ -28,19 +28,13 @@ exports.submitStage = async (req, res) => {
             const bedrijf_id = bedrijfResult.insertId;
 
             // 2. Create Mentor Gebruiker Account
-            let voornaam = mentorNaam || 'Onbekend';
-            let achternaam = 'Onbekend';
-            if (mentorNaam && mentorNaam.includes(' ')) {
-                const parts = mentorNaam.split(' ');
-                voornaam = parts[0];
-                achternaam = parts.slice(1).join(' ');
-            }
-            
+            const mentorVolledigeNaam = mentorNaam || 'Onbekend';
+
             const defaultPasswordHash = await argon2.hash('mentor123');
-            
+
             const [gebruikerResult] = await connection.query(
-                'INSERT INTO GEBRUIKER (voornaam, achternaam, email, wachtwoord, rol) VALUES (?, ?, ?, ?, ?)',
-                [voornaam, achternaam, mentorEmail, defaultPasswordHash, 'mentor']
+                'INSERT INTO GEBRUIKER (naam, email, wachtwoord, rol) VALUES (?, ?, ?, ?)',
+                [mentorVolledigeNaam, mentorEmail, defaultPasswordHash, 'mentor']
             );
             const mentor_gebruiker_id = gebruikerResult.insertId;
 
@@ -51,14 +45,14 @@ exports.submitStage = async (req, res) => {
             );
             const mentor_id = mentorResult.insertId;
 
-            // 3. Get Student ID
+            // 4. Get Student ID
             const [studentRows] = await connection.query('SELECT student_id FROM STUDENT WHERE gebruiker_id = ?', [gebruiker_id]);
             if (studentRows.length === 0) {
                 throw new Error('Geen student profiel gevonden voor deze gebruiker');
             }
             const student_id = studentRows[0].student_id;
 
-            // 4. Insert Stage
+            // 5. Insert Stage
             await connection.query(
                 'INSERT INTO STAGE (student_id, mentor_id, bedrijf_id, titel, omschrijving, startdatum, einddatum, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
                 [student_id, mentor_id, bedrijf_id, titel, omschrijving, start, eind, 'in_aanvraag']
@@ -86,7 +80,7 @@ exports.getAllStages = async (req, res) => {
         const query = `
             SELECT s.stage_id, s.titel, s.status, s.startdatum, s.einddatum,
                    b.naam as bedrijfsnaam,
-                   CONCAT(u.voornaam, ' ', u.achternaam) as studentnaam
+                   u.naam as studentnaam
             FROM STAGE s
             JOIN STUDENT st ON s.student_id = st.student_id
             JOIN GEBRUIKER u ON st.gebruiker_id = u.id
@@ -103,7 +97,7 @@ exports.getAllStages = async (req, res) => {
 exports.getMyStage = async (req, res) => {
     try {
         const gebruiker_id = req.user.id;
-        
+
         // Find student ID
         const [studentRows] = await db.query('SELECT student_id FROM STUDENT WHERE gebruiker_id = ?', [gebruiker_id]);
         if (studentRows.length === 0) return res.json({ stage: null });
@@ -133,12 +127,12 @@ exports.updateStatus = async (req, res) => {
     try {
         const stage_id = req.params.id;
         const { status } = req.body;
-        
+
         const allowedStatuses = ['in_aanvraag', 'goedgekeurd', 'geweigerd', 'conditie', 'actief'];
         if (!allowedStatuses.includes(status)) {
             return res.status(400).json({ error: 'Ongeldige status' });
         }
-        
+
         await db.query('UPDATE STAGE SET status = ? WHERE stage_id = ?', [status, stage_id]);
         res.json({ message: 'Status bijgewerkt naar ' + status });
     } catch (error) {
