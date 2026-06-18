@@ -1,33 +1,29 @@
 const docentModel = require('../models/docentModel');
 
-// GET /api/docent/studenten?week=4 — lijst voor "Logboek Controle"
+// GET /api/docent/studenten — actieve stages + status logboekweek van nu
 const getStudenten = async (req, res) => {
-    const weeknummer = Number(req.query.week) || 1;
-
     try {
         const docent = await docentModel.getDocent(req.user.id);
         if (!docent) {
             return res.status(404).json({ error: 'Geen docent gevonden' });
         }
 
-        const rijen = await docentModel.getStudentenMetLogboekStatus(docent.docent_id, weeknummer);
+        const rijen = await docentModel.getActieveStagesMetLogboek(docent.docent_id);
+        const ingediendeStatussen = ['ingediend', 'goedgekeurd', 'te-laat', 'feedback'];
 
-        // NULL-status netjes omzetten naar "Ontbreekt" voor de frontend
-        const studenten = rijen.map(r => ({
-            stage_id: r.stage_id,
-            student: r.student_naam,
-            bedrijf: r.bedrijf_naam || '—',
-            status: r.logboek_status
-                ? `Ingediend (${r.totaal_uren ?? 0}u)`
-                : 'Ontbreekt',
-            ingevuld: r.logboek_status !== null
-        }));
-
-        res.json({
-            docent: docent.naam,
-            weeknummer,
-            studenten
+        const studenten = rijen.map(r => {
+            const ingediend = r.logboek_status !== null && ingediendeStatussen.includes(r.logboek_status);
+            return {
+                stage_id: r.stage_id,
+                student: r.student_naam,
+                bedrijf: r.bedrijf_naam || '—',
+                week: r.huidige_week,
+                status: ingediend ? `Ingediend (${r.totaal_uren ?? 0}u)` : 'Nog niet ingediend',
+                ingevuld: ingediend
+            };
         });
+
+        res.json({ docent: docent.naam, studenten });
     } catch (err) {
         console.error(err);
         res.status(500).json({ error: 'Serverfout bij ophalen studenten' });
@@ -135,4 +131,76 @@ const getMeldingen = async (req, res) => {
     }
 };
 
-module.exports = { getStudenten, stuurReminder, getMilestones, getDossiers, getMeldingen };
+// GET /api/docent/logboeken
+const getLogboeken = async (req, res) => {
+    try {
+        const docent = await docentModel.getDocent(req.user.id);
+        if (!docent) return res.status(404).json({ error: 'Geen docent gevonden' });
+        const logboeken = await docentModel.getLogboekenVoorDocent(docent.docent_id);
+        res.json(logboeken);
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: 'Serverfout bij ophalen logboeken' });
+    }
+};
+
+// POST /api/docent/logboek/goedkeuren
+const keurLogboekGoed = async (req, res) => {
+    const { stage_id, week } = req.body;
+    try {
+        const docent = await docentModel.getDocent(req.user.id);
+        if (!docent) return res.status(404).json({ error: 'Geen docent gevonden' });
+        if (!(await docentModel.isEigenStage(docent.docent_id, stage_id)))
+            return res.status(403).json({ error: 'Dit is niet jouw student' });
+        await docentModel.keurLogboekWeekGoed(stage_id, week);
+        res.json({ message: 'Logboek goedgekeurd' });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: 'Serverfout bij goedkeuren' });
+    }
+};
+
+// POST /api/docent/logboek/feedback
+const geefLogboekFeedback = async (req, res) => {
+    const { stage_id, week, feedback } = req.body;
+    if (!feedback) return res.status(400).json({ error: 'Feedback ontbreekt' });
+    try {
+        const docent = await docentModel.getDocent(req.user.id);
+        if (!docent) return res.status(404).json({ error: 'Geen docent gevonden' });
+        if (!(await docentModel.isEigenStage(docent.docent_id, stage_id)))
+            return res.status(403).json({ error: 'Dit is niet jouw student' });
+        await docentModel.geefLogboekWeekFeedback(stage_id, week, feedback);
+        res.json({ message: 'Feedback verstuurd' });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: 'Serverfout bij feedback' });
+    }
+};
+
+// GET /api/docent/todos
+const getTodos = async (req, res) => {
+    try {
+        const docent = await docentModel.getDocent(req.user.id);
+        if (!docent) return res.status(404).json({ error: 'Geen docent gevonden' });
+        const todos = await docentModel.getTodos(docent.docent_id);
+        res.json(todos);
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: 'Serverfout bij ophalen todos' });
+    }
+};
+
+// GET /api/docent/punten
+const getPunten = async (req, res) => {
+    try {
+        const docent = await docentModel.getDocent(req.user.id);
+        if (!docent) return res.status(404).json({ error: 'Geen docent gevonden' });
+        const punten = await docentModel.getPuntenAggregatie(docent.docent_id);
+        res.json({ punten });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: 'Serverfout bij ophalen punten' });
+    }
+};
+
+module.exports = { getStudenten, stuurReminder, getMilestones, getDossiers, getMeldingen, getLogboeken, keurLogboekGoed, geefLogboekFeedback, getTodos, getPunten };

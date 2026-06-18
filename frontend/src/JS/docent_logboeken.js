@@ -2,35 +2,32 @@ let logboekenData = [];
 
 async function laadLogboeken() {
   try {
-    // Verwacht: GET /api/docent/logboeken
-    // Response: [{ stage_id, naam, opleiding, week, datum, status, bedrijf,
-    //              periode, dagen: [{ datum, uren, taken, reflectie, problemen, competenties: [...] }] }]
     logboekenData = await apiFetch('/docent/logboeken');
     renderTable(logboekenData);
   } catch (err) {
     console.error('Kon logboeken niet laden:', err);
+    document.getElementById('tbody').innerHTML =
+      `<tr><td colspan="5" style="text-align:center;color:#EF4444;padding:24px">${err.message || 'Kon logboeken niet laden.'}</td></tr>`;
   }
 }
 
 function renderTable(data) {
   const tbody = document.getElementById('tbody');
-
   if (data.length === 0) {
     tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;color:#9CA3AF;padding:24px">Geen logboeken gevonden.</td></tr>`;
     return;
   }
-
   tbody.innerHTML = data.map((l, i) => {
-    const badgeStatus = l.status === 'ingediend' ? 'badge-ingediend'
+    const badgeStatus = (l.status === 'ingediend' || l.status === 'goedgekeurd') ? 'badge-ingediend'
       : l.status === 'te-laat' ? 'badge-te-laat'
       : 'badge-niet';
-    const statusLabel = l.status === 'ingediend' ? 'Ingediend'
+    const statusLabel = l.status === 'goedgekeurd' ? 'Goedgekeurd'
+      : l.status === 'ingediend' ? 'Ingediend'
       : l.status === 'te-laat' ? 'Te laat'
-      : 'Niet ingediend';
-
+      : (l.status || 'Niet ingediend');
     return `
     <tr>
-      <td><div class="td-name">${l.naam}</div><div class="td-opleiding">${l.opleiding}</div></td>
+      <td><div class="td-name">${l.naam}</div><div class="td-opleiding">${l.opleiding || ''}</div></td>
       <td><span class="badge badge-week">Week ${l.week}</span></td>
       <td style="color:#6B7280">${l.datum || '—'}</td>
       <td><span class="badge ${badgeStatus}">${statusLabel}</span></td>
@@ -45,18 +42,12 @@ function openModal(index) {
   huidigModalIndex = index;
   const l = logboekenData[index];
 
-  // Reset feedback sectie en footer
-  document.getElementById('feedback-sectie').style.display = 'none';
-  document.getElementById('modal-body-content').style.display = 'flex';
-  document.getElementById('btn-feedback').style.display = '';
-  document.getElementById('btn-goedkeuren').style.display = '';
-
   document.getElementById('modal-title').textContent = `Logboek: ${l.naam} (Week ${l.week})`;
-  document.getElementById('modal-sub').textContent = `${l.periode || '—'} • ${l.bedrijf}`;
+  document.getElementById('modal-sub').textContent = `${l.periode || '—'} • ${l.bedrijf || '—'}`;
 
   const badge = document.getElementById('modal-badge');
-  if (l.status === 'ingediend') {
-    badge.textContent = '✓ Ingediend';
+  if (l.status === 'ingediend' || l.status === 'goedgekeurd') {
+    badge.textContent = l.status === 'goedgekeurd' ? '✓ Goedgekeurd' : '✓ Ingediend';
     badge.style.background = '#DCFCE7';
     badge.style.color = '#166534';
   } else if (l.status === 'te-laat') {
@@ -71,7 +62,6 @@ function openModal(index) {
 
   const body = document.getElementById('modal-body-content');
   const dagen = l.dagen || [];
-
   if (dagen.length === 0) {
     body.innerHTML = `<div style="font-size:13px;color:#9CA3AF;padding:20px">Geen dagentries beschikbaar voor dit logboek.</div>`;
   } else {
@@ -114,55 +104,6 @@ function openModal(index) {
 
 function closeModal() {
   document.getElementById('modal').classList.remove('open');
-}
-
-async function goedkeuren() {
-  const l = logboekenData[huidigModalIndex];
-  try {
-    await apiFetch('/docent/logboek/goedkeuren', {
-      method: 'POST',
-      body: JSON.stringify({ stage_id: l.stage_id, week: l.week })
-    });
-    closeModal();
-    laadLogboeken();
-  } catch (err) {
-    alert(err.message || 'Kon het logboek niet goedkeuren.');
-  }
-}
-
-function geefFeedback() {
-  document.getElementById('modal-body-content').style.display = 'none';
-  document.getElementById('btn-feedback').style.display = 'none';
-  document.getElementById('btn-goedkeuren').style.display = 'none';
-  document.getElementById('feedback-sectie').style.display = 'block';
-  document.getElementById('feedback-tekst').value = '';
-  document.getElementById('feedback-tekst').focus();
-}
-
-function annuleerFeedback() {
-  document.getElementById('feedback-sectie').style.display = 'none';
-  document.getElementById('modal-body-content').style.display = 'flex';
-  document.getElementById('btn-feedback').style.display = '';
-  document.getElementById('btn-goedkeuren').style.display = '';
-}
-
-async function verstuurFeedback() {
-  const l = logboekenData[huidigModalIndex];
-  const tekst = document.getElementById('feedback-tekst').value.trim();
-  if (!tekst) {
-    alert('Schrijf eerst feedback voor je verstuurt.');
-    return;
-  }
-  try {
-    await apiFetch('/docent/logboek/feedback', {
-      method: 'POST',
-      body: JSON.stringify({ stage_id: l.stage_id, week: l.week, feedback: tekst })
-    });
-    closeModal();
-    laadLogboeken();
-  } catch (err) {
-    alert(err.message || 'Kon de feedback niet versturen.');
-  }
 }
 
 function filterTable() {

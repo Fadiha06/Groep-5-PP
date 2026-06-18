@@ -31,10 +31,17 @@
             <button class="logout-btn" onclick="logout()">Uitloggen</button>
         </div>
 
+        <div class="card">
+            <div class="card-title">Te doen</div>
+            <div id="todo-body">
+                <div class="placeholder">Laden...</div>
+            </div>
+        </div>
+
         <div class="grid">
             <div>
                 <div class="card">
-                    <div class="card-title">Logboek Controle — <span id="week-label">Week 4</span></div>
+                    <div class="card-title">Logboeken <span id="week-label">— Actieve stages</span></div>
                     <div class="table-header">
                         <div>Student</div>
                         <div>Bedrijf</div>
@@ -57,14 +64,16 @@
 
         <div class="card">
             <div class="card-title">Tussentijdse Punten Aggregatie (Competenties)</div>
-            <div class="placeholder">Beschikbaar zodra de evaluatie-feature klaar is.</div>
+            <div id="punten-body">
+                <div class="placeholder">Laden...</div>
+            </div>
         </div>
     </main>
 
     <script>
-        const API = 'http://localhost:3000/api/docent';
+        const API = 'http://localhost:5000/api/docent';
         const token = localStorage.getItem('token');
-        const WEEK = 4;
+        const authHeader = { 'Authorization': 'Bearer ' + token };
 
         async function laadDashboard() {
             if (!token) {
@@ -74,14 +83,10 @@
             }
 
             try {
-                const res = await fetch(`${API}/studenten?week=${WEEK}`, {
-                    headers: { 'Authorization': 'Bearer ' + token }
-                });
+                const res = await fetch(`${API}/studenten`, { headers: authHeader });
                 const data = await res.json();
                 if (!res.ok) throw new Error(data.error || 'Fout');
-
                 document.getElementById('groet').textContent = `Goedenavond, ${data.docent}`;
-                document.getElementById('week-label').textContent = `Week ${data.weeknummer}`;
                 vulStudenten(data.studenten);
             } catch (err) {
                 document.getElementById('studenten-body').innerHTML =
@@ -89,24 +94,80 @@
             }
 
             try {
-                const res = await fetch(`${API}/milestones`, {
-                    headers: { 'Authorization': 'Bearer ' + token }
-                });
+                const res = await fetch(`${API}/milestones`, { headers: authHeader });
                 const data = await res.json();
                 if (res.ok) vulMilestones(data.milestones);
+            } catch (err) { console.error(err); }
+
+            laadTodos();
+            laadPunten();
+        }
+
+        async function laadTodos() {
+            try {
+                const res = await fetch(`${API}/todos`, { headers: authHeader });
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.error || 'Fout');
+                vulTodos(data);
             } catch (err) {
-                console.error(err);
+                document.getElementById('todo-body').innerHTML = `<div class="placeholder">${err.message}</div>`;
             }
+        }
+
+        function vulTodos(data) {
+            const body = document.getElementById('todo-body');
+            const items = [];
+            (data.contracten || []).forEach(c =>
+                items.push(`📝 Stagecontract tekenen voor <strong>${c.student}</strong>`));
+            (data.evaluaties || []).forEach(e =>
+                items.push(`📋 Tussentijdse evaluatie invullen voor <strong>${e.student}</strong>`));
+            if (items.length === 0) {
+                body.innerHTML = '<div class="placeholder">Er is niks te doen 🎉</div>';
+                return;
+            }
+            body.innerHTML = items.map(t =>
+                `<div style="padding:10px 0;border-bottom:0.8px solid #F1F5F9;font-size:13px;color:#374151">${t}</div>`
+            ).join('');
+        }
+
+        async function laadPunten() {
+            try {
+                const res = await fetch(`${API}/punten`, { headers: authHeader });
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.error || 'Fout');
+                vulPunten(data.punten);
+            } catch (err) {
+                document.getElementById('punten-body').innerHTML = `<div class="placeholder">${err.message}</div>`;
+            }
+        }
+
+        function vulPunten(punten) {
+            const body = document.getElementById('punten-body');
+            if (!punten || punten.length === 0) {
+                body.innerHTML = '<div class="placeholder">Nog geen evaluatiescores beschikbaar.</div>';
+                return;
+            }
+            body.innerHTML = punten.map(p => `
+                <div class="table-row">
+                    <div class="student">${p.student}</div>
+                    <div>${p.aantal_competenties} competenties</div>
+                    <div><span class="badge badge-ok">Gemiddeld: ${p.gemiddelde}</span></div>
+                </div>
+            `).join('');
         }
 
         function vulStudenten(studenten) {
             const body = document.getElementById('studenten-body');
             body.innerHTML = '';
+            if (!studenten || studenten.length === 0) {
+                body.innerHTML = '<div class="placeholder" style="padding:12px 0;">Geen actieve stages.</div>';
+                return;
+            }
             studenten.forEach(s => {
                 const badge = s.ingevuld ? 'badge-ok' : 'badge-missing';
                 const actie = s.ingevuld
-                    ? '<span class="link">Bekijk details</span>'
-                    : `<button class="reminder-btn" onclick="stuurReminder(${s.stage_id})">Stuur reminder</button>`;
+                    ? `<a class="link" href="docent_logboeken.html">Bekijk details</a>`
+                    : `<button class="reminder-btn" onclick="stuurReminder(${s.stage_id}, ${s.week})">Stuur reminder</button>`;
                 const rij = document.createElement('div');
                 rij.className = 'table-row';
                 rij.innerHTML = `
@@ -134,15 +195,12 @@
             });
         }
 
-        async function stuurReminder(stageId) {
+        async function stuurReminder(stageId, week) {
             try {
                 const res = await fetch(`${API}/reminder`, {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': 'Bearer ' + token
-                    },
-                    body: JSON.stringify({ stage_id: stageId, weeknummer: WEEK })
+                    headers: { 'Content-Type': 'application/json', ...authHeader },
+                    body: JSON.stringify({ stage_id: stageId, weeknummer: week })
                 });
                 const data = await res.json();
                 alert(res.ok ? data.message : (data.error || 'Er ging iets mis'));
