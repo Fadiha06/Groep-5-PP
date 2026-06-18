@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mijn zelfevaluatie — EhB StageTool</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="src/CSS/student_evaluatie.css">
+</head>
+<body>
+<div class="root">
+
+  <nav class="sidebar">
+    <div>
+      <div class="sb-logo-title">EhB StageTool</div>
+      <div class="sb-logo-sub">Toegepaste Informatica</div>
+    </div>
+    <a class="sb-item" href="student_dashboard.html">Dashboard</a>
+    <a class="sb-item" href="logboek.html">Logboek</a>
+    <a class="sb-item active" href="student_evaluatie.html">Mijn zelfevaluatie</a>
+    <a class="sb-item" href="evaluaties.html">Ontvangen evaluaties</a>
+    <div class="sb-footer" id="sidebar-naam">Ingelogd als Student</div>
+  </nav>
+
+  <div class="main">
+    <div class="page-title">Mijn zelfevaluatie</div>
+    <div class="page-sub" id="stage-titel">Beoordeel jezelf per competentie. De docent vergelijkt dit later met de mentorscore.</div>
+
+    <div class="type-tabs" id="type-tabs"></div>
+
+    <div id="competenties-container">
+      <div class="placeholder">Laden...</div>
+    </div>
+
+    <div class="save-row">
+      <button class="btn btn-concept" onclick="opslaan(false)">Concept opslaan</button>
+      <button class="btn btn-indienen" onclick="opslaan(true)">Definitief indienen</button>
+      <div class="totaal" id="totaal">Totaal: — / —</div>
+    </div>
+  </div>
+</div>
+
+<script src="src/JS/api.js"></script>
+<script src="src/JS/student_evaluatie.js"></script>
+</body>
+</html>
