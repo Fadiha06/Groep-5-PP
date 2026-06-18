@@ -34,7 +34,7 @@
         <div class="grid">
             <div>
                 <div class="card">
-                    <div class="card-title">Logboek Controle — <span id="week-label">Week 4</span></div>
+                    <div class="card-title">Logboeken <span id="week-label">— Actieve stages</span></div>
                     <div class="table-header">
                         <div>Student</div>
                         <div>Bedrijf</div>
@@ -64,7 +64,6 @@
     <script>
         const API = 'http://localhost:5000/api/docent';
         const token = localStorage.getItem('token');
-        const WEEK = 4;
 
         async function laadDashboard() {
             if (!token) {
@@ -74,14 +73,13 @@
             }
 
             try {
-                const res = await fetch(`${API}/studenten?week=${WEEK}`, {
+                const res = await fetch(`${API}/studenten`, {
                     headers: { 'Authorization': 'Bearer ' + token }
                 });
                 const data = await res.json();
                 if (!res.ok) throw new Error(data.error || 'Fout');
 
                 document.getElementById('groet').textContent = `Goedenavond, ${data.docent}`;
-                document.getElementById('week-label').textContent = `Week ${data.weeknummer}`;
                 vulStudenten(data.studenten);
             } catch (err) {
                 document.getElementById('studenten-body').innerHTML =
@@ -102,11 +100,15 @@
         function vulStudenten(studenten) {
             const body = document.getElementById('studenten-body');
             body.innerHTML = '';
+            if (!studenten || studenten.length === 0) {
+                body.innerHTML = '<div class="placeholder" style="padding:12px 0;">Geen actieve stages.</div>';
+                return;
+            }
             studenten.forEach(s => {
                 const badge = s.ingevuld ? 'badge-ok' : 'badge-missing';
                 const actie = s.ingevuld
-                    ? '<span class="link">Bekijk details</span>'
-                    : `<button class="reminder-btn" onclick="stuurReminder(${s.stage_id})">Stuur reminder</button>`;
+                    ? `<a class="link" href="docent_logboeken.html">Bekijk details</a>`
+                    : `<button class="reminder-btn" onclick="stuurReminder(${s.stage_id}, ${s.week})">Stuur reminder</button>`;
                 const rij = document.createElement('div');
                 rij.className = 'table-row';
                 rij.innerHTML = `
@@ -134,7 +136,7 @@
             });
         }
 
-        async function stuurReminder(stageId) {
+        async function stuurReminder(stageId, week) {
             try {
                 const res = await fetch(`${API}/reminder`, {
                     method: 'POST',
@@ -142,7 +144,7 @@
                         'Content-Type': 'application/json',
                         'Authorization': 'Bearer ' + token
                     },
-                    body: JSON.stringify({ stage_id: stageId, weeknummer: WEEK })
+                    body: JSON.stringify({ stage_id: stageId, weeknummer: week })
                 });
                 const data = await res.json();
                 alert(res.ok ? data.message : (data.error || 'Er ging iets mis'));

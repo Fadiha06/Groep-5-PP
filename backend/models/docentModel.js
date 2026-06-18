@@ -189,6 +189,32 @@ const geefLogboekWeekFeedback = async (stageId, week, feedback) => {
     );
 };
 
+// Actieve (lopende) stages van deze docent + status van de logboekweek van NU
+const getActieveStagesMetLogboek = async (docentId) => {
+    const [rows] = await pool.query(
+        `SELECT
+            st.stage_id,
+            g.naam AS student_naam,
+            b.naam AS bedrijf_naam,
+            GREATEST(1, FLOOR(DATEDIFF(CURDATE(), st.startdatum) / 7) + 1) AS huidige_week,
+            lw.status AS logboek_status,
+            (SELECT COALESCE(SUM(ld.uren), 0) FROM LOGBOEK_DAG ld WHERE ld.week_id = lw.week_id) AS totaal_uren
+        FROM STAGE st
+        JOIN STUDENT s ON s.student_id = st.student_id
+        JOIN GEBRUIKER g ON g.id = s.gebruiker_id
+        LEFT JOIN BEDRIJF b ON b.bedrijf_id = st.bedrijf_id
+        LEFT JOIN LOGBOEK_WEEK lw
+            ON lw.stage_id = st.stage_id
+            AND lw.weeknummer = GREATEST(1, FLOOR(DATEDIFF(CURDATE(), st.startdatum) / 7) + 1)
+        WHERE st.leerkracht_id = ?
+            AND st.status <> 'afgerond'
+            AND st.startdatum <= CURDATE()
+            AND (st.einddatum IS NULL OR st.einddatum >= CURDATE())`,
+        [docentId]
+    );
+    return rows;
+};
+
 module.exports = {
     getDocent,
     getStudentenMetLogboekStatus,
