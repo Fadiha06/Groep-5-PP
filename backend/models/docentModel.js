@@ -215,6 +215,61 @@ const getActieveStagesMetLogboek = async (docentId) => {
     return rows;
 };
 
+// Todo's voor de docent: nog te tekenen contracten + net ingediende logboeken
+const getTodos = async (docentId) => {
+    // Contracten die de docent nog moet tekenen
+    const [contracten] = await pool.query(
+        `SELECT g.naam AS student
+         FROM CONTRACT c
+         JOIN STAGE st ON st.stage_id = c.stage_id
+         JOIN STUDENT s ON s.student_id = st.student_id
+         JOIN GEBRUIKER g ON g.id = s.gebruiker_id
+         WHERE st.leerkracht_id = ?
+           AND (c.docent_getekend = 0 OR c.docent_getekend IS NULL)`,
+        [docentId]
+    );
+
+    // Actieve stages zonder tussentijdse evaluatie van deze docent
+    const [evaluaties] = await pool.query(
+        `SELECT g.naam AS student
+         FROM STAGE st
+         JOIN STUDENT s ON s.student_id = st.student_id
+         JOIN GEBRUIKER g ON g.id = s.gebruiker_id
+         JOIN DOCENT d ON d.docent_id = st.leerkracht_id
+         WHERE st.leerkracht_id = ?
+           AND st.status <> 'afgerond'
+           AND st.startdatum <= CURDATE()
+           AND (st.einddatum IS NULL OR st.einddatum >= CURDATE())
+           AND NOT EXISTS (
+               SELECT 1 FROM EVALUATIE e
+               WHERE e.stage_id = st.stage_id
+                 AND e.type = 'tussentijds'
+                 AND e.beoordelaar_id = d.gebruiker_id
+           )`,
+        [docentId]
+    );
+
+    return { contracten, evaluaties };
+};
+
+// Gemiddelde competentie-score per student (uit de evaluaties)
+const getPuntenAggregatie = async (docentId) => {
+    const [rows] = await pool.query(
+        `SELECT g.naam AS student,
+                ROUND(AVG(ec.score), 1) AS gemiddelde,
+                COUNT(DISTINCT ec.competentie_id) AS aantal_competenties
+         FROM EVALUATIE e
+         JOIN STAGE st ON st.stage_id = e.stage_id
+         JOIN STUDENT s ON s.student_id = st.student_id
+         JOIN GEBRUIKER g ON g.id = s.gebruiker_id
+         JOIN EVALUATIE_COMPETENTIE ec ON ec.evaluatie_id = e.evaluatie_id
+         WHERE st.leerkracht_id = ?
+         GROUP BY s.student_id, g.naam`,
+        [docentId]
+    );
+    return rows;
+};
+
 module.exports = {
     getDocent,
     getStudentenMetLogboekStatus,
@@ -226,5 +281,8 @@ module.exports = {
     getLogboekenVoorDocent,
     isEigenStage,
     keurLogboekWeekGoed,
-    geefLogboekWeekFeedback
+    geefLogboekWeekFeedback,
+    getActieveStagesMetLogboek,
+    getTodos,
+    getPuntenAggregatie
 };

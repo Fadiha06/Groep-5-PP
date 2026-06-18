@@ -177,4 +177,30 @@ const geefLogboekFeedback = async (req, res) => {
     }
 };
 
-module.exports = { getStudenten, stuurReminder, getMilestones, getDossiers, getMeldingen, getLogboeken, keurLogboekGoed, geefLogboekFeedback };
+// GET /api/docent/todos
+const getTodos = async (req, res) => {
+    try {
+        const docent = await docentModel.getDocent(req.user.id);
+        if (!docent) return res.status(404).json({ error: 'Geen docent gevonden' });
+        const todos = await docentModel.getTodos(docent.docent_id);
+        res.json(todos);
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: 'Serverfout bij ophalen todos' });
+    }
+};
+
+// GET /api/docent/punten
+const getPunten = async (req, res) => {
+    try {
+        const docent = await docentModel.getDocent(req.user.id);
+        if (!docent) return res.status(404).json({ error: 'Geen docent gevonden' });
+        const punten = await docentModel.getPuntenAggregatie(docent.docent_id);
+        res.json({ punten });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: 'Serverfout bij ophalen punten' });
+    }
+};
+
+module.exports = { getStudenten, stuurReminder, getMilestones, getDossiers, getMeldingen, getLogboeken, keurLogboekGoed, geefLogboekFeedback, getTodos, getPunten };
