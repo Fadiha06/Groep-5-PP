@@ -1,5 +1,7 @@
 const nodemailer = require('nodemailer');
 
+const smtpGeconfigureerd = !!process.env.SMTP_HOST;
+
 const transporter = nodemailer.createTransport({
     host: process.env.SMTP_HOST,
     port: Number(process.env.SMTP_PORT) || 587,
@@ -11,25 +13,30 @@ const transporter = nodemailer.createTransport({
 });
 
 const stuurWachtwoordLink = async (naarEmail, link) => {
-    console.log(`[MAIL UITGESCHAKELD] E-mail zou verzonden worden naar: ${naarEmail}`);
-    console.log(`[MAIL UITGESCHAKELD] Inhoud (Wachtwoord link): ${link}`);
-    /*
+    // Geen SMTP ingesteld? Log de link zodat je lokaal kunt testen.
+    if (!smtpGeconfigureerd) {
+        console.log(`[MAIL DEV] Wachtwoord-resetlink voor ${naarEmail}: ${link}`);
+        return;
+    }
     await transporter.sendMail({
         from: process.env.SMTP_FROM || '"EhB StageTool" <noreply@ehb.be>',
         to: naarEmail,
         subject: 'Stel je wachtwoord in — EhB StageTool',
         html: `
             <p>Hallo,</p>
-            <p>Er is een account voor je aangemaakt bij de EhB StageTool.</p>
-            <p>Klik op de link om je wachtwoord in te stellen:</p>
+            <p>Er is een verzoek om je wachtwoord opnieuw in te stellen.</p>
+            <p>Klik op de link om een nieuw wachtwoord te kiezen:</p>
             <p><a href="${link}">Wachtwoord instellen</a></p>
-            <p>Deze link verloopt over 10 minuten.</p>
+            <p>Deze link verloopt over 15 minuten.</p>
         `
     });
-    */
 };
 
 const stuurContractLink = async (naarEmail, link) => {
+    if (!smtpGeconfigureerd) {
+        console.log(`[MAIL DEV] Contract-tekenlink voor ${naarEmail}: ${link}`);
+        return;
+    }
     await transporter.sendMail({
         from: process.env.SMTP_FROM || '"EhB StageTool" <noreply@ehb.be>',
         to: naarEmail,

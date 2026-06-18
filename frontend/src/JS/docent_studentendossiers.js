@@ -69,17 +69,18 @@ function renderInfo(s) {
                 <div class="info-label">Student & Opleiding</div>
                 <div class="info-strong">${s.student_naam} (${s.opleiding || '—'})</div>
                 <div class="info-text">${s.email}</div>
-                <div class="info-text">— (geen telefoon in DB)</div>
+                <div class="info-text">${s.student_telefoon || '—'}</div>
             </div>
             <div>
                 <div class="info-label">Bedrijf & Locatie</div>
                 <div class="info-strong">${s.bedrijf_naam || '—'}</div>
                 <div class="info-text">${adres}</div>
+                <div class="info-text">${s.bedrijf_telefoon || '—'}</div>
             </div>
             <div>
                 <div class="info-label">Stagementor</div>
-                <div class="info-strong">—</div>
-                <div class="info-text">— (niet in DB)</div>
+                <div class="info-strong">${s.mentor_naam || '—'}</div>
+                <div class="info-text">${s.mentor_telefoon || '— (geen telefoon)'}</div>
             </div>
             <div>
                 <div class="info-label">Stageperiode</div>
@@ -90,14 +91,43 @@ function renderInfo(s) {
 }
 
 function renderTijdlijn(s) {
+    const now = new Date();
+    const start = s.startdatum ? new Date(s.startdatum) : null;
+    const eind = s.einddatum ? new Date(s.einddatum) : null;
+    const afgerond = s.status === 'afgerond' || (eind && now > eind);
+
+    let frac = 0;
+    if (start && eind && eind > start) {
+        frac = Math.min(1, Math.max(0, (now - start) / (eind - start)));
+    }
+
     const week = huidigeWeek(s.startdatum);
-    document.getElementById('tijdlijn').innerHTML = `
-        <div class="mijlpaal done"><div class="dot"></div><div class="mp-label">Start</div><div class="mp-date">${datum(s.startdatum)}</div></div>
-        <div class="mijlpaal done"><div class="dot"></div><div class="mp-label">Tussentijds 1</div><div class="mp-date">Afgerond</div></div>
-        <div class="mijlpaal current"><div class="dot"></div><div class="mp-label">Week ${week}</div><div class="mp-date">Huidig</div></div>
-        <div class="mijlpaal"><div class="dot"></div><div class="mp-label">Tussentijds 2</div><div class="mp-date">Gepland</div></div>
-        <div class="mijlpaal"><div class="dot"></div><div class="mp-label">Einde Stage</div><div class="mp-date">${datum(s.einddatum)}</div></div>
-    `;
+    const punten = [
+        { label: 'Start',         date: datum(s.startdatum), pos: 0 },
+        { label: 'Tussentijds 1', date: '',                  pos: 0.25 },
+        { label: `Week ${week}`,  date: '',                  pos: 0.5 },
+        { label: 'Tussentijds 2', date: '',                  pos: 0.75 },
+        { label: 'Einde Stage',   date: datum(s.einddatum),  pos: 1 }
+    ];
+
+    // huidige mijlpaal = de laatste die door de tijd al bereikt is
+    let currentIndex = 0;
+    punten.forEach((m, i) => { if (frac >= m.pos) currentIndex = i; });
+
+    document.getElementById('tijdlijn').innerHTML = punten.map((m, i) => {
+        let cls;
+        if (afgerond) {
+            cls = 'done';                       // afgerond → alles groen
+        } else if (i < currentIndex) {
+            cls = 'done';                       // verleden → groen
+        } else if (i === currentIndex) {
+            cls = 'current';                    // nu → blauw
+        } else {
+            cls = '';                           // toekomst → grijs
+        }
+        const dateLabel = (!afgerond && i === currentIndex) ? 'Huidig' : m.date;
+        return `<div class="mijlpaal ${cls}"><div class="dot"></div><div class="mp-label">${m.label}</div><div class="mp-date">${dateLabel}</div></div>`;
+    }).join('');
 }
 
 async function laadMeldingen(gebruikerId) {

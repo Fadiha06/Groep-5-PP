@@ -2,6 +2,7 @@ const db = require('../config/db');
 const argon2 = require('argon2');
 const jwt = require('jsonwebtoken');
 const UserModel = require('../models/userModel');
+const { stuurWachtwoordLink } = require('../util/mail');
 
 exports.login = async (req, res) => {
     try {
@@ -48,6 +49,46 @@ exports.login = async (req, res) => {
 
     } catch (error) {
         console.error('Login error:', error);
+        res.status(500).json({ error: 'Server error' });
+    }
+};
+
+exports.forgotPassword = async (req, res) => {
+    try {
+        const { email } = req.body;
+        if (!email) {
+            return res.status(400).json({ error: 'E-mailadres is verplicht' });
+        }
+
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(email)) {
+            return res.status(400).json({ error: 'Ongeldig e-mailadres' });
+        }
+
+        const users = await UserModel.findByEmail(email);
+
+        // Alleen een mail sturen als de gebruiker bestaat,
+        // maar altijd dezelfde respons (geen e-mailadressen lekken).
+        if (users.length > 0) {
+            const user = users[0];
+            const token = jwt.sign(
+                { id: user.id, type: 'set_password' },
+                process.env.JWT_SECRET || 'supersecret',
+                { expiresIn: '15m' }
+            );
+            const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
+            const link = `${frontendUrl}/set_password.html?token=${token}`;
+
+            try {
+                await stuurWachtwoordLink(email, link);
+            } catch (mailError) {
+                console.error('Reset-mail verzenden mislukt:', mailError);
+            }
+        }
+
+        res.json({ message: 'Als dit e-mailadres bekend is, is er een resetlink verstuurd.' });
+    } catch (error) {
+        console.error('Forgot password error:', error);
         res.status(500).json({ error: 'Server error' });
     }
 };

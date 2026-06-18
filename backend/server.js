@@ -5,11 +5,6 @@ require('dotenv').config();
 const app = express();
 const port = process.env.PORT || 5000;
 
-if (!process.env.JWT_SECRET) {
-    console.error("FATAL: JWT_SECRET environment variable is missing.");
-    process.exit(1);
-}
-
 // Middleware
 app.use(cors());
 app.use(express.json());
@@ -27,6 +22,9 @@ const contractRoutes = require('./routes/contractRoutes');
 const mentorRoutes = require('./routes/mentorRoutes');
 const logboekRoutes = require('./routes/logboekRoutes');
 const evaluatieRoutes = require('./routes/evaluatieRoutes');
+const studentRoutes = require('./routes/studentRoutes');
+const competentieRoutes = require('./routes/competentieRoutes');
+const docentRoutes = require('./routes/docentRoutes');
 
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
@@ -35,6 +33,9 @@ app.use('/api/contracten', contractRoutes);
 app.use('/api/mentor', mentorRoutes);
 app.use('/api/logboek', logboekRoutes);
 app.use('/api/evaluatie', evaluatieRoutes);
+app.use('/api/student', studentRoutes);
+app.use('/api/competenties', competentieRoutes);
+app.use('/api/docent', docentRoutes);
 
 // Start Server
 app.listen(port, () => {
