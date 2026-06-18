@@ -25,7 +25,8 @@ CREATE TABLE COMPETENTIE (
     competentie_id INT AUTO_INCREMENT PRIMARY KEY,
     naam VARCHAR(255) NOT NULL,
     omschrijving TEXT,
-    opleiding VARCHAR(100) NOT NULL DEFAULT 'Toegepaste Informatica'
+    opleiding VARCHAR(100) NOT NULL DEFAULT 'Toegepaste Informatica',
+    weging INT NOT NULL DEFAULT 0
 );
 
 CREATE TABLE STUDENT (
@@ -65,7 +66,7 @@ CREATE TABLE STAGEMENTOR (
     afdeling VARCHAR(100),
     telefoonnummer VARCHAR(50),
     FOREIGN KEY (gebruiker_id) REFERENCES GEBRUIKER(id) ON DELETE CASCADE,
-    FOREIGN KEY (bedrijf_id) REFERENCES BEDRIJF(bedrijf_id) ON DELETE CASCADE
+    FOREIGN KEY (bedrijf_id) REFERENCES BEDRIJF(bedrijf_id) ON DELETE SET NULL
 );
 
 CREATE TABLE RUBRIEK (
@@ -156,13 +157,13 @@ CREATE TABLE CONTRACT (
 CREATE TABLE EVALUATIE (
     evaluatie_id INT AUTO_INCREMENT PRIMARY KEY,
     stage_id INT NOT NULL,
-    beoordelaar_id INT NOT NULL,
+    beoordelaar_id INT NULL,
     type VARCHAR(50),
     beoordelaar_rol VARCHAR(50),
     datum DATE,
     feedback TEXT,
     FOREIGN KEY (stage_id) REFERENCES STAGE(stage_id) ON DELETE CASCADE,
-    FOREIGN KEY (beoordelaar_id) REFERENCES GEBRUIKER(id)
+    FOREIGN KEY (beoordelaar_id) REFERENCES GEBRUIKER(id) ON DELETE SET NULL
 );
 
 CREATE TABLE LOGBOEK_COMPETENTIE (
@@ -185,4 +186,11 @@ CREATE TABLE EVALUATIE_COMPETENTIE (
     commentaar TEXT,
     FOREIGN KEY (evaluatie_id) REFERENCES EVALUATIE(evaluatie_id) ON DELETE CASCADE,
     FOREIGN KEY (competentie_id) REFERENCES COMPETENTIE(competentie_id) ON DELETE CASCADE
+);
+
+CREATE TABLE INSTELLINGEN (
+    opleiding VARCHAR(100) PRIMARY KEY,
+    max_score INT NOT NULL DEFAULT 5,
+    aantal_logboeken INT NOT NULL DEFAULT 12,
+    slaagdrempel INT NOT NULL DEFAULT 50
 );
