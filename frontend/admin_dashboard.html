@@ -8,37 +8,33 @@
   <title>EhB StageTool - Dashboard</title>
 </head>
 <body>
+<div class="root">
+
   <!-- Sidebar -->
-  <div class="sidebar">
-    <div class="sidebar-brand">
-      <div class="sidebar-brand-title">EhB StageTool</div>
-      <div class="sidebar-brand-subtitle">Toegepaste Informatica</div>
+  <nav class="sidebar">
+    <div class="sb-logo">
+      <div class="sb-logo-title">EhB StageTool</div>
+      <div class="sb-logo-sub">Toegepaste Informatica</div>
     </div>
-    <nav class="sidebar-nav">
-      <a class="nav-item active" href="admin_dashboard.html" style="text-decoration: none;">
-        <span class="nav-item-text">Dashboard</span>
-      </a>
-      <a class="nav-item" href="#" style="text-decoration: none;">
-        <span class="nav-item-text">Overeenkomsten</span>
-      </a>
-      <a class="nav-item" href="#" style="text-decoration: none;">
-        <span class="nav-item-text">Rapporten</span>
-      </a>
-      <a class="nav-item" href="#" style="text-decoration: none;">
-        <span class="nav-item-text">Competenties</span>
-      </a>
-      <a class="nav-item" href="admin_panel.html" style="text-decoration: none;">
-        <span class="nav-item-text">Gebruikers</span>
-      </a>
-    </nav>
-  </div>
+    <div class="sb-nav">
+      <a class="sb-item active" href="admin_dashboard.html">Dashboard</a>
+      <a class="sb-item" href="#">Overeenkomsten</a>
+      <a class="sb-item" href="admin_rapporten.html">Rapporten</a>
+      <a class="sb-item" href="admin_competenties.html">Competenties (Config)</a>
+      <a class="sb-item" href="admin_panel.html">Gebruikers</a>
+    </div>
+    <div class="sb-footer">Ingelogd als Administrator</div>
+  </nav>
 
   <!-- Main Content -->
   <main class="main">
+
     <!-- Header -->
     <header class="header">
-      <div class="header-title">Hi, Admin (Administratie)</div>
-      <div class="header-subtitle">3 zaken vereisen jouw actie vandaag — 2 contracten wachten op controle, 1 juridisch probleem.</div>
+      <div>
+        <div class="header-title">Hi, Admin (Administratie)</div>
+        <div class="header-subtitle" id="header-subtitle">Laden...</div>
+      </div>
       <button class="logout-btn">Logout</button>
     </header>
 
@@ -46,121 +42,72 @@
     <div class="stats-grid">
       <div class="stat-card">
         <div class="stat-label">Totale Studenten</div>
-        <div class="stat-value">45</div>
+        <div class="stat-value" id="stat-total-students">-</div>
       </div>
-      <div class="stat-card">
+      <div class="stat-card warn">
         <div class="stat-label">Contracten te reviewen</div>
-        <div class="stat-value">2</div>
+        <div class="stat-value value-amber" id="stat-contracts-review">-</div>
       </div>
-      <div class="stat-card">
+      <div class="stat-card warn">
         <div class="stat-label">Juridisch te controleren</div>
-        <div class="stat-value">1</div>
+        <div class="stat-value value-red" id="stat-legal-check">-</div>
       </div>
       <div class="stat-card">
         <div class="stat-label">Verlengingen actief</div>
-        <div class="stat-value">1</div>
+        <div class="stat-value value-blue" id="stat-extensions">-</div>
       </div>
     </div>
 
-    <!-- Contracts Section -->
-    <section class="section">
-      <div class="section-header">
-        <h2 class="section-title">Overeenkomsten - Actie Vereist (Inline Review)</h2>
-        <span class="section-badge">2 Wachtend</span>
-      </div>
-      <div class="contract-card">
-        <div class="contract-header">
-          <h3 class="contract-title">TechCorp BV - Stageovereenkomst</h3>
-          <span class="contract-date">Ingediend: 18-05-2025</span>
+    <div class="content-row">
+      <!-- Actie Vereist -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">Overeenkomsten - Actie Vereist (Inline Review)</div>
+          <span class="section-badge" id="action-required-badge">0 Wachtend</span>
         </div>
-        <div class="contract-details">
-          <p><strong>Student:</strong> Alex Janssens (Toegepaste Informatica)</p>
-          <p><strong>Risicoanalyse:</strong> ✓ Geüpload en in orde</p>
-          <p><strong>Handtekening Mentor:</strong> ✓ Getekend</p>
-          <p><strong>Handtekening Student:</strong> ✓ Getekend</p>
-          <p><strong>Verzekeringsdossier:</strong> Compleet. Klaar voor finale EhB goedkeuring.</p>
+        <div id="action-required-list">
+          <div style="text-align:center;color:#9CA3AF;font-size:13px;padding:20px">Laden...</div>
         </div>
-        <button class="action-btn">Check contract</button>
       </div>
-    </section>
 
-    <!-- Activity Section -->
-    <section class="section">
-      <div class="section-header">
-        <h2 class="section-title">Recente Activiteit</h2>
-      </div>
-      <div class="activity-list">
-        <div class="activity-item">
-          <div class="activity-content">
-            <h4>DataSystems Contract verzonden</h4>
-            <span class="activity-time">1 dag geleden door Systeem</span>
-          </div>
-        </div>
-        <div class="activity-item">
-          <div class="activity-content">
-            <h4>Risicoanalyse goedgekeurd (Maria)</h4>
-            <span class="activity-time">2 dagen geleden</span>
-          </div>
-        </div>
-        <div class="activity-item">
-          <div class="activity-content">
-            <p>Stagevoorstel Alex goedgekeurd<br>3 dagen geleden door Stagecommissie</p>
-          </div>
+      <!-- Recente Activiteit -->
+      <div class="card">
+        <div class="card-title" style="margin-bottom:20px">Recente Activiteit</div>
+        <div class="activity-list" id="activity-list">
+          <div style="text-align:center;color:#9CA3AF;font-size:13px;padding:20px">Laden...</div>
         </div>
       </div>
-    </section>
+    </div>
 
     <!-- Contracts Table -->
-    <section class="section">
-      <div class="section-header">
-        <h2 class="section-title">Lopende Contracten & Statussen</h2>
-        <button class="export-btn">Exporteer Lijst (CSV)</button>
+    <div class="card">
+      <div class="card-header">
+        <div class="section-title" style="margin-bottom:0">Lopende Contracten & Statussen</div>
+        <button class="export-btn" onclick="exporteerContractenCSV()">Exporteer Lijst (CSV)</button>
       </div>
-      <div class="contracts-table">
-        <div class="table-header">
-          <div class="table-cell">Student</div>
-          <div class="table-cell">Opleiding</div>
-          <div class="table-cell">Bedrijf</div>
-          <div class="table-cell">Aanvraag Status</div>
-          <div class="table-cell">Contract Ingediend</div>
-          <div class="table-cell">Actie</div>
-        </div>
-        <div class="table-row">
-          <div class="table-cell">Alex Janssens</div>
-          <div class="table-cell">Toegepaste Info.</div>
-          <div class="table-cell">TechCorp BV</div>
-          <div class="table-cell"><span class="status-badge approved">Goedgekeurd</span></div>
-          <div class="table-cell"><span class="status-badge in-review">In Review</span></div>
-          <div class="table-cell"><button class="view-btn">Bekijk / Edit</button></div>
-        </div>
-        <div class="table-row">
-          <div class="table-cell">Maria Devos</div>
-          <div class="table-cell">Toegepaste Info.</div>
-          <div class="table-cell">DataSystems</div>
-          <div class="table-cell"><span class="status-badge approved">Goedgekeurd</span></div>
-          <div class="table-cell"><span class="status-badge sent">Verzonden</span></div>
-          <div class="table-cell"><button class="view-btn">Bekijk / Edit</button></div>
-        </div>
-        <div class="table-row">
-          <div class="table-cell">Jonas Peeters</div>
-          <div class="table-cell">Toegepaste Info.</div>
-          <div class="table-cell">Initech Belgium</div>
-          <div class="table-cell"><span class="status-badge pending">In Afwachting</span></div>
-          <div class="table-cell"><span class="status-badge not-sent">Nog niet</span></div>
-          <div class="table-cell"><button class="view-btn">Bekijk / Edit</button></div>
-        </div>
-        <div class="table-row">
-          <div class="table-cell">Sarah Smits</div>
-          <div class="table-cell">Toegepaste Info.</div>
-          <div class="table-cell">CloudSolutions</div>
-          <div class="table-cell"><span class="status-badge approved">Goedgekeurd</span></div>
-          <div class="table-cell"><span class="status-badge completed">Voltooid</span></div>
-          <div class="table-cell"><button class="view-btn">Bekijk Dossier</button></div>
-        </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Student</th>
+              <th>Opleiding</th>
+              <th>Bedrijf</th>
+              <th>Aanvraag Status</th>
+              <th>Contract Ingediend</th>
+              <th>Actie</th>
+            </tr>
+          </thead>
+          <tbody id="contracts-tbody">
+            <tr><td colspan="6" style="text-align:center;color:#9CA3AF;padding:24px">Laden...</td></tr>
+          </tbody>
+        </table>
       </div>
-    </section>
+    </div>
+
   </main>
-  <script src="/src/JS/api.js"></script>
-  <script src="/src/JS/admin_dashboard.js"></script>
+</div>
+
+<script src="src/JS/api.js"></script>
+<script src="src/JS/admin_dashboard.js"></script>
 </body>
 </html>
