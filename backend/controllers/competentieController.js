@@ -2,14 +2,7 @@ const db = require('../config/db');
 
 exports.getAllCompetenties = async (req, res) => {
     try {
-        const { opleiding } = req.query;
-        let query = 'SELECT * FROM COMPETENTIE';
-        const params = [];
-        if (opleiding) {
-            query += ' WHERE opleiding = ?';
-            params.push(opleiding);
-        }
-        const [rows] = await db.query(query, params);
+        const [rows] = await db.query('SELECT * FROM COMPETENTIE ORDER BY naam ASC');
         res.json(rows);
     } catch (err) {
         console.error('Error fetching competenties:', err);
@@ -19,13 +12,13 @@ exports.getAllCompetenties = async (req, res) => {
 
 exports.createCompetentie = async (req, res) => {
     try {
-        const { naam, omschrijving, opleiding } = req.body;
-        if (!naam || !opleiding) {
-            return res.status(400).json({ error: 'Naam en opleiding zijn verplicht' });
+        const { naam, omschrijving } = req.body;
+        if (!naam) {
+            return res.status(400).json({ error: 'Naam is verplicht' });
         }
         const [result] = await db.query(
-            'INSERT INTO COMPETENTIE (naam, omschrijving, opleiding) VALUES (?, ?, ?)',
-            [naam, omschrijving, opleiding]
+            'INSERT INTO COMPETENTIE (naam, omschrijving) VALUES (?, ?)',
+            [naam, omschrijving || null]
         );
         res.status(201).json({ message: 'Competentie aangemaakt', id: result.insertId });
     } catch (err) {
@@ -37,13 +30,13 @@ exports.createCompetentie = async (req, res) => {
 exports.updateCompetentie = async (req, res) => {
     try {
         const { id } = req.params;
-        const { naam, omschrijving, opleiding } = req.body;
-        if (!naam || !opleiding) {
-            return res.status(400).json({ error: 'Naam en opleiding zijn verplicht' });
+        const { naam, omschrijving } = req.body;
+        if (!naam) {
+            return res.status(400).json({ error: 'Naam is verplicht' });
         }
         await db.query(
-            'UPDATE COMPETENTIE SET naam = ?, omschrijving = ?, opleiding = ? WHERE competentie_id = ?',
-            [naam, omschrijving, opleiding, id]
+            'UPDATE COMPETENTIE SET naam = ?, omschrijving = ? WHERE competentie_id = ?',
+            [naam, omschrijving || null, id]
         );
         res.json({ message: 'Competentie bijgewerkt' });
     } catch (err) {

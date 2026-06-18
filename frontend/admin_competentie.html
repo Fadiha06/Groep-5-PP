@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Competenties beheren — EhB StageTool</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="src/CSS/admin_competenties.css">
+</head>
+<body>
+<div class="root">
+
+  <nav class="sidebar">
+    <div class="sb-logo">
+      <div class="sb-logo-title">EhB StageTool</div>
+      <div class="sb-logo-sub">Administratie</div>
+    </div>
+    <div class="sb-nav">
+      <a class="sb-item" href="admin_dashboard.html">Dashboard</a>
+      <a class="sb-item" href="#">Overeenkomsten</a>
+      <a class="sb-item active" href="admin_competenties.html">Competenties (Config)</a>
+      <a class="sb-item" href="#">Rapporten</a>
+      <a class="sb-item" href="admin_panel.html">Gebruikers</a>
+    </div>
+    <div class="sb-footer">Ingelogd als Administrator</div>
+  </nav>
+
+  <div class="main">
+    <div>
+      <div class="page-title">Competenties beheren</div>
+      <div class="page-sub">Voeg de beoordelingscriteria toe, pas ze aan of verwijder ze. Deze competenties worden gebruikt bij de evaluaties.</div>
+    </div>
+
+    <div class="card">
+      <div class="toolbar">
+        <div class="search-wrap">
+          <span>🔍</span>
+          <input class="search" type="text" placeholder="Zoek op naam..." oninput="filterLijst()">
+        </div>
+        <span class="count-label" id="count-label">0 competenties</span>
+        <button class="btn-new" onclick="openModal()">+ Nieuwe competentie</button>
+      </div>
+
+      <div class="table-header-row">
+        <div class="th">Naam</div>
+        <div class="th">Omschrijving</div>
+        <div class="th">Acties</div>
+      </div>
+
+      <div class="table-body" id="table-body">
+        <div class="placeholder">Laden...</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Toevoegen / bewerken modal -->
+<div class="modal-overlay" id="modal">
+  <div class="modal">
+    <div>
+      <div class="modal-title" id="modal-title">Nieuwe competentie</div>
+      <div class="modal-sub">Vul de gegevens van het beoordelingscriterium in.</div>
+    </div>
+    <div class="modal-grid">
+      <div class="field modal-grid-full">
+        <label>Naam</label>
+        <input type="text" placeholder="bv. Programmeren & Ontwerpen" id="inp-naam">
+      </div>
+      <div class="field modal-grid-full">
+        <label>Omschrijving</label>
+        <textarea placeholder="Korte omschrijving van de competentie..." id="inp-omschrijving"></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancel" onclick="closeModal()">Annuleren</button>
+      <button class="btn-create" onclick="opslaan()">Opslaan</button>
+    </div>
+  </div>
+</div>
+
+<!-- Verwijder bevestiging -->
+<div class="confirm-overlay" id="delete-confirm">
+  <div class="confirm-box">
+    <div class="confirm-icon warn">⚠️</div>
+    <div class="confirm-title">Competentie verwijderen</div>
+    <div class="confirm-sub" id="delete-confirm-sub">Weet je zeker dat je deze competentie wilt verwijderen?</div>
+    <div class="confirm-actions">
+      <button class="btn-cancel" onclick="closeDeleteConfirm()">Annuleren</button>
+      <button class="btn-delete" onclick="executeDelete()">Ja, verwijder</button>
+    </div>
+  </div>
+</div>
+
+<script src="/src/JS/api.js"></script>
+<script src="/src/JS/admin_competentie.js"></script>
+</body>
+</html>
