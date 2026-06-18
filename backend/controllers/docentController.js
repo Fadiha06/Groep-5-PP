@@ -135,4 +135,50 @@ const getMeldingen = async (req, res) => {
     }
 };
 
-module.exports = { getStudenten, stuurReminder, getMilestones, getDossiers, getMeldingen };
+// GET /api/docent/logboeken
+const getLogboeken = async (req, res) => {
+    try {
+        const docent = await docentModel.getDocent(req.user.id);
+        if (!docent) return res.status(404).json({ error: 'Geen docent gevonden' });
+        const logboeken = await docentModel.getLogboekenVoorDocent(docent.docent_id);
+        res.json(logboeken);
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: 'Serverfout bij ophalen logboeken' });
+    }
+};
+
+// POST /api/docent/logboek/goedkeuren
+const keurLogboekGoed = async (req, res) => {
+    const { stage_id, week } = req.body;
+    try {
+        const docent = await docentModel.getDocent(req.user.id);
+        if (!docent) return res.status(404).json({ error: 'Geen docent gevonden' });
+        if (!(await docentModel.isEigenStage(docent.docent_id, stage_id)))
+            return res.status(403).json({ error: 'Dit is niet jouw student' });
+        await docentModel.keurLogboekWeekGoed(stage_id, week);
+        res.json({ message: 'Logboek goedgekeurd' });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: 'Serverfout bij goedkeuren' });
+    }
+};
+
+// POST /api/docent/logboek/feedback
+const geefLogboekFeedback = async (req, res) => {
+    const { stage_id, week, feedback } = req.body;
+    if (!feedback) return res.status(400).json({ error: 'Feedback ontbreekt' });
+    try {
+        const docent = await docentModel.getDocent(req.user.id);
+        if (!docent) return res.status(404).json({ error: 'Geen docent gevonden' });
+        if (!(await docentModel.isEigenStage(docent.docent_id, stage_id)))
+            return res.status(403).json({ error: 'Dit is niet jouw student' });
+        await docentModel.geefLogboekWeekFeedback(stage_id, week, feedback);
+        res.json({ message: 'Feedback verstuurd' });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: 'Serverfout bij feedback' });
+    }
+};
+
+module.exports = { getStudenten, stuurReminder, getMilestones, getDossiers, getMeldingen, getLogboeken, keurLogboekGoed, geefLogboekFeedback };
