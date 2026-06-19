@@ -135,8 +135,35 @@ class StudentModel {
         );
     }
 
+    // Compatibiliteitslaag voor oude POST /logboek/dag route
+    static async saveLogboekDag(gebruikerId, datum, taken_beschrijving, reflectie, leerpunten, uren) {
+        const info = await StudentModel.getStudentMetStage(gebruikerId);
+        if (!info) return null;
+
+        const start = new Date(info.startdatum);
+        const dag = new Date(datum);
+        const verschil = Math.floor((dag - start) / (1000 * 60 * 60 * 24));
+        const weeknummer = Math.floor(verschil / 7) + 1;
+        if (weeknummer < 1) throw new Error('Datum valt voor de stage');
+
+        let week = await StudentModel.findWeek(info.stage_id, weeknummer);
+        if (week && week.status === 'ingediend') throw new Error('WEEK_INGEDIEND');
+        const weekId = week ? week.week_id : await StudentModel.createWeek(info.stage_id, weeknummer);
+
+        const bestaand = await StudentModel.findDag(info.stage_id, datum);
+        let dagId, actie;
+        if (bestaand) {
+            await StudentModel.updateDag(bestaand.dag_id, uren, taken_beschrijving, reflectie, leerpunten);
+            dagId = bestaand.dag_id; actie = 'bijgewerkt';
+        } else {
+            dagId = await StudentModel.createDag(weekId, info.stage_id, datum, uren, taken_beschrijving, reflectie, leerpunten);
+            actie = 'aangemaakt';
+        }
+        return { dag_id: dagId, weeknummer, actie };
+    }
+
     static async getGebruiker(gebruikerId) {
-        const [rows] = await db.query(`SELECT id, naam, email, rol FROM GEBRUIKER WHERE id = ?`, [gebruikerId]);
+        const [rows] = await db.query(`SELECT id, CONCAT(voornaam, ' ', achternaam) AS naam, email, rol FROM GEBRUIKER WHERE id = ?`, [gebruikerId]);
         return rows[0];
     }
 
@@ -150,7 +177,7 @@ class StudentModel {
 
         const [evaluaties] = await db.query(
             `SELECT e.evaluatie_id, e.datum, e.feedback, e.beoordelaar_rol,
-                    g.naam AS beoordelaar_naam
+                    CONCAT(g.voornaam, ' ', g.achternaam) AS beoordelaar_naam
              FROM EVALUATIE e
              JOIN GEBRUIKER g ON e.beoordelaar_id = g.id
              WHERE e.stage_id = ? AND e.type = 'tussentijds'`,
@@ -181,7 +208,7 @@ class StudentModel {
 
         const [evaluaties] = await db.query(
             `SELECT e.evaluatie_id, e.datum, e.feedback, e.beoordelaar_rol,
-                    g.naam AS beoordelaar_naam
+                    CONCAT(g.voornaam, ' ', g.achternaam) AS beoordelaar_naam
              FROM EVALUATIE e
              JOIN GEBRUIKER g ON e.beoordelaar_id = g.id
              WHERE e.stage_id = ? AND e.type = 'finaal'`,
@@ -201,6 +228,119 @@ class StudentModel {
 
         return { evaluaties, competenties };
     }
+    // Haal student op via gebruikerId
+    static async getStudentByGebruikerId(gebruikerId) {
+        const [rows] = await db.query(
+            `SELECT s.student_id, s.studentnummer, s.opleiding,
+                    CONCAT(g.voornaam, ' ', g.achternaam) AS naam, g.email
+             FROM STUDENT s
+             JOIN GEBRUIKER g ON g.id = s.gebruiker_id
+             WHERE s.gebruiker_id = ?`,
+            [gebruikerId]
+        );
+        return rows[0] || null;
+    }
+
+    // Dashboard statistieken voor student
+    static async getDashboardStats(studentId) {
+        const [logboekRows] = await db.query(
+            `SELECT COUNT(*) AS totaal_weken,
+                    SUM(CASE WHEN status = 'ingediend' THEN 1 ELSE 0 END) AS ingediend
+             FROM LOGBOEK_WEEK WHERE stage_id IN (SELECT stage_id FROM STAGE WHERE student_id = ?)`,
+            [studentId]
+        );
+        const [urenRows] = await db.query(
+            `SELECT COALESCE(SUM(ld.uren), 0) AS totaal_uren
+             FROM LOGBOEK_DAG ld
+             JOIN STAGE s ON s.stage_id = ld.stage_id
+             WHERE s.student_id = ?`,
+            [studentId]
+        );
+        return {
+            totaal_weken: logboekRows[0].totaal_weken || 0,
+            ingediend: logboekRows[0].ingediend || 0,
+            totaal_uren: urenRows[0].totaal_uren || 0
+        };
+    }
+
+    // Stage-procesinfo voor dashboard
+    static async getStageproces(studentId) {
+        const [rows] = await db.query(
+            `SELECT s.stage_id, s.status, s.startdatum, s.einddatum, s.titel,
+                    b.naam AS bedrijfsnaam,
+                    c.student_getekend, c.mentor_getekend, c.docent_getekend
+             FROM STAGE s
+             LEFT JOIN BEDRIJF b ON b.bedrijf_id = s.bedrijf_id
+             LEFT JOIN CONTRACT c ON c.stage_id = s.stage_id
+             WHERE s.student_id = ?
+             ORDER BY s.stage_id DESC LIMIT 1`,
+            [studentId]
+        );
+        return rows[0] || null;
+    }
+
+    // Logboek van huidige week
+    static async getLogboekDezeWeek(studentId) {
+        const [stages] = await db.query(
+            `SELECT stage_id, startdatum FROM STAGE WHERE student_id = ? ORDER BY stage_id DESC LIMIT 1`,
+            [studentId]
+        );
+        if (!stages.length) return null;
+        const { stage_id, startdatum } = stages[0];
+        const start = new Date(startdatum);
+        const nu = new Date();
+        const weeknummer = Math.max(1, Math.floor((nu - start) / (1000 * 60 * 60 * 24 * 7)) + 1);
+        const [weken] = await db.query(
+            `SELECT * FROM LOGBOEK_WEEK WHERE stage_id = ? AND weeknummer = ?`,
+            [stage_id, weeknummer]
+        );
+        if (!weken.length) return null;
+        const week = weken[0];
+        const [dagen] = await db.query(
+            `SELECT dag_id, datum, uren, taken_beschrijving, reflectie FROM LOGBOEK_DAG WHERE week_id = ? ORDER BY datum ASC`,
+            [week.week_id]
+        );
+        return { ...week, dagen };
+    }
+
+    // Notificaties voor gebruiker
+    static async getNotificaties(gebruikerId) {
+        try {
+            const [rows] = await db.query(
+                `SELECT notificatie_id, titel, bericht, type FROM NOTIFICATIE WHERE gebruiker_id = ? ORDER BY notificatie_id DESC LIMIT 10`,
+                [gebruikerId]
+            );
+            return rows;
+        } catch (e) { return []; }
+    }
+
+    // Stage info voor logboek pagina
+    static async getLogboekStageInfo(studentId) {
+        const [rows] = await db.query(
+            `SELECT s.stage_id, s.titel, s.startdatum, s.einddatum,
+                    b.naam AS bedrijf_naam
+             FROM STAGE s
+             LEFT JOIN BEDRIJF b ON b.bedrijf_id = s.bedrijf_id
+             WHERE s.student_id = ?
+             ORDER BY s.stage_id DESC LIMIT 1`,
+            [studentId]
+        );
+        return rows[0] || null;
+    }
+
+    // Laatste logboek dag (op student_id)
+    static async getLaatsteLogboekDag(studentId) {
+        const [rows] = await db.query(
+            `SELECT ld.dag_id, ld.datum, ld.uren, ld.taken_beschrijving, ld.reflectie, ld.leerpunten
+             FROM LOGBOEK_DAG ld
+             JOIN STAGE s ON s.stage_id = ld.stage_id
+             WHERE s.student_id = ?
+             ORDER BY ld.datum DESC LIMIT 1`,
+            [studentId]
+        );
+        return rows[0] || null;
+    }
+
 }
 
 module.exports = StudentModel;

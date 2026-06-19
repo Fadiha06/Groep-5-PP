@@ -21,9 +21,8 @@ exports.createAccount = async (req, res) => {
 
         const defaultPasswordHash = await argon2.hash(require('crypto').randomBytes(32));
         const rolFormatted = rol.toLowerCase();
-
-        const naam = `${voornaam} ${achternaam}`.trim();
-        const gebruiker_id = await UserModel.createUser(naam, email, defaultPasswordHash, rolFormatted);
+        
+        const gebruiker_id = await UserModel.createUser(voornaam, achternaam, email, defaultPasswordHash, rolFormatted);
 
         if (rolFormatted === 'student') {
             await StudentModel.createProfile(gebruiker_id);
@@ -97,21 +96,45 @@ exports.deleteUser = async (req, res) => {
 exports.updateUser = async (req, res) => {
     try {
         const userId = req.params.id;
-        const { rol } = req.body;
-
+        const { rol, status } = req.body;
+        
         if (!rol) {
             return res.status(400).json({ error: 'Rol is verplicht bij updaten' });
         }
-
+        
         const rolFormatted = rol.toLowerCase();
-
-        const updated = await UserModel.updateUser(userId, rolFormatted);
-        if (!updated) {
+        const updatedStatus = status || 'Actief';
+        
+        const users = await UserModel.findById(userId);
+        if (!users || users.length === 0) {
             return res.status(404).json({ error: 'Gebruiker niet gevonden' });
         }
+        const currentRol = users[0].rol.toLowerCase();
+
+        if (currentRol !== rolFormatted) {
+            const db = require('../config/db');
+            if (currentRol === 'student') await db.query('DELETE FROM STUDENT WHERE gebruiker_id = ?', [userId]);
+            else if (currentRol === 'docent') await db.query('DELETE FROM DOCENT WHERE gebruiker_id = ?', [userId]);
+            else if (currentRol === 'commissie' || currentRol === 'stagecommissie') await db.query('DELETE FROM STAGECOMMISSIE WHERE gebruiker_id = ?', [userId]);
+            else if (currentRol === 'administrator' || currentRol === 'admin') await db.query('DELETE FROM ADMINISTRATIE WHERE gebruiker_id = ?', [userId]);
+            else if (currentRol === 'mentor' || currentRol === 'stagementor') await db.query('DELETE FROM STAGEMENTOR WHERE gebruiker_id = ?', [userId]);
+
+            if (rolFormatted === 'student') await StudentModel.createProfile(userId);
+            else if (rolFormatted === 'docent') await DocentModel.createProfile(userId);
+            else if (rolFormatted === 'commissie' || rolFormatted === 'stagecommissie') await CommissieModel.createProfile(userId);
+            else if (rolFormatted === 'administrator' || rolFormatted === 'admin') await AdminModel.createProfile(userId);
+            else if (rolFormatted === 'mentor' || rolFormatted === 'stagementor') {
+                const MentorModel = require('../models/mentorModel');
+                await MentorModel.createProfile(userId);
+            }
+        }
+        
+        await UserModel.updateUser(userId, rolFormatted, updatedStatus);
+        
         res.json({ message: 'Gebruiker succesvol bijgewerkt' });
     } catch (error) {
         console.error('Update user error:', error);
         res.status(500).json({ error: 'Fout bij bewerken gebruiker' });
     }
 };
+    

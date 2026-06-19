@@ -1,9 +1,9 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="nl">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>EhB StageTool — Aanmelden</title>
+  <title>EhB StageTool ΓÇö Aanmelden</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="src/CSS/Login.css">
 </head>
@@ -12,7 +12,7 @@
   <div class="branding">
     <img
       class="branding__logo"
-      src="src/Images/EhB-logo-transparant.png"
+      src="/src/Images/EhB-logo-transparant.png"
       alt="Erasmushogeschool Brussel"
     />
   </div>
@@ -37,7 +37,7 @@
         <label class="form__label" for="password">Wachtwoord</label>
         <input class="form__input" type="password" id="password" placeholder="Je EhB-wachtwoord" />
       </div>
-      <a href="wachtwoord_Vergeten.html" class="form__forgot">Wachtwoord vergeten?</a>
+      <a href="Wachtwoordvergeten.html" class="form__forgot">Wachtwoord vergeten?</a>
       <button class="btn-submit" type="button">Inloggen</button>
       <div class="info">
         <p>Studenten en medewerkers loggen in met hun <span class="highlight">EhB-account</span></p>
@@ -62,14 +62,6 @@
     </div>
   </div>
 
-  <script>
-    function switchTab(el, tabId) {
-      document.querySelectorAll('.tab').forEach(t => t.classList.remove('tab--active'));
-      el.classList.add('tab--active');
-      document.getElementById('tab-ehb').style.display = tabId === 'ehb' ? 'block' : 'none';
-      document.getElementById('tab-extern').style.display = tabId === 'extern' ? 'block' : 'none';
-    }
-  </script>
   <script src="/src/JS/api.js"></script>
   <script src="/src/JS/login.js"></script>
   

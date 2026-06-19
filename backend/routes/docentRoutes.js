@@ -1,19 +1,32 @@
 const express = require('express');
 const router = express.Router();
-const { getStudenten, stuurReminder, getMilestones, getDossiers, getMeldingen, getLogboeken, keurLogboekGoed, geefLogboekFeedback, getTodos, getPunten } = require('../controllers/docentController');
+const {
+    getStudenten, stuurReminder, getMilestones, getDossiers, getMeldingen,
+    getLogboeken, goedkeurLogboek, geefLogboekFeedback,
+    getEvaluatieStudenten, getEvaluatie, slaEvaluatieOp,
+    getLogboekEvaluatie
+} = require('../controllers/docentController');
 const { verifyToken, requireRole } = require('../middleware/authMiddleware');
 
-router.get('/studenten', verifyToken, requireRole('docent'), getStudenten);
-router.post('/reminder', verifyToken, requireRole('docent'), stuurReminder);
-router.get('/milestones', verifyToken, requireRole('docent'), getMilestones);
-router.get('/dossiers', verifyToken, requireRole('docent'), getDossiers);
-router.get('/student/:gebruikerId/meldingen', verifyToken, requireRole('docent'), getMeldingen);
+const auth = [verifyToken, requireRole('docent')];
 
-router.get('/logboeken', verifyToken, requireRole('docent'), getLogboeken);
-router.post('/logboek/goedkeuren', verifyToken, requireRole('docent'), keurLogboekGoed);
-router.post('/logboek/feedback', verifyToken, requireRole('docent'), geefLogboekFeedback);
+router.get('/studenten',                    ...auth, getStudenten);
+router.post('/reminder',                    ...auth, stuurReminder);
+router.get('/milestones',                   ...auth, getMilestones);
+router.get('/dossiers',                     ...auth, getDossiers);
+router.get('/student/:gebruikerId/meldingen', ...auth, getMeldingen);
 
-router.get('/todos', verifyToken, requireRole('docent'), getTodos);
-router.get('/punten', verifyToken, requireRole('docent'), getPunten);
+// Logboeken
+router.get('/logboeken',                    ...auth, getLogboeken);
+router.post('/logboek/goedkeuren',          ...auth, goedkeurLogboek);
+router.post('/logboek/feedback',            ...auth, geefLogboekFeedback);
+
+// Evaluaties
+router.get('/evaluatie-studenten',          ...auth, getEvaluatieStudenten);
+router.get('/evaluatie',                    ...auth, getEvaluatie);
+router.post('/evaluatie/opslaan',           ...auth, slaEvaluatieOp);
+
+// Logboek per-competentie scores (alleen lezen — mentor geeft de scores)
+router.get('/logboek/evaluatie',            ...auth, getLogboekEvaluatie);
 
 module.exports = router;

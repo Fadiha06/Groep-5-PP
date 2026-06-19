@@ -2,7 +2,7 @@ let alleStages = [];
 let huidigIndex = 0;
 
 document.addEventListener('DOMContentLoaded', () => {
-  if (!requireAuth(['stagecommissie', 'administrator'])) return;
+  if (!requireAuth(['stagecommissie', 'commissie', 'administrator'])) return;
   loadDossier();
 });
 
@@ -74,32 +74,32 @@ function toonDossier(index) {
 
   // === STUDENT ===
   document.getElementById('student-naam').textContent = stage.studentnaam || '—';
-  document.getElementById('student-nummer').textContent = '—'; // niet in API
-  document.getElementById('student-opleiding').textContent = 'Toegepaste Informatica';
-  document.getElementById('student-jaar').textContent = '—'; // niet in API
+  document.getElementById('student-nummer').textContent = stage.studentnummer || '—';
+  document.getElementById('student-opleiding').textContent = stage.opleiding || 'Toegepaste Informatica';
+  document.getElementById('student-jaar').textContent = stage.academiejaar || '—';
 
   // === BEDRIJF ===
   document.getElementById('bedrijf-naam').textContent = stage.bedrijfsnaam || '—';
-  document.getElementById('bedrijf-afdeling').textContent = '—';
-  document.getElementById('bedrijf-mentor').textContent = '—';
+  document.getElementById('bedrijf-afdeling').textContent = stage.bedrijf_afdeling || '—';
+  document.getElementById('bedrijf-mentor').textContent = stage.mentornaam || '—';
   const emailEl = document.getElementById('bedrijf-email');
-  emailEl.textContent = '—';
-  emailEl.href = '#';
-  document.getElementById('bedrijf-adres').textContent = '—';
-  document.getElementById('bedrijf-sector').textContent = '—';
+  emailEl.textContent = stage.mentoremail || '—';
+  emailEl.href = stage.mentoremail ? `mailto:${stage.mentoremail}` : '#';
+  document.getElementById('bedrijf-adres').textContent = stage.bedrijf_adres || '—';
+  document.getElementById('bedrijf-sector').textContent = stage.bedrijf_sector || '—';
 
   // === OPDRACHT ===
   document.getElementById('opdracht-titel').textContent = stage.titel || '—';
-  document.getElementById('opdracht-omschrijving').textContent = '—'; // niet in API
-  document.getElementById('opdracht-competenties').textContent = '—';
+  document.getElementById('opdracht-omschrijving').textContent = stage.omschrijving || '—';
+  document.getElementById('opdracht-competenties').textContent = stage.leerdoelen || stage.verwachte_competenties || '—';
 
   // === PLANNING ===
   document.getElementById('planning-start').textContent =
     stage.startdatum ? formatDatum(stage.startdatum) : '—';
   document.getElementById('planning-eind').textContent =
     stage.einddatum ? formatDatum(stage.einddatum) : '—';
-  document.getElementById('planning-regeling').textContent = '—';
-  document.getElementById('planning-uren').textContent = '—';
+  document.getElementById('planning-regeling').textContent = stage.werkregeling || '—';
+  document.getElementById('planning-uren').textContent = stage.uren_per_week ? `${stage.uren_per_week} uren` : '—';
 
   // === OPMERKINGEN ===
   document.getElementById('opmerkingen-list').innerHTML =
@@ -139,10 +139,12 @@ async function submitBeslissing() {
   btn.disabled = true;
   btn.textContent = 'Bezig…';
 
+  const interneNota = document.getElementById('interne-nota').value.trim();
+
   try {
     await apiFetch(`/stage/${stage.stage_id}/status`, {
       method: 'PUT',
-      body: JSON.stringify({ status })
+      body: JSON.stringify({ status, reden_weigering: interneNota })
     });
 
     // Toon succesmelding

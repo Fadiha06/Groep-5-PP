@@ -22,7 +22,7 @@ async function laadStudenten() {
   verbergError();
 
   try {
-    const data = await apiFetch('/mentor/studenten');
+    const data = await apiFetch('/mentors/studenten');
     alleStudenten = Array.isArray(data) ? data : [];
     toonStudentSelectie(alleStudenten);
   } catch (err) {
@@ -109,12 +109,12 @@ async function laadCompetenties() {
 
   try {
     const stageId = huidigStudent.stage_id || huidigStudent.id;
-    const data    = await apiFetch(`/evaluatie/competenties?stage_id=${stageId}&type=${evaluatieType}`);
+    const data    = await apiFetch(`/evaluaties/competenties?stage_id=${stageId}&type=${evaluatieType}`);
     competenties  = Array.isArray(data) ? data : [];
 
     // Probeer bestaand concept laden
     try {
-      const concept = await apiFetch(`/evaluatie/concept?stage_id=${stageId}&type=${evaluatieType}`);
+      const concept = await apiFetch(`/evaluaties/concept?stage_id=${stageId}&type=${evaluatieType}`);
       if (concept && concept.scores) {
         concept.scores.forEach(s => {
           scores[s.competentie_id] = {
@@ -170,7 +170,8 @@ function toonCompetenties(lijst) {
       { code: 'O',  label: 'Onvoldoende', score: 1, omschrijving: 'Student haalt het verwachte niveau niet.' },
       { code: 'V',  label: 'Voldoende',   score: 2, omschrijving: 'Student haalt het minimale niveau.' },
       { code: 'G',  label: 'Goed',        score: 3, omschrijving: 'Student presteert boven het minimum.' },
-      { code: 'UG', label: 'Uitstekend',  score: 4, omschrijving: 'Student overtreft alle verwachtingen.' }
+      { code: 'ZG', label: 'Zeer goed',   score: 4, omschrijving: 'Student presteert ruim boven het minimum.' },
+      { code: 'P',  label: 'Perfect',     score: 5, omschrijving: 'Student overtreft alle verwachtingen.' }
     ];
 
     const huidigeScore = huidige.score || null;
@@ -295,7 +296,7 @@ function slaFeedbackOp(compId) {
 function updateTotaalScore() {
   const waarden = Object.values(scores).filter(s => s.score !== null);
   const totaal  = waarden.reduce((som, s) => som + (s.score || 0), 0);
-  const max     = competenties.length * 4;
+  const max     = competenties.length * 5;
 
   const el = document.getElementById('totaal-score');
   if (el) el.textContent = `Totaal: ${totaal} / ${max} ptn`;
@@ -340,7 +341,7 @@ async function verstuurEvaluatie(definitief) {
   };
 
   try {
-    await apiFetch('/evaluatie/opslaan', {
+    await apiFetch('/evaluaties/opslaan', {
       method: 'POST',
       body:   JSON.stringify(payload)
     });
@@ -374,7 +375,7 @@ function logout() {
   localStorage.removeItem('token');
   localStorage.removeItem('rol');
   localStorage.removeItem('userId');
-  window.location.href = 'login.html';
+  window.location.href = 'index.html';
 }
 
 // ── Hulpfuncties ──────────────────────────────────────────────

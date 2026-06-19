@@ -1,12 +1,8 @@
-const API_BASE_URL = 'http://localhost:5000/api';
+const API_BASE_URL = '/api';
 
-/**
- * Wrapper for fetch that automatically includes the Authorization header if a token is present,
- * and handles common error scenarios.
- */
 async function apiFetch(endpoint, options = {}) {
   const token = localStorage.getItem('token');
-  
+
   const headers = {
     'Content-Type': 'application/json',
     ...options.headers,
@@ -31,31 +27,38 @@ async function apiFetch(endpoint, options = {}) {
   return data;
 }
 
-/**
- * Checks if the user is authenticated and optionally if they have the correct role.
- * Redirects to index.html if unauthenticated.
- */
+function showToast(message, type = 'error') {
+  const toast = document.createElement('div');
+  toast.style.cssText = 'position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:' +
+    (type === 'error' ? '#ef4444' : '#22c55e') +
+    ';color:white;padding:12px 24px;border-radius:8px;box-shadow:0 4px 6px rgba(0,0,0,0.1);font-family:Inter,sans-serif;font-weight:500;z-index:9999;transition:opacity 0.3s;';
+  toast.textContent = message;
+  document.body.appendChild(toast);
+  setTimeout(() => { toast.style.opacity = '0'; setTimeout(() => toast.remove(), 300); }, 3000);
+}
+
 function requireAuth(requiredRole = null) {
   const token = localStorage.getItem('token');
   const rol = localStorage.getItem('rol');
 
   if (!token) {
-    alert('Je bent niet ingelogd!');
-    window.location.href = 'index.html';
+    showToast('Je bent niet ingelogd!', 'error');
+    setTimeout(() => { window.location.href = 'index.html'; }, 1500);
     return false;
   }
 
   if (requiredRole) {
     const roles = Array.isArray(requiredRole) ? requiredRole : [requiredRole];
-    
-    // Zorg ervoor dat zowel 'admin' als 'administrator' toegang krijgen
-    if (roles.includes('administrator') && !roles.includes('admin')) {
-      roles.push('admin');
-    }
-
+    // Rol-aliassen: admin=administrator, commissie=stagecommissie
+    if (roles.includes('administrator') && !roles.includes('admin')) roles.push('admin');
+    if (roles.includes('admin') && !roles.includes('administrator')) roles.push('administrator');
+    if (roles.includes('stagecommissie') && !roles.includes('commissie')) roles.push('commissie');
+    if (roles.includes('commissie') && !roles.includes('stagecommissie')) roles.push('stagecommissie');
+    if (roles.includes('mentor') && !roles.includes('stagementor')) roles.push('stagementor');
+    if (roles.includes('stagementor') && !roles.includes('mentor')) roles.push('mentor');
     if (!roles.includes(rol)) {
-      alert(`Geen toegang. Je hebt de rol '${roles.join(' of ')}' nodig.`);
-      window.location.href = 'index.html';
+      showToast(`Geen toegang. Je hebt de juiste rol nodig.`, 'error');
+      setTimeout(() => { window.location.href = 'index.html'; }, 1500);
       return false;
     }
   }
@@ -66,11 +69,27 @@ function requireAuth(requiredRole = null) {
 function logout() {
   localStorage.removeItem('token');
   localStorage.removeItem('rol');
+  localStorage.removeItem('userId');
   window.location.href = 'index.html';
 }
 
-// Attach to window so other scripts can access it easily without modules (since we use regular script tags)
+async function vereisContractGetekend() {
+  try {
+    const contract = await apiFetch('/contracten/mijn');
+    const volledig = !!(contract.student_getekend && contract.mentor_getekend && contract.docent_getekend);
+    if (!volledig) {
+      window.location.href = 'contract.html?reden=niet-getekend';
+      return null;
+    }
+    return contract;
+  } catch (err) {
+    window.location.href = 'contract.html?reden=niet-getekend';
+    return null;
+  }
+}
+
 window.API_BASE_URL = API_BASE_URL;
 window.apiFetch = apiFetch;
 window.requireAuth = requireAuth;
 window.logout = logout;
+window.vereisContractGetekend = vereisContractGetekend;

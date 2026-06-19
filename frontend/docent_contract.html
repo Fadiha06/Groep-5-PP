@@ -31,7 +31,7 @@
 <body>
     <div class="card">
         <h1>Stagecontract ondertekenen</h1>
-        <p class="sub">Je tekent als <strong>verantwoordelijke docent</strong>.</p>
+        <p class="sub">Je tekent als <strong>verantwoordelijk docent / administrator</strong>.</p>
 
         <div class="sectie">
             <div class="rij"><span class="rij-label">Student</span><span class="rij-waarde" id="c-student">—</span></div>
@@ -52,12 +52,12 @@
             <button class="btn-primary" id="btn-teken">Ondertekenen</button>
         </div>
 
-        <div class="melding ok" id="melding-ok">✓ Bedankt! Het contract is door jou ondertekend.</div>
+        <div class="melding ok" id="melding-ok">Bedankt! Het contract is door jou ondertekend.</div>
         <div class="melding fout" id="melding-fout"></div>
     </div>
 
     <script>
-        const API = 'http://localhost:5000/api';
+        const API = '/api';
         const token = localStorage.getItem('token');
         const params = new URLSearchParams(window.location.search);
         const contractId = params.get('id');
@@ -69,7 +69,7 @@
         }
 
         async function laadContract() {
-            if (!token) { toonFout('Niet ingelogd. Log eerst in via index.html als docent.'); return; }
+            if (!token) { window.location.href = 'index.html'; return; }
             if (!contractId) { toonFout('Geen contract-id in de URL (gebruik ?id=...).'); return; }
             try {
                 const res = await fetch(`${API}/contracten/${contractId}`, { headers: { 'Authorization': 'Bearer ' + token } });

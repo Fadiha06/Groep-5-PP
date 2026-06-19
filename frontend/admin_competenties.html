@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Competenties & Rubrics — EhB StageTool</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="src/CSS/admin_competenties.css">
+</head>
+<body>
+<div class="root">
+
+  <nav class="sidebar">
+    <div class="sb-logo">
+      <div class="sb-logo-title">EhB StageTool</div>
+      <div class="sb-logo-sub">Toegepaste Informatica</div>
+    </div>
+    <div class="sb-nav">
+      <a class="sb-item" href="admin_dashboard.html">Dashboard</a>
+      <a class="sb-item" href="admin_overeenkomst.html">Overeenkomsten</a>
+      <a class="sb-item active" href="admin_competenties.html">Competenties</a>
+      <a class="sb-item" href="admin_rapporten.html">Rapporten</a>
+      <a class="sb-item" href="admin_panel.html">Gebruikers</a>
+    </div>
+    <div class="sb-footer">Ingelogd als Administrator</div>
+  </nav>
+
+  <div class="main">
+    <div>
+      <div class="page-title">Competenties & Rubrics beheren</div>
+      <div class="page-sub">Beheer competenties, beschrijvingen, rubrics en wegingsfactoren per opleiding, zonder tussenkomst van een developer.</div>
+    </div>
+
+    <div class="info-banner">ℹ️ Klik op een naam, beschrijving of rubric-veld om deze direct aan te passen.</div>
+
+    <div class="warning-banner hidden" id="warning-banner">
+      <span>⚠️</span>
+      <span><strong>Fout in weging:</strong> Het totaal van de wegingsfactoren is momenteel <strong id="warning-percent">0%</strong>. Dit moet exact <strong>100%</strong> zijn voordat je kunt opslaan.</span>
+    </div>
+
+    <select class="opleiding-select" id="opleiding-select" onchange="laadCompetenties()">
+      <option value="">Laden...</option>
+    </select>
+
+    <div class="layout">
+      <!-- Competentiestructuur -->
+      <div class="left-card">
+        <div class="left-header">
+          <div class="left-header-title">Competentiestructuur & Rubrics</div>
+          <button class="btn-add" onclick="voegCompetentieToe()">+ Voeg competentie toe</button>
+        </div>
+        <div class="competenties-list" id="competenties-list">
+          <div style="text-align:center;color:#9CA3AF;font-size:13px;padding:30px">Laden...</div>
+        </div>
+        <div class="totaal-row">
+          <div class="totaal-label">Totaal gewicht huidige competenties:</div>
+          <div class="totaal-value" id="totaal-weging">0%</div>
+        </div>
+      </div>
+
+      <!-- Rechterkolom -->
+      <div class="right-col">
+        <div class="settings-card">
+          <div class="settings-header">Globale Stage Instellingen</div>
+          <div class="settings-body">
+            <div class="settings-field">
+              <label>Max. score per competentie (Rubric max)</label>
+              <input type="number" id="setting-max-score">
+            </div>
+            <div class="settings-field">
+              <label>Aantal verplichte logboeken per stage</label>
+              <input type="number" id="setting-logboeken">
+            </div>
+            <div class="settings-field">
+              <label>Minimale slaagdrempel totaal (%)</label>
+              <input type="number" id="setting-slaagdrempel">
+            </div>
+          </div>
+        </div>
+
+        <div class="actions-row">
+          <button class="btn-cancel" onclick="laadCompetenties()">Annuleren</button>
+          <button class="btn-save" id="btn-save" onclick="opslaanWijzigingen()" disabled>Wijzigingen Opslaan</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="src/JS/api.js"></script>
+<script src="src/JS/admin_competenties.js"></script>
+</body>
+</html>

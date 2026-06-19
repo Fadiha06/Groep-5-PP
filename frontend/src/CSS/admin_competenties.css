@@ -1,0 +1,86 @@
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Inter',system-ui,sans-serif;background:#F9FAFB;min-height:100vh;display:flex}
+.root{display:flex;width:100%;min-height:100vh}
+
+/* Sidebar (1:1 met gebruikersbeheer.css) */
+.sidebar{width:240px;flex-shrink:0;background:#1F2937;display:flex;flex-direction:column;min-height:100vh}
+.sb-logo{padding:20px 20px 16px;border-bottom:1px solid rgba(255,255,255,0.08)}
+.sb-logo-title{color:white;font-size:16px;font-weight:700}
+.sb-logo-sub{color:#6B7280;font-size:12px;margin-top:2px}
+.sb-nav{padding:12px 0;flex:1}
+.sb-item{display:flex;align-items:center;gap:10px;padding:10px 16px;font-size:14px;color:#9CA3AF;cursor:pointer;text-decoration:none;border-radius:6px;margin:0 8px}
+.sb-item.active{background:#D1193E;color:white;font-weight:500}
+.sb-item:not(.active):hover{background:rgba(255,255,255,0.05)}
+.sb-footer{padding:14px 16px;border-top:1px solid rgba(255,255,255,0.08);font-size:12px;color:#6B7280;margin-top:auto}
+
+.main{flex:1;padding:28px;display:flex;flex-direction:column;gap:16px;overflow:auto}
+.page-title{font-size:26px;font-weight:700;color:#111827}
+.page-sub{font-size:13px;color:#6B7280;margin-top:4px;max-width:780px}
+
+.info-banner{background:#EFF6FF;border:0.8px solid #BFDBFE;border-radius:8px;padding:14px 18px;font-size:13px;font-weight:500;color:#1E40AF}
+.warning-banner{background:#FEF2F2;border:0.8px solid #FECACA;border-radius:8px;padding:14px 18px;font-size:14px;color:#B91C1C;display:flex;align-items:flex-start;gap:10px}
+.warning-banner.hidden{display:none}
+
+.opleiding-select{width:400px;padding:13px 14px;border-radius:8px;border:0.8px solid #D1D5DB;background:white;font-size:14px;color:#111827;font-family:inherit;cursor:pointer}
+.opleiding-select:focus{outline:none;border-color:#D1193E}
+
+.layout{display:grid;grid-template-columns:1fr 380px;gap:16px}
+
+/* Left card */
+.left-card{background:white;border-radius:12px;border:0.8px solid #D1D5DB;box-shadow:0 1px 3px rgba(0,0,0,0.05);overflow:hidden;display:flex;flex-direction:column}
+.left-header{padding:18px 22px;border-bottom:0.8px solid #D1D5DB;display:flex;align-items:center;justify-content:space-between}
+.left-header-title{font-size:16px;font-weight:700;color:#111827}
+.btn-add{padding:9px 18px;border-radius:6px;border:0.8px solid #D1D5DB;background:white;font-size:13px;color:#111827;cursor:pointer}
+.btn-add:hover{background:#F9FAFB}
+.competenties-list{padding:24px;display:flex;flex-direction:column;gap:24px}
+
+/* Competentie card */
+.competentie-card{background:#F9FAFB;border:0.8px solid #D1D5DB;border-radius:8px;padding:20px;position:relative}
+.btn-delete{position:absolute;top:20px;right:20px;background:none;border:none;cursor:pointer;font-size:18px;color:#6B7280}
+.btn-delete:hover{color:#EF4444}
+.editable-input{width:100%;padding:9px 12px;border-radius:6px;border:0.8px solid transparent;background:transparent;font-size:16px;font-weight:700;color:#111827;font-family:inherit}
+.editable-input:hover, .editable-input:focus{border-color:#D1D5DB;background:white;outline:none}
+.editable-textarea{width:100%;padding:9px 12px;border-radius:6px;border:0.8px solid transparent;background:transparent;font-size:14px;color:#6B7280;font-family:inherit;resize:vertical;min-height:36px}
+.editable-textarea:hover, .editable-textarea:focus{border-color:#D1D5DB;background:white;outline:none}
+
+.rubric-section{border-top:0.8px solid #D1D5DB;padding-top:20px;margin-top:16px}
+.rubric-title{font-size:13px;font-weight:700;color:#111827;letter-spacing:0.4px;margin-bottom:12px}
+.rubric-levels{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+.rubric-level{background:white;border:0.8px solid #D1D5DB;border-radius:6px;padding:12px}
+.rubric-level-header{display:flex;gap:8px;margin-bottom:8px}
+.rubric-score-input{width:50px;padding:8px;border-radius:4px;border:0.8px solid #D1D5DB;background:white;font-size:13px;font-weight:700;text-align:center;color:#111827;font-family:inherit}
+.rubric-score-input:focus{outline:none;border-color:#D1193E}
+.rubric-label-input{flex:1;padding:8px;border-radius:4px;border:0.8px solid #D1D5DB;background:white;font-size:13px;color:#111827;font-family:inherit}
+.rubric-label-input:focus{outline:none;border-color:#D1193E}
+.rubric-desc-textarea{width:100%;padding:8px;border-radius:4px;border:0.8px solid #D1D5DB;background:white;font-size:12px;color:#111827;font-family:inherit;resize:vertical;min-height:70px}
+.rubric-desc-textarea:focus{outline:none;border-color:#D1193E}
+
+/* Weging row */
+.weging-row{border-top:0.8px solid #D1D5DB;padding-top:18px;margin-top:18px;display:flex;align-items:center;gap:16px}
+.weging-label{font-size:13px;color:#111827;flex-shrink:0}
+.weging-slider{flex:1}
+.weging-value{width:60px;padding:6px;border-radius:6px;border:0.8px solid #D1D5DB;background:white;font-size:14px;font-weight:700;text-align:center;color:#111827;font-family:inherit}
+.weging-value:focus{outline:none;border-color:#D1193E}
+
+/* Footer totaal */
+.totaal-row{background:#F9FAFB;border-top:0.8px solid #D1D5DB;padding:20px 22px;display:flex;align-items:center;justify-content:space-between}
+.totaal-label{font-size:14px;font-weight:500;color:#111827}
+.totaal-value{font-size:20px;font-weight:700}
+.totaal-value.ok{color:#10B981}
+.totaal-value.fout{color:#EF4444}
+
+/* Right column */
+.right-col{display:flex;flex-direction:column;gap:16px}
+.settings-card{background:white;border-radius:12px;border:0.8px solid #D1D5DB;box-shadow:0 1px 3px rgba(0,0,0,0.05);overflow:hidden}
+.settings-header{padding:18px 22px;border-bottom:0.8px solid #D1D5DB;font-size:16px;font-weight:700;color:#111827}
+.settings-body{padding:22px;display:flex;flex-direction:column;gap:20px}
+.settings-field label{display:block;font-size:13px;color:#6B7280;margin-bottom:8px}
+.settings-field input{width:100%;padding:11px 12px;border-radius:6px;border:0.8px solid #D1D5DB;background:white;font-size:15px;font-weight:500;color:#111827;font-family:inherit}
+.settings-field input:focus{outline:none;border-color:#D1193E}
+
+.actions-row{display:flex;gap:10px}
+.btn-cancel{padding:9px 22px;border-radius:6px;border:0.8px solid #D1D5DB;background:white;font-size:13px;color:#111827;cursor:pointer}
+.btn-cancel:hover{background:#F9FAFB}
+.btn-save{flex:1;padding:9px 22px;border-radius:6px;border:none;background:#3B82F6;color:white;font-size:13px;cursor:pointer}
+.btn-save:disabled{opacity:0.5;cursor:not-allowed}
+.btn-save:not(:disabled):hover{background:#2563EB}

@@ -16,8 +16,8 @@
         </div>
         <nav class="sidebar__nav">
             <a href="student_dashboard.html" class="nav-item"><span class="nav-item__icon"></span> Dashboard</a>
-            <a href="#" class="nav-item active"><span class="nav-item__icon"></span> Logboek</a>
-            <a href="#" class="nav-item"><span class="nav-item__icon"></span> Evaluaties</a>
+            <a href="logboek.html" class="nav-item active"><span class="nav-item__icon"></span> Logboek</a>
+            <a href="evaluaties.html" class="nav-item"><span class="nav-item__icon"></span> Evaluaties</a>
         </nav>
         <div class="sidebar__user">
             <div class="sidebar__user-info">
@@ -118,6 +118,7 @@
                         <button class="btn-link" onclick="volgendeWeek()">Volgende →</button>
                     </div>
                     <div id="week-dagen">Laden...</div>
+                    <div id="week-feedback-box" style="display:none"></div>
                     <div class="form-actions" style="margin-top:14px;">
                         <button class="btn btn-primary" id="indien-knop" onclick="dienWeekInUI()" style="width:100%;">Week indienen</button>
                     </div>
@@ -135,17 +136,23 @@
         </div>
     </main>
 
+    <script src="/src/JS/api.js"></script>
     <script>
-        const API = 'http://localhost:5000/api/student';
+        const API = '/api/studenten';
         const token = localStorage.getItem('token');
+
+        // Guard: student moet ingelogd zijn
+        requireAuth('student');
 
         let huidigeWeek = 1;
         let totaalWeken = 1;
 
         function labelVoorPunten(p) {
             if (p <= 1) return 'Onvoldoende';
-            if (p <= 3) return 'Goed';
-            return 'Uitstekend';
+            if (p === 2) return 'Voldoende';
+            if (p === 3) return 'Goed';
+            if (p === 4) return 'Zeer goed';
+            return 'Perfect';
         }
 
         function berekenWeek(datum, start) {
@@ -346,24 +353,51 @@
                     return;
                 }
                 const week = await res.json();
-                const ingediend = week.status === 'ingediend';
-                pill.textContent = ingediend ? 'Ingediend' : 'Open';
+                const ingediend = week.status === 'ingediend' || week.status === 'goedgekeurd';
+                pill.textContent = week.status === 'goedgekeurd' ? 'Goedgekeurd' : ingediend ? 'Ingediend' : 'Open';
+                pill.style.background = week.status === 'goedgekeurd' ? '#DCFCE7' : ingediend ? '#FEF3C7' : '';
+                pill.style.color = week.status === 'goedgekeurd' ? '#166534' : ingediend ? '#92400E' : '';
                 knop.disabled = ingediend;
                 knop.style.opacity = ingediend ? 0.5 : 1;
                 knop.textContent = ingediend ? 'Reeds ingediend' : 'Week indienen';
+
+                // Blokkeer formulier als week al ingediend is
+                blokkeerFormulier(ingediend);
                 if (!week.dagen.length) {
                     box.innerHTML = '<div class="last-entry__row">Nog geen dagen ingevuld deze week.</div>';
-                    return;
-                }
-                box.innerHTML = week.dagen.map(d => `
-                    <div class="week-dag-rij">
-                        <div class="week-dag-rij__top">
-                            <span class="week-dag-rij__datum">${new Date(d.datum).toLocaleDateString('nl-BE', { weekday: 'short', day: 'numeric', month: 'short' })}</span>
-                            <span class="week-dag-rij__uren">${d.uren ?? 0} u</span>
+                } else {
+                    box.innerHTML = week.dagen.map(d => `
+                        <div class="week-dag-rij">
+                            <div class="week-dag-rij__top">
+                                <span class="week-dag-rij__datum">${new Date(d.datum).toLocaleDateString('nl-BE', { weekday: 'short', day: 'numeric', month: 'short' })}</span>
+                                <span class="week-dag-rij__uren">${d.uren ?? 0} u</span>
+                            </div>
+                            <div class="week-dag-rij__taken">${d.taken_beschrijving || '—'}</div>
                         </div>
-                        <div class="week-dag-rij__taken">${d.taken_beschrijving || '—'}</div>
-                    </div>
-                `).join('');
+                    `).join('');
+                }
+
+                // Toon feedback van docent
+                const feedbackBox = document.getElementById('week-feedback-box');
+                if (week.docent_feedback || week.mentor_feedback) {
+                    let html = '';
+                    if (week.mentor_feedback) {
+                        html += `<div style="background:#F0FDF4;border:1px solid #BBF7D0;border-radius:8px;padding:12px;margin-top:10px">
+                            <div style="font-size:12px;font-weight:600;color:#166534;margin-bottom:4px">📋 Feedback van mentor:</div>
+                            <div style="font-size:13px;color:#166534;white-space:pre-wrap">${week.mentor_feedback}</div>
+                        </div>`;
+                    }
+                    if (week.docent_feedback) {
+                        html += `<div style="background:#EFF6FF;border:1px solid #BFDBFE;border-radius:8px;padding:12px;margin-top:10px">
+                            <div style="font-size:12px;font-weight:600;color:#1D4ED8;margin-bottom:4px">💬 Feedback van docent:</div>
+                            <div style="font-size:13px;color:#1E40AF;white-space:pre-wrap">${week.docent_feedback}</div>
+                        </div>`;
+                    }
+                    feedbackBox.innerHTML = html;
+                    feedbackBox.style.display = 'block';
+                } else {
+                    feedbackBox.style.display = 'none';
+                }
             } catch (err) {
                 console.error(err);
             }
@@ -375,6 +409,28 @@
 
         function volgendeWeek() {
             if (huidigeWeek < totaalWeken) laadWeek(huidigeWeek + 1);
+        }
+
+        function blokkeerFormulier(geblokkeerd) {
+            const velden = ['datum', 'uren', 'taken', 'reflectie', 'problemen'];
+            velden.forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.disabled = geblokkeerd;
+            });
+            const opslaanKnop = document.querySelector('.form-actions .btn-primary');
+            if (opslaanKnop) {
+                opslaanKnop.disabled = geblokkeerd;
+                opslaanKnop.style.opacity = geblokkeerd ? 0.5 : 1;
+            }
+            const rubriek = document.getElementById('competenties-lijst');
+            if (rubriek) rubriek.style.opacity = geblokkeerd ? 0.5 : 1;
+            if (geblokkeerd) {
+                rubriek?.querySelectorAll('.niveau-vak').forEach(v => v.style.pointerEvents = 'none');
+                rubriek?.querySelectorAll('.comp-feedback').forEach(f => f.disabled = true);
+            } else {
+                rubriek?.querySelectorAll('.niveau-vak').forEach(v => v.style.pointerEvents = '');
+                rubriek?.querySelectorAll('.comp-feedback').forEach(f => f.disabled = false);
+            }
         }
 
         async function dienWeekInUI() {

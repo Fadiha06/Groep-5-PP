@@ -42,6 +42,15 @@ class UserModel {
         const [result] = await db.query('DELETE FROM GEBRUIKER WHERE id = ?', [id]);
         return result.affectedRows > 0;
     }
+
+    static async updateUser(id, rol, status) {
+        // Status wordt momenteel nog niet in de db opgeslagen volgens ERD
+        const [result] = await db.query(
+            'UPDATE GEBRUIKER SET rol = ? WHERE id = ?',
+            [rol, id]
+        );
+        return result.affectedRows > 0;
+    }
 }
 
 module.exports = UserModel;

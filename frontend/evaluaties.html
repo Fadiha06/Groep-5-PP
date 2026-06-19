@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Evaluaties — EhB StageTool</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="/VITE/src/CSS/evaluaties.css">
+<link rel="stylesheet" href="src/CSS/evaluaties.css">
 </head>
 <body>
 <div class="root">
@@ -44,8 +44,17 @@
   </div>
 </div>
 
+<script src="/src/JS/api.js"></script>
 <script>
-const API = 'http://localhost:5000';
+const API = '';
+
+// Guard: contract moet volledig getekend zijn
+document.addEventListener('DOMContentLoaded', async function() {
+    if (!requireAuth('student')) return;
+    const contract = await vereisContractGetekend();
+    if (!contract) return;
+    laadEvaluaties();
+});
 
 function getToken() {
   return localStorage.getItem('token');
@@ -192,7 +201,7 @@ async function laadEvaluaties() {
   if (!token) { window.location.href = 'index.html'; return; }
 
   try {
-    const res = await fetch(`${API}/api/student/evaluaties`, {
+    const res = await fetch(`/api/studenten/evaluaties`, {
       headers: { 'Authorization': `Bearer ${token}` }
     });
     if (res.status === 401 || res.status === 403) { uitloggen(); return; }
@@ -205,7 +214,7 @@ async function laadEvaluaties() {
   }
 }
 
-document.addEventListener('DOMContentLoaded', laadEvaluaties);
+// laadEvaluaties wordt aangeroepen via de contract guard hierboven
 </script>
 </body>
 </html>

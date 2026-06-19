@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', () => {
-  if (!requireAuth(['stagecommissie', 'administrator'])) return;
+  if (!requireAuth(['stagecommissie', 'commissie', 'administrator'])) return;
   loadDashboard();
 });
 
@@ -115,5 +115,5 @@ function viewAllPoints(event) {
 
 function logout() {
   localStorage.removeItem('token');
-  window.location.href = 'login.html';
+  window.location.href = 'index.html';
 }

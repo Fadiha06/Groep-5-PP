@@ -122,6 +122,8 @@ CREATE TABLE LOGBOEK_WEEK (
     totaal_uren DECIMAL(5,2),
     status VARCHAR(50),
     mentor_feedback TEXT,
+    docent_feedback TEXT,
+    docent_goedgekeurd BOOLEAN DEFAULT FALSE,
     FOREIGN KEY (stage_id) REFERENCES STAGE(stage_id) ON DELETE CASCADE
 );
 
