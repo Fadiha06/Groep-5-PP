@@ -21,8 +21,9 @@ exports.createAccount = async (req, res) => {
 
         const defaultPasswordHash = await argon2.hash(require('crypto').randomBytes(32));
         const rolFormatted = rol.toLowerCase();
-        
-        const gebruiker_id = await UserModel.createUser(voornaam, achternaam, email, defaultPasswordHash, rolFormatted);
+
+        const naam = `${voornaam} ${achternaam}`.trim();
+        const gebruiker_id = await UserModel.createUser(naam, email, defaultPasswordHash, rolFormatted);
 
         if (rolFormatted === 'student') {
             await StudentModel.createProfile(gebruiker_id);
@@ -96,16 +97,15 @@ exports.deleteUser = async (req, res) => {
 exports.updateUser = async (req, res) => {
     try {
         const userId = req.params.id;
-        const { rol, status } = req.body;
-        
+        const { rol } = req.body;
+
         if (!rol) {
             return res.status(400).json({ error: 'Rol is verplicht bij updaten' });
         }
-        
+
         const rolFormatted = rol.toLowerCase();
-        const updatedStatus = status || 'Actief';
-        
-        const updated = await UserModel.updateUser(userId, rolFormatted, updatedStatus);
+
+        const updated = await UserModel.updateUser(userId, rolFormatted);
         if (!updated) {
             return res.status(404).json({ error: 'Gebruiker niet gevonden' });
         }
@@ -115,4 +115,3 @@ exports.updateUser = async (req, res) => {
         res.status(500).json({ error: 'Fout bij bewerken gebruiker' });
     }
 };
-    

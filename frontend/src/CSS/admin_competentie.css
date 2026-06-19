@@ -365,3 +365,80 @@ body {
     font-weight: 600;
     cursor: pointer;
 }
+
+/* Rubriek-editor in de modal */
+.rubriek-block {
+    border-top: 1px solid #E5EAF2;
+    padding-top: 16px;
+}
+
+.rubriek-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.rubriek-head label {
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.btn-niveau-add {
+    background: #EEF3FB;
+    color: #1A3C6E;
+    border: 1px solid #D5DEEC;
+    border-radius: 8px;
+    padding: 6px 12px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.rubriek-col-labels {
+    display: grid;
+    grid-template-columns: 80px 1fr 32px;
+    gap: 10px;
+    font-size: 11px;
+    color: #8A97A8;
+    text-transform: uppercase;
+    letter-spacing: .3px;
+    margin-bottom: 6px;
+    padding: 0 2px;
+}
+
+.niveau-row {
+    display: grid;
+    grid-template-columns: 80px 1fr 32px;
+    gap: 10px;
+    align-items: start;
+    margin-bottom: 8px;
+}
+
+.niveau-punten {
+    border: 1px solid #D5DEEC;
+    border-radius: 8px;
+    padding: 8px;
+    font-size: 13px;
+    text-align: center;
+}
+
+.niveau-omschrijving {
+    border: 1px solid #D5DEEC;
+    border-radius: 8px;
+    padding: 8px;
+    font-size: 13px;
+    font-family: inherit;
+    min-height: 40px;
+    resize: vertical;
+}
+
+.btn-niveau-del {
+    background: #fff;
+    border: 1px solid #f6cccc;
+    color: #ef4444;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 13px;
+    height: 36px;
+}

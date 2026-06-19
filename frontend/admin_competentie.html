@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Competenties beheren — EhB StageTool</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="src/CSS/admin_competenties.css">
+<link rel="stylesheet" href="src/CSS/admin_competentie.css">
 </head>
 <body>
 <div class="root">
@@ -18,7 +18,7 @@
     <div class="sb-nav">
       <a class="sb-item" href="admin_dashboard.html">Dashboard</a>
       <a class="sb-item" href="#">Overeenkomsten</a>
-      <a class="sb-item active" href="admin_competenties.html">Competenties (Config)</a>
+      <a class="sb-item active" href="admin_competentie.html">Competenties (Config)</a>
       <a class="sb-item" href="#">Rapporten</a>
       <a class="sb-item" href="admin_panel.html">Gebruikers</a>
     </div>
@@ -28,7 +28,7 @@
   <div class="main">
     <div>
       <div class="page-title">Competenties beheren</div>
-      <div class="page-sub">Voeg de beoordelingscriteria toe, pas ze aan of verwijder ze. Deze competenties worden gebruikt bij de evaluaties.</div>
+      <div class="page-sub">Voeg de beoordelingscriteria toe, pas ze aan of verwijder ze. Per competentie kun je een rubriek met niveaus instellen.</div>
     </div>
 
     <div class="card">
@@ -59,7 +59,7 @@
   <div class="modal">
     <div>
       <div class="modal-title" id="modal-title">Nieuwe competentie</div>
-      <div class="modal-sub">Vul de gegevens van het beoordelingscriterium in.</div>
+      <div class="modal-sub">Vul de gegevens in en stel de rubriek-niveaus op.</div>
     </div>
     <div class="modal-grid">
       <div class="field modal-grid-full">
@@ -71,6 +71,21 @@
         <textarea placeholder="Korte omschrijving van de competentie..." id="inp-omschrijving"></textarea>
       </div>
     </div>
+
+    <!-- Rubriek-editor -->
+    <div class="rubriek-block">
+      <div class="rubriek-head">
+        <label>Rubriek — niveaus</label>
+        <button type="button" class="btn-niveau-add" onclick="voegNiveauToe()">+ Niveau</button>
+      </div>
+      <div class="rubriek-col-labels">
+        <span>Punten</span>
+        <span>Omschrijving van dit niveau</span>
+        <span></span>
+      </div>
+      <div id="niveaus-container"></div>
+    </div>
+
     <div class="modal-footer">
       <button class="btn-cancel" onclick="closeModal()">Annuleren</button>
       <button class="btn-create" onclick="opslaan()">Opslaan</button>
