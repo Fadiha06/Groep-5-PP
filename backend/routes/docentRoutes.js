@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { getStudenten, stuurReminder, getMilestones, getDossiers, getMeldingen, getLogboeken, keurLogboekGoed, geefLogboekFeedback, getTodos, getPunten } = require('../controllers/docentController');
+const { getStudenten, stuurReminder, getMilestones, getDossiers, getMeldingen, getLogboeken, keurLogboekGoed, geefLogboekFeedback, getTodos, getPunten, getEvaluatieVergelijking } = require('../controllers/docentController');
 const { verifyToken, requireRole } = require('../middleware/authMiddleware');
 
 router.get('/studenten', verifyToken, requireRole('docent'), getStudenten);
@@ -15,5 +15,7 @@ router.post('/logboek/feedback', verifyToken, requireRole('docent'), geefLogboek
 
 router.get('/todos', verifyToken, requireRole('docent'), getTodos);
 router.get('/punten', verifyToken, requireRole('docent'), getPunten);
+
+router.get('/evaluatie-vergelijking', verifyToken, requireRole('docent'), getEvaluatieVergelijking);
 
 module.exports = router;

@@ -203,4 +203,22 @@ const getPunten = async (req, res) => {
     }
 };
 
-module.exports = { getStudenten, stuurReminder, getMilestones, getDossiers, getMeldingen, getLogboeken, keurLogboekGoed, geefLogboekFeedback, getTodos, getPunten };
+// GET /api/docent/evaluatie-vergelijking?stage_id=X&type=tussentijds
+const getEvaluatieVergelijking = async (req, res) => {
+    const { stage_id, type } = req.query;
+    if (!stage_id) return res.status(400).json({ error: 'stage_id is verplicht' });
+    try {
+        const docent = await docentModel.getDocent(req.user.id);
+        if (!docent) return res.status(404).json({ error: 'Geen docent gevonden' });
+        if (!(await docentModel.isEigenStage(docent.docent_id, stage_id))) {
+            return res.status(403).json({ error: 'Dit is niet jouw student' });
+        }
+        const data = await docentModel.getEvaluatieVergelijking(stage_id, type || 'tussentijds');
+        res.json(data);
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: 'Serverfout bij ophalen vergelijking' });
+    }
+};
+
+module.exports = { getStudenten, stuurReminder, getMilestones, getDossiers, getMeldingen, getLogboeken, keurLogboekGoed, geefLogboekFeedback, getTodos, getPunten, getEvaluatieVergelijking };

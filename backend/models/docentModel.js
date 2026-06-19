@@ -270,6 +270,48 @@ const getPuntenAggregatie = async (docentId) => {
     return rows;
 };
 
+// Student-, mentor- en docentscore per competentie naast elkaar (voor het samenbrengen)
+const getEvaluatieVergelijking = async (stageId, type) => {
+    const [competenties] = await pool.query(
+        'SELECT competentie_id, naam, omschrijving FROM COMPETENTIE ORDER BY naam ASC'
+    );
+    const [rubriek] = await pool.query(
+        'SELECT competentie_id, punten, omschrijving FROM RUBRIEK ORDER BY punten ASC'
+    );
+    const [scores] = await pool.query(
+        `SELECT e.beoordelaar_rol, ec.competentie_id, ec.score, ec.commentaar
+         FROM EVALUATIE e
+         JOIN EVALUATIE_COMPETENTIE ec ON ec.evaluatie_id = e.evaluatie_id
+         WHERE e.stage_id = ? AND e.type = ?`,
+        [stageId, type]
+    );
+
+    const vind = (rol, compId) => {
+        const rollen = rol === 'mentor' ? ['mentor', 'stagementor'] : [rol];
+        return scores.find(s => rollen.includes(s.beoordelaar_rol) && s.competentie_id === compId);
+    };
+
+    return competenties.map(c => {
+        const st = vind('student', c.competentie_id);
+        const me = vind('mentor', c.competentie_id);
+        const dc = vind('docent', c.competentie_id);
+        return {
+            competentie_id: c.competentie_id,
+            naam: c.naam,
+            omschrijving: c.omschrijving,
+            niveaus: rubriek
+                .filter(r => r.competentie_id === c.competentie_id)
+                .map(r => ({ punten: r.punten, omschrijving: r.omschrijving })),
+            score_student: st ? st.score : null,
+            commentaar_student: st ? st.commentaar : null,
+            score_mentor: me ? me.score : null,
+            commentaar_mentor: me ? me.commentaar : null,
+            score_docent: dc ? dc.score : null,
+            commentaar_docent: dc ? dc.commentaar : null
+        };
+    });
+};
+
 module.exports = {
     getDocent,
     getStudentenMetLogboekStatus,
@@ -284,5 +326,6 @@ module.exports = {
     geefLogboekWeekFeedback,
     getActieveStagesMetLogboek,
     getTodos,
-    getPuntenAggregatie
+    getPuntenAggregatie,
+    getEvaluatieVergelijking
 };

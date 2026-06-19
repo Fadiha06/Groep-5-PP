@@ -34,65 +34,65 @@ async function laadStudenten() {
 
 // ── 2. Studenten renderen ─────────────────────────────────────
 function toonStudentSelectie(lijst) {
-  const container = document.getElementById('student-select');
-  if (!container) return;
+    const container = document.getElementById('student-select');
+    if (!container) return;
 
-  if (!lijst || lijst.length === 0) {
-    container.innerHTML = '<p class="empty-state">Geen stagiairs gevonden.</p>';
-    return;
-  }
+    if (!lijst || lijst.length === 0) {
+        container.innerHTML = '<p class="empty-state">Geen stagiairs gevonden.</p>';
+        return;
+    }
 
-  container.innerHTML = `
-    <div style="padding: 16px; display: flex; flex-wrap: wrap; gap: 10px;">
-      ${lijst.map(s => {
-        const naam    = s.studentnaam  || s.naam    || '—';
-        const bedrijf = s.bedrijfsnaam || s.bedrijf || '—';
-        const id      = s.stage_id     || s.id      || '';
-        const initiaal = naam.charAt(0).toUpperCase();
-
-        return `
-          <button
-            class="student-select-btn"
-            id="student-btn-${id}"
-            onclick="selecteerStudent(${JSON.stringify(s).replace(/"/g, '"')})"
-          >
-            <span class="student-select-btn__name">${naam}</span>
-            <span class="student-select-btn__bedrijf">${bedrijf}</span>
-          </button>
-        `;
-      }).join('')}
-    </div>
-  `;
+    container.innerHTML = `
+        <div style="padding: 16px; display: flex; flex-wrap: wrap; gap: 10px;">
+            ${lijst.map(s => {
+                const naam    = s.studentnaam  || s.naam    || '—';
+                const bedrijf = s.bedrijfsnaam || s.bedrijf || '—';
+                const id      = s.stage_id     || s.id      || '';
+                return `
+                    <button
+                        class="student-select-btn"
+                        id="student-btn-${id}"
+                        onclick="selecteerStudent('${id}')"
+                    >
+                        <span class="student-select-btn__name">${naam}</span>
+                        <span class="student-select-btn__bedrijf">${bedrijf}</span>
+                    </button>
+                `;
+            }).join('')}
+        </div>
+    `;
 }
 
 // ── 3. Student selecteren ─────────────────────────────────────
-async function selecteerStudent(student) {
-  huidigStudent = student;
-  scores        = {};
+async function selecteerStudent(id) {
+    const student = alleStudenten.find(s => String(s.stage_id || s.id) === String(id));
+    if (!student) return;
 
-  // Actieve knop markeren
-  document.querySelectorAll('.student-select-btn').forEach(b => b.classList.remove('active'));
-  const id = student.stage_id || student.id || '';
-  const btn = document.getElementById(`student-btn-${id}`);
-  if (btn) btn.classList.add('active');
+    huidigStudent = student;
+    scores        = {};
 
-  // Student info invullen
-  const naam    = student.studentnaam  || student.naam    || '—';
-  const bedrijf = student.bedrijfsnaam || student.bedrijf || '—';
-  const opleiding = student.opleiding  || '';
+    // Actieve knop markeren
+    document.querySelectorAll('.student-select-btn').forEach(b => b.classList.remove('active'));
+    const btn = document.getElementById(`student-btn-${id}`);
+    if (btn) btn.classList.add('active');
 
-  stel('student-naam', naam);
-  stel('student-meta', opleiding ? `${opleiding} · ${bedrijf}` : bedrijf);
+    // Student info invullen
+    const naam      = student.studentnaam  || student.naam    || '—';
+    const bedrijf   = student.bedrijfsnaam || student.bedrijf || '—';
+    const opleiding = student.opleiding    || '';
 
-  const avatar = document.getElementById('student-avatar');
-  if (avatar) avatar.textContent = naam.charAt(0).toUpperCase();
+    stel('student-naam', naam);
+    stel('student-meta', opleiding ? `${opleiding} · ${bedrijf}` : bedrijf);
 
-  // Detail card tonen
-  const detail = document.getElementById('evaluatie-detail');
-  if (detail) detail.classList.remove('hidden');
+    const avatar = document.getElementById('student-avatar');
+    if (avatar) avatar.textContent = naam.charAt(0).toUpperCase();
 
-  // Competenties laden
-  await laadCompetenties();
+    // Detail card tonen
+    const detail = document.getElementById('evaluatie-detail');
+    if (detail) detail.classList.remove('hidden');
+
+    // Competenties laden
+    await laadCompetenties();
 }
 
 // ── 4. Competenties ophalen ────────────────────────────────────

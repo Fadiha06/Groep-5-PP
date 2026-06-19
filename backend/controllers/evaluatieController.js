@@ -48,34 +48,36 @@ exports.saveEvaluatie = async (req, res) => {
         const beoordelaar_id = req.user.id;
         const beoordelaar_rol = req.user.rol;
         const datum = new Date();
+        const isDefinitief = definitief ? 1 : 0;
 
-        // Check if evaluatie already exists
+        // Bestaande evaluatie van deze beoordelaar opzoeken
         const [existing] = await db.query(
-            'SELECT * FROM EVALUATIE WHERE stage_id = ? AND type = ? AND beoordelaar_id = ?',
+            'SELECT evaluatie_id, definitief FROM EVALUATIE WHERE stage_id = ? AND type = ? AND beoordelaar_id = ?',
             [stage_id, type, beoordelaar_id]
         );
+
+        // Al definitief ingediend? Dan op slot.
+        if (existing.length > 0 && existing[0].definitief === 1) {
+            return res.status(409).json({ error: 'Deze evaluatie is al definitief ingediend en kan niet meer gewijzigd worden.' });
+        }
 
         let evaluatie_id;
         if (existing.length > 0) {
             evaluatie_id = existing[0].evaluatie_id;
-            // update existing
             await db.query(
-                'UPDATE EVALUATIE SET datum = ? WHERE evaluatie_id = ?',
-                [datum, evaluatie_id]
+                'UPDATE EVALUATIE SET datum = ?, definitief = ? WHERE evaluatie_id = ?',
+                [datum, isDefinitief, evaluatie_id]
             );
         } else {
-            // insert new
             const [result] = await db.query(
-                'INSERT INTO EVALUATIE (stage_id, beoordelaar_id, type, beoordelaar_rol, datum) VALUES (?, ?, ?, ?, ?)',
-                [stage_id, beoordelaar_id, type, beoordelaar_rol, datum]
+                'INSERT INTO EVALUATIE (stage_id, beoordelaar_id, type, beoordelaar_rol, datum, definitief) VALUES (?, ?, ?, ?, ?, ?)',
+                [stage_id, beoordelaar_id, type, beoordelaar_rol, datum, isDefinitief]
             );
             evaluatie_id = result.insertId;
         }
 
-        // Delete old scores for this evaluatie to replace them
+        // Scores vervangen
         await db.query('DELETE FROM EVALUATIE_COMPETENTIE WHERE evaluatie_id = ?', [evaluatie_id]);
-
-        // Insert new scores
         if (scores && scores.length > 0) {
             const values = scores.map(s => [evaluatie_id, s.competentie_id, s.score, s.feedback]);
             await db.query(
@@ -84,7 +86,7 @@ exports.saveEvaluatie = async (req, res) => {
             );
         }
 
-        res.json({ message: definitief ? 'Evaluatie definitief opgeslagen' : 'Concept opgeslagen' });
+        res.json({ message: isDefinitief ? 'Evaluatie definitief opgeslagen' : 'Concept opgeslagen' });
     } catch (err) {
         console.error('Error saving evaluatie:', err);
         res.status(500).json({ error: 'Server error' });
