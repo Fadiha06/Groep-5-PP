@@ -1,12 +1,12 @@
 const express = require('express');
 const router = express.Router();
 const evaluatieController = require('../controllers/evaluatieController');
-const { verifyToken } = require('../middleware/authMiddleware');
+const { verifyToken, requireRole } = require('../middleware/authMiddleware');
 
 router.use(verifyToken);
 
 router.get('/competenties', evaluatieController.getCompetenties);
 router.get('/concept', evaluatieController.getConcept);
-router.post('/opslaan', evaluatieController.saveEvaluatie);
+router.post('/opslaan', requireRole(['docent', 'administrator', 'admin']), evaluatieController.saveEvaluatie);
 
 module.exports = router;

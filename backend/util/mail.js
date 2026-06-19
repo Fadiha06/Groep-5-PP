@@ -15,22 +15,29 @@ nodemailer.createTestAccount().then(account => {
 }).catch(console.error);
 
 const stuurWachtwoordLink = async (naarEmail, link) => {
-    console.log(`[MAIL UITGESCHAKELD] E-mail zou verzonden worden naar: ${naarEmail}`);
-    console.log(`[MAIL UITGESCHAKELD] Inhoud (Wachtwoord link): ${link}`);
-    /*
-    await transporter.sendMail({
-        from: process.env.SMTP_FROM || '"EhB StageTool" <noreply@ehb.be>',
-        to: naarEmail,
-        subject: 'Stel je wachtwoord in — EhB StageTool',
-        html: `
-            <p>Hallo,</p>
-            <p>Er is een account voor je aangemaakt bij de EhB StageTool.</p>
-            <p>Klik op de link om je wachtwoord in te stellen:</p>
-            <p><a href="${link}">Wachtwoord instellen</a></p>
-            <p>Deze link verloopt over 10 minuten.</p>
-        `
-    });
-    */
+    console.log(`Verzenden wachtwoord link naar: ${naarEmail}`);
+    try {
+        if (!transporter) {
+            console.warn('Transporter is nog niet geïnitialiseerd.');
+            return;
+        }
+        const info = await transporter.sendMail({
+            from: process.env.SMTP_FROM || '"EhB StageTool" <noreply@ehb.be>',
+            to: naarEmail,
+            subject: 'Stel je wachtwoord in — EhB StageTool',
+            html: `
+                <p>Hallo,</p>
+                <p>Er is een account voor je aangemaakt bij de EhB StageTool.</p>
+                <p>Klik op de link om je wachtwoord in te stellen:</p>
+                <p><a href="${link}">Wachtwoord instellen</a></p>
+                <p>Deze link verloopt over 10 minuten.</p>
+            `
+        });
+        console.log('Wachtwoord mail succesvol verzonden.');
+        console.log('Mail preview URL: ' + nodemailer.getTestMessageUrl(info));
+    } catch (err) {
+        console.error('Fout bij verzenden wachtwoord mail:', err);
+    }
 };
 const stuurContractLink = async (naarEmail, link) => {
     console.log(`Verzenden contract link naar: ${naarEmail}`);
