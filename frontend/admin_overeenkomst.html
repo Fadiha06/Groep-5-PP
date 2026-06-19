@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link href="https://fonts.googleapis.com/css?family=42dot+Sans&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link href="src/CSS/admin_overeenkomst.css" rel="stylesheet">
   <title>EhB StageTool - Overeenkomst controleren</title>
 </head>
@@ -32,6 +32,17 @@
     <div class="detail-card" id="detail-card">
       <div style="text-align:center;color:#9CA3AF;font-size:13px;padding:40px">Laden...</div>
     </div>
+
+    <template id="signature-template">
+      <div>
+        <div class="section-label" style="margin-bottom:16px">Handtekening — Administrator</div>
+        <p class="sig-instructie">Je tekent hier als verantwoordelijke administrator. Dit gebeurt vóór de overeenkomst naar de student en het bedrijf gaat.</p>
+        <div class="canvas-wrap"><canvas id="sig-canvas"></canvas></div>
+        <div class="canvas-actions">
+          <button class="btn-wis" id="btn-wis-handtekening" type="button">Wissen</button>
+        </div>
+      </div>
+    </template>
 
     <div class="pagination">
       <button class="btn-page" id="btn-vorige">← Vorige</button>

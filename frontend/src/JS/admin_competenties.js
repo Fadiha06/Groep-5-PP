@@ -11,14 +11,14 @@ let volgendTijdelijkId = -1; // negatieve id's voor nieuwe, nog niet opgeslagen 
 async function init() {
   try {
     // Verwacht: GET /api/admin/opleidingen
-    // Response: [{ opleiding_id, naam }]
+    // Response: [naam, ...] (lijst van opleiding-namen)
     opleidingen = await apiFetch('/admin/opleidingen');
 
     const select = document.getElementById('opleiding-select');
-    select.innerHTML = opleidingen.map(o => `<option value="${o.opleiding_id}">Opleiding: ${o.naam}</option>`).join('');
+    select.innerHTML = opleidingen.map(o => `<option value="${o}">Opleiding: ${o}</option>`).join('');
 
     if (opleidingen.length > 0) {
-      actieveOpleidingId = opleidingen[0].opleiding_id;
+      actieveOpleidingId = opleidingen[0];
       select.value = actieveOpleidingId;
       laadCompetenties();
     }
