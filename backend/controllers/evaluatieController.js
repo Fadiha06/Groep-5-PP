@@ -3,8 +3,19 @@ const db = require('../config/db');
 // Get all competenties
 exports.getCompetenties = async (req, res) => {
     try {
-        const [competenties] = await db.query('SELECT * FROM COMPETENTIE');
-        res.json(competenties);
+        const [comps] = await db.query(
+            'SELECT competentie_id, naam, omschrijving FROM COMPETENTIE ORDER BY naam ASC'
+        );
+        const [niveaus] = await db.query(
+            'SELECT competentie_id, punten, omschrijving FROM RUBRIEK ORDER BY punten ASC'
+        );
+        const result = comps.map(c => ({
+            ...c,
+            niveaus: niveaus
+                .filter(n => n.competentie_id === c.competentie_id)
+                .map(n => ({ punten: n.punten, omschrijving: n.omschrijving }))
+        }));
+        res.json(result);
     } catch (err) {
         console.error('Error fetching competenties:', err);
         res.status(500).json({ error: 'Server error' });
@@ -50,13 +61,19 @@ exports.saveEvaluatie = async (req, res) => {
         const datum = new Date();
         const isDefinitief = definitief ? 1 : 0;
 
-        // Bestaande evaluatie van deze beoordelaar opzoeken
+        // Finale evaluatie pas toegestaan nadat de stage is afgelopen
+        if (type === 'finaal') {
+            const [st] = await db.query('SELECT einddatum FROM STAGE WHERE stage_id = ?', [stage_id]);
+            if (st.length && st[0].einddatum && new Date(st[0].einddatum) > new Date()) {
+                return res.status(403).json({ error: 'De finale evaluatie kan pas ingevuld worden nadat de stage is afgelopen.' });
+            }
+        }
+
         const [existing] = await db.query(
             'SELECT evaluatie_id, definitief FROM EVALUATIE WHERE stage_id = ? AND type = ? AND beoordelaar_id = ?',
             [stage_id, type, beoordelaar_id]
         );
 
-        // Al definitief ingediend? Dan op slot.
         if (existing.length > 0 && existing[0].definitief === 1) {
             return res.status(409).json({ error: 'Deze evaluatie is al definitief ingediend en kan niet meer gewijzigd worden.' });
         }
@@ -76,7 +93,6 @@ exports.saveEvaluatie = async (req, res) => {
             evaluatie_id = result.insertId;
         }
 
-        // Scores vervangen
         await db.query('DELETE FROM EVALUATIE_COMPETENTIE WHERE evaluatie_id = ?', [evaluatie_id]);
         if (scores && scores.length > 0) {
             const values = scores.map(s => [evaluatie_id, s.competentie_id, s.score, s.feedback]);

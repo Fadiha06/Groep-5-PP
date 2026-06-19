@@ -1,4 +1,5 @@
 let stageId        = null;
+let eindDatum      = null;
 let evaluatieType  = 'tussentijds';
 let competenties   = [];
 let scores         = {};                       // { [competentie_id]: { score, feedback } }
@@ -8,13 +9,19 @@ const TYPES = [
     { key: 'finaal',      label: 'Finaal' }
 ];
 
+// Fallback als een competentie nog geen rubriek heeft
 const NIVEAUS = [
-    { score: 1, label: 'Onvoldoende', beschrijving: 'Haal het niveau nog niet.' },
-    { score: 2, label: 'Voldoende',   beschrijving: 'Haal het minimale niveau.' },
-    { score: 3, label: 'Goed',        beschrijving: 'Presteer boven het minimum.' },
-    { score: 4, label: 'Uitstekend',  beschrijving: 'Overtref de verwachtingen.' }
+    { punten: 1, omschrijving: 'Onvoldoende' },
+    { punten: 2, omschrijving: 'Voldoende' },
+    { punten: 3, omschrijving: 'Goed' },
+    { punten: 4, omschrijving: 'Uitstekend' }
 ];
-const MAX_PER_COMP = 4;
+
+// Stage geëindigd? (voor de Finaal-blokkering)
+function stageGeeindigd(einddatum) {
+    if (!einddatum) return false;
+    return new Date(einddatum) <= new Date();
+}
 
 document.addEventListener('DOMContentLoaded', () => {
     if (typeof requireAuth === 'function') {
@@ -27,6 +34,7 @@ async function init() {
     try {
         const stage = await apiFetch('/student/stage-info');
         stageId = stage.stage_id;
+        eindDatum = stage.einddatum;
         document.getElementById('stage-titel').textContent =
             `Stage: ${stage.titel || '—'} — beoordeel jezelf per competentie.`;
     } catch (err) {
@@ -46,6 +54,10 @@ function renderTypeTabs() {
 }
 
 function selectType(type) {
+    if (type === 'finaal' && !stageGeeindigd(eindDatum)) {
+        alert('De finale evaluatie is nog niet beschikbaar — die kan pas ingevuld worden nadat de stage is afgelopen.');
+        return;
+    }
     evaluatieType = type;
     scores = {};
     renderTypeTabs();
@@ -89,15 +101,15 @@ function renderCompetenties() {
 
     container.innerHTML = competenties.map(c => {
         const id = c.competentie_id;
+        const niveaus = (c.niveaus && c.niveaus.length) ? c.niveaus : NIVEAUS;
         const huidige = scores[id] || {};
         const huidigeScore = huidige.score ?? null;
 
-        const optiesHtml = NIVEAUS.map(optie => `
-            <div class="optie ${optie.score === huidigeScore ? 'selected' : ''}"
-                 onclick="kiesScore(${id}, ${optie.score})">
-                <div class="optie-ptn">${optie.score}</div>
-                <div class="optie-label">${optie.label}</div>
-                <div class="optie-desc">${optie.beschrijving}</div>
+        const optiesHtml = niveaus.map(optie => `
+            <div class="optie ${optie.punten === huidigeScore ? 'selected' : ''}"
+                 onclick="kiesScore(${id}, ${optie.punten})">
+                <div class="optie-ptn">${optie.punten}</div>
+                <div class="optie-desc">${optie.omschrijving || ''}</div>
             </div>
         `).join('');
 
@@ -116,9 +128,9 @@ function renderCompetenties() {
     updateTotaal();
 }
 
-function kiesScore(id, score) {
+function kiesScore(id, punten) {
     if (!scores[id]) scores[id] = { score: null, feedback: '' };
-    scores[id].score = score;
+    scores[id].score = punten;
     renderCompetenties();
 }
 
@@ -131,9 +143,14 @@ function slaFeedbackOp(id) {
 
 function updateTotaal() {
     let totaal = 0;
-    Object.values(scores).forEach(s => { if (s.score) totaal += s.score; });
-    document.getElementById('totaal').textContent =
-        `Totaal: ${totaal} / ${competenties.length * MAX_PER_COMP}`;
+    let max = 0;
+    competenties.forEach(c => {
+        const niveaus = (c.niveaus && c.niveaus.length) ? c.niveaus : NIVEAUS;
+        const s = scores[c.competentie_id];
+        if (s && s.score) totaal += s.score;
+        max += Math.max(...niveaus.map(n => n.punten));
+    });
+    document.getElementById('totaal').textContent = `Totaal: ${totaal} / ${max}`;
 }
 
 async function opslaan(definitief) {
