@@ -11,7 +11,7 @@ async function loadUsers() {
   }
 }
 
-window.addEventListener('DOMContentLoaded', () => { loadUsers(); loadContracten(); });
+window.addEventListener('DOMContentLoaded', () => { loadUsers(); });
 
 const ROLLEN = ['Student','Docent','Mentor','Stagecommissie','Administrator'];
 
@@ -170,49 +170,6 @@ window.closeModal = closeModal;
 window.createAccount = createAccount;
 window.showConfirm = showConfirm;
 window.closeConfirm = closeConfirm;
-
-async function loadContracten() {
-  try {
-    const data = await apiFetch('/admin/contracten-te-tekenen');
-    const body = document.getElementById('contracten-body');
-    if (!body) return;
-    if (!data || data.length === 0) {
-      body.innerHTML = '<div style="padding:12px;color:#9CA3AF;font-size:14px;">Geen contracten gevonden.</div>';
-      return;
-    }
-    body.innerHTML = data.map(c => {
-      const stStudent = c.student_getekend ? '✓' : '○';
-      const stMentor  = c.mentor_getekend  ? '✓' : '○';
-      const stAdmin   = c.admin_getekend   ? '✓' : '○';
-      const kleurStudent = c.student_getekend ? '#15803D' : '#9CA3AF';
-      const kleurMentor  = c.mentor_getekend  ? '#15803D' : '#9CA3AF';
-      const kleurAdmin   = c.admin_getekend   ? '#15803D' : '#9CA3AF';
-
-      let actie = '';
-      if (c.admin_getekend) {
-        actie = '<span style="color:#15803D;font-weight:600;font-size:13px;">✓ Volledig getekend</span>';
-      } else if (c.student_getekend && c.mentor_getekend) {
-        actie = `<a href="docent_contract.html?id=${c.contract_id}" style="background:#D1193E;color:#fff;padding:7px 14px;border-radius:6px;font-size:13px;font-weight:600;text-decoration:none;">✎ Teken als admin</a>`;
-      } else {
-        actie = '<span style="color:#9CA3AF;font-size:13px;">Wacht op student/mentor</span>';
-      }
-
-      return `<div class="table-row" style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid #F1F5F9;">
-        <div style="flex:2;font-size:14px;font-weight:500;">${c.student_naam}</div>
-        <div style="flex:2;font-size:13px;color:#64748B;">${c.bedrijf_naam}</div>
-        <div style="flex:2;font-size:12px;display:flex;gap:12px;">
-          <span style="color:${kleurStudent}">${stStudent} Student</span>
-          <span style="color:${kleurMentor}">${stMentor} Mentor</span>
-          <span style="color:${kleurAdmin}">${stAdmin} Admin</span>
-        </div>
-        <div style="flex:1;text-align:right;">${actie}</div>
-      </div>`;
-    }).join('');
-  } catch (e) {
-    console.error('Contracten laden mislukt:', e);
-  }
-}
-window.loadContracten = loadContracten;
 
 // ============================================================
 // MENTOR ACCOUNT & KOPPELEN

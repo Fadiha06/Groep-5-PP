@@ -2,6 +2,9 @@ let contractData = null;
 let checklistState = {}; // { [item_id]: boolean } — lokale wijzigingen aan de checklist
 let wachtrij = []; // array van contract_id's, voor Vorige/Volgende navigatie
 let huidigeIndex = -1;
+let sigCtx = null;
+let sigDrawing = false;
+let heeftHandtekening = false;
 
 document.addEventListener('DOMContentLoaded', () => {
   if (!requireAuth('administrator')) return;
@@ -174,31 +177,18 @@ function renderContract() {
     </div>
 
     <div>
-      <div class="section-label" style="margin-bottom:16px">Digitale Handtekening (Administratie)</div>
-      <div style="background:#f9fafb; border:1px solid #e5e7eb; border-radius:8px; padding:16px; margin-bottom:16px;">
-        <div style="font-size:13px; color:#6b7280; margin-bottom:8px;">✎ Teken hieronder met je muis of vinger</div>
-        <div id="admin-canvas-wrap" style="width:100%; max-width:600px; height:150px; background:#fff; border:1px dashed #d1d5db; border-radius:6px; overflow:hidden;">
-            <canvas id="admin-sig-canvas"></canvas>
-        </div>
-        <div style="display:flex; gap:10px; margin-top:12px;" id="admin-sign-actions">
-            <button onclick="wisAdminHandtekening()" style="padding:6px 12px; background:#f3f4f6; border:1px solid #d1d5db; border-radius:4px; cursor:pointer;">Wissen</button>
-            <button onclick="bevestigAdminHandtekening()" style="padding:6px 12px; background:#2563eb; color:#fff; border:none; border-radius:4px; cursor:pointer;">Bevestigen</button>
-        </div>
-        <div id="admin-sign-confirmed" style="display:none; color:#15803d; font-weight:600; margin-top:10px;">✓ Handtekening bevestigd</div>
-      </div>
-    </div>
-
-    <div>
       <div class="section-label" style="margin-bottom:16px">Commentaar / Opmerkingen</div>
       <textarea class="comment-box" id="opmerking" placeholder="Voeg een juridische opmerking toe voor de dossierhouder of student... (bijv: 'Verzekeringsattest ontbreekt nog')">${c.opmerking || ''}</textarea>
     </div>
 
+    ${c.handtekeningen.instelling.status !== 'aanwezig' ? document.getElementById('signature-template').innerHTML : ''}
+
     <div class="detail-footer">
-      <div class="footer-note">Alle <strong>verplichte</strong> punten moeten aangevinkt zijn voor goedkeuring.</div>
+      <div class="footer-note">Alle <strong>verplichte</strong> punten moeten aangevinkt zijn, en je handtekening geplaatst, voor goedkeuring.</div>
       <div class="footer-actions">
         <button class="btn-opslaan" id="btn-opslaan" onclick="opslaan()">Opslaan</button>
         <button class="btn-afwijzen" id="btn-afwijzen" onclick="afwijzen()">Afwijzen</button>
-        <button class="btn-goedkeuren" id="btn-goedkeuren" onclick="goedkeurenEnVerzenden()" ${allesOk ? '' : 'disabled'}>Goedkeuren & verzenden</button>
+        <button class="btn-goedkeuren" id="btn-goedkeuren" onclick="goedkeurenEnVerzenden()" ${allesOk ? '' : 'disabled'}>Goedkeuren, tekenen & verzenden</button>
       </div>
     </div>
   `;
@@ -215,8 +205,42 @@ function renderContract() {
     }
   });
 
-  // Initialiseer canvas voor de administratie handtekening
-  initAdminCanvas();
+  if (c.handtekeningen.instelling.status !== 'aanwezig') {
+    initSignaturePad();
+  }
+}
+
+// ============================================================
+// Handtekening (canvas)
+// ============================================================
+function initSignaturePad() {
+  heeftHandtekening = false;
+  const canvas = document.getElementById('sig-canvas');
+  sigCtx = canvas.getContext('2d');
+
+  function resizeCanvas() {
+    const ratio = window.devicePixelRatio || 1;
+    const w = canvas.clientWidth, h = 160;
+    canvas.width = w * ratio; canvas.height = h * ratio;
+    sigCtx.scale(ratio, ratio);
+    sigCtx.strokeStyle = '#1E40AF'; sigCtx.lineWidth = 2; sigCtx.lineCap = 'round'; sigCtx.lineJoin = 'round';
+  }
+  resizeCanvas();
+
+  function getPos(e) {
+    const r = canvas.getBoundingClientRect();
+    const s = e.touches ? e.touches[0] : e;
+    return { x: s.clientX - r.left, y: s.clientY - r.top };
+  }
+  canvas.addEventListener('mousedown', e => { sigDrawing = true; const p = getPos(e); sigCtx.beginPath(); sigCtx.moveTo(p.x, p.y); });
+  canvas.addEventListener('mousemove', e => { if (!sigDrawing) return; const p = getPos(e); sigCtx.lineTo(p.x, p.y); sigCtx.stroke(); heeftHandtekening = true; });
+  canvas.addEventListener('mouseup', () => sigDrawing = false);
+  canvas.addEventListener('mouseleave', () => sigDrawing = false);
+  canvas.addEventListener('touchstart', e => { e.preventDefault(); sigDrawing = true; const p = getPos(e); sigCtx.beginPath(); sigCtx.moveTo(p.x, p.y); }, { passive: false });
+  canvas.addEventListener('touchmove', e => { e.preventDefault(); if (!sigDrawing) return; const p = getPos(e); sigCtx.lineTo(p.x, p.y); sigCtx.stroke(); heeftHandtekening = true; }, { passive: false });
+  canvas.addEventListener('touchend', () => sigDrawing = false);
+
+  document.getElementById('btn-wis-handtekening').addEventListener('click', () => { resizeCanvas(); heeftHandtekening = false; });
 }
 
 function renderSignature(label, sig) {
@@ -332,8 +356,10 @@ async function goedkeurenEnVerzenden() {
     alert('Alle verplichte punten moeten aangevinkt zijn voordat je kan goedkeuren.');
     return;
   }
-  if (!adminSigConfirmed) {
-    alert('Bevestig eerst de digitale handtekening (Administratie) voordat je kan verzenden.');
+
+  const moetTekenen = contractData.handtekeningen.instelling.status !== 'aanwezig';
+  if (moetTekenen && !heeftHandtekening) {
+    alert('Plaats eerst je handtekening voordat je kan goedkeuren.');
     return;
   }
 
@@ -343,6 +369,9 @@ async function goedkeurenEnVerzenden() {
 
   try {
     const payload = buildPayload();
+    if (moetTekenen) {
+      payload.signature = document.getElementById('sig-canvas').toDataURL('image/png');
+    }
 
     // Verwacht: POST /api/admin/contracten/:id/goedkeuren
     await apiFetch(`/admin/contracten/${contractData.contract_id}/goedkeuren`, {
@@ -350,12 +379,12 @@ async function goedkeurenEnVerzenden() {
       body: JSON.stringify(payload)
     });
 
-    alert('Overeenkomst goedgekeurd en verzonden naar mentor.');
+    alert('Overeenkomst goedgekeurd, getekend en verzonden naar student en bedrijf.');
     terugNaarDashboardOfVolgende();
   } catch (err) {
     alert(err.message || 'Kon niet goedkeuren.');
     btn.disabled = false;
-    btn.textContent = 'Goedkeuren & verzenden';
+    btn.textContent = 'Goedkeuren, tekenen & verzenden';
   }
 }
 
@@ -365,8 +394,7 @@ function buildPayload() {
       item_id: Number(item_id),
       afgevinkt
     })),
-    opmerking: document.getElementById('opmerking').value,
-    signature: adminCanvas ? adminCanvas.toDataURL('image/png') : null
+    opmerking: document.getElementById('opmerking').value
   };
 }
 
@@ -412,56 +440,4 @@ function formatContractStatus(status) {
     verzonden: 'Verzonden'
   };
   return map[status] || status;
-}
-
-// ============================================================
-// CANVAS HANDTEKENING LOGICA
-// ============================================================
-let adminCanvas, adminCtx;
-let adminDrawing = false, adminHasSig = false, adminSigConfirmed = false;
-
-function initAdminCanvas() {
-    adminCanvas = document.getElementById('admin-sig-canvas');
-    if (!adminCanvas) return;
-    adminCtx = adminCanvas.getContext('2d');
-    
-    function resize() {
-        const wrap = document.getElementById('admin-canvas-wrap');
-        const ratio = window.devicePixelRatio || 1;
-        const w = wrap.clientWidth, h = 150;
-        adminCanvas.width = w * ratio; adminCanvas.height = h * ratio;
-        adminCanvas.style.width = w + 'px'; adminCanvas.style.height = h + 'px';
-        adminCtx.scale(ratio, ratio);
-        adminCtx.strokeStyle = '#1E40AF'; adminCtx.lineWidth = 2; adminCtx.lineCap = 'round'; adminCtx.lineJoin = 'round';
-    }
-    resize();
-    window.addEventListener('resize', resize);
-
-    function getPos(e) {
-        const r = adminCanvas.getBoundingClientRect();
-        const s = e.touches ? e.touches[0] : e;
-        return { x: s.clientX - r.left, y: s.clientY - r.top };
-    }
-    adminCanvas.addEventListener('mousedown', e => { adminDrawing = true; const p = getPos(e); adminCtx.beginPath(); adminCtx.moveTo(p.x, p.y); });
-    adminCanvas.addEventListener('mousemove', e => { if (!adminDrawing) return; const p = getPos(e); adminCtx.lineTo(p.x, p.y); adminCtx.stroke(); adminHasSig = true; });
-    adminCanvas.addEventListener('mouseup', () => adminDrawing = false);
-    adminCanvas.addEventListener('mouseleave', () => adminDrawing = false);
-    adminCanvas.addEventListener('touchstart', e => { e.preventDefault(); adminDrawing = true; const p = getPos(e); adminCtx.beginPath(); adminCtx.moveTo(p.x, p.y); }, { passive: false });
-    adminCanvas.addEventListener('touchmove', e => { e.preventDefault(); if (!adminDrawing) return; const p = getPos(e); adminCtx.lineTo(p.x, p.y); adminCtx.stroke(); adminHasSig = true; }, { passive: false });
-    adminCanvas.addEventListener('touchend', () => adminDrawing = false);
-}
-
-window.wisAdminHandtekening = function() {
-    if (!adminCanvas) return;
-    const ratio = window.devicePixelRatio || 1;
-    adminCtx.clearRect(0, 0, adminCanvas.width / ratio, adminCanvas.height / ratio);
-    adminHasSig = false;
-    adminSigConfirmed = false;
-    document.getElementById('admin-sign-confirmed').style.display = 'none';
-}
-
-window.bevestigAdminHandtekening = function() {
-    if (!adminHasSig) { alert('Teken eerst een handtekening voordat je bevestigt.'); return; }
-    adminSigConfirmed = true;
-    document.getElementById('admin-sign-confirmed').style.display = 'block';
 }
