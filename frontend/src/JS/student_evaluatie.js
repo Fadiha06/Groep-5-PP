@@ -1,13 +1,14 @@
 // ============================================================
-//  evaluaties.js  (student)
-//  Combineert: eigen zelfevaluatie invullen + ontvangen evaluaties bekijken.
+//  evaluaties.js (student)
+//  Eigen zelfevaluatie + ontvangen evaluaties.
+//  Open/dicht wordt volledig bepaald door de docent-planning.
 // ============================================================
 
 let huidigType   = 'tussentijds';
 let stageId      = null;
-let eindDatum    = null;
+let planning     = { tussentijds_vanaf: null, finaal_vanaf: null };
 let competenties = [];
-let scores       = {};      // { [competentie_id]: { score, feedback } }
+let scores       = {};
 let zelfDefinitief = false;
 
 const NIVEAUS = [
@@ -17,9 +18,10 @@ const NIVEAUS = [
     { punten: 4, omschrijving: 'Uitstekend' }
 ];
 
-function stageGeeindigd(d) {
-    if (!d) return false;
-    return new Date(d) <= new Date();
+function evaluatieOpen(type) {
+    const vanaf = type === 'finaal' ? planning.finaal_vanaf : planning.tussentijds_vanaf;
+    if (!vanaf) return false;
+    return new Date(vanaf) <= new Date();
 }
 
 document.addEventListener('DOMContentLoaded', async () => {
@@ -29,16 +31,24 @@ document.addEventListener('DOMContentLoaded', async () => {
     try {
         const stage = await apiFetch('/student/stage-info');
         stageId = stage.stage_id;
-        eindDatum = stage.einddatum;
-    } catch (_) {
-        // geen stage — zelfevaluatie blijft uit, ontvangen kan leeg zijn
-    }
+        try {
+            planning = await apiFetch(`/evaluatie/planning?stage_id=${stageId}`);
+        } catch (_) { /* geen planning */ }
+    } catch (_) { /* geen stage */ }
+    updateTabs();
     laadAlles();
 });
 
+function updateTabs() {
+    const tt = document.getElementById('tab-tussentijds');
+    const tf = document.getElementById('tab-finaal');
+    if (tt) tt.textContent = 'Tussentijdse evaluatie' + (evaluatieOpen('tussentijds') ? '' : ' 🔒');
+    if (tf) tf.textContent = 'Finale evaluatie' + (evaluatieOpen('finaal') ? '' : ' 🔒');
+}
+
 function switchTab(type) {
-    if (type === 'finaal' && !stageGeeindigd(eindDatum)) {
-        alert('De finale evaluatie is nog niet beschikbaar — die kan pas ingevuld worden nadat de stage is afgelopen.');
+    if (!evaluatieOpen(type)) {
+        alert(`De ${type === 'finaal' ? 'finale' : 'tussentijdse'} evaluatie is nog niet opengesteld door de docent.`);
         return;
     }
     huidigType = type;
@@ -53,7 +63,6 @@ async function laadAlles() {
     updateSelfStatus();
 }
 
-// ── Zelfevaluatie: formdata ─────────────────────────────────
 async function laadFormData() {
     scores = {};
     zelfDefinitief = false;
@@ -64,17 +73,11 @@ async function laadFormData() {
         try {
             const concept = await apiFetch(`/evaluatie/concept?stage_id=${stageId}&type=${huidigType}`);
             if (concept && Array.isArray(concept.scores)) {
-                concept.scores.forEach(s => {
-                    scores[s.competentie_id] = { score: s.score, feedback: s.feedback || '' };
-                });
+                concept.scores.forEach(s => { scores[s.competentie_id] = { score: s.score, feedback: s.feedback || '' }; });
             }
-            if (concept && concept.evaluatie && concept.evaluatie.definitief === 1) {
-                zelfDefinitief = true;
-            }
+            if (concept && concept.evaluatie && concept.evaluatie.definitief === 1) zelfDefinitief = true;
         } catch (_) { /* geen concept */ }
-    } catch (_) {
-        competenties = [];
-    }
+    } catch (_) { competenties = []; }
 }
 
 function updateSelfStatus() {
@@ -86,8 +89,8 @@ function updateSelfStatus() {
         toggle.disabled = true;
         return;
     }
-    if (huidigType === 'finaal' && !stageGeeindigd(eindDatum)) {
-        status.textContent = 'De finale zelfevaluatie kan pas na afloop van de stage.';
+    if (!evaluatieOpen(huidigType)) {
+        status.textContent = `De ${huidigType === 'finaal' ? 'finale' : 'tussentijdse'} evaluatie is nog niet opengesteld door de docent. 🔒`;
         toggle.disabled = true;
         return;
     }
@@ -99,11 +102,15 @@ function updateSelfStatus() {
     } else if (ingevuld > 0) {
         status.textContent = `Concept opgeslagen — ${ingevuld} competentie(s) ingevuld.`;
     } else {
-        status.textContent = `Nog niet ingevuld voor de ${huidigType === 'finaal' ? 'finale' : 'tussentijdse'} evaluatie.`;
+        status.textContent = `Open — nog niet ingevuld voor de ${huidigType === 'finaal' ? 'finale' : 'tussentijdse'} evaluatie.`;
     }
 }
 
 function toggleForm() {
+    if (!evaluatieOpen(huidigType)) {
+        alert('Deze evaluatie is nog niet opengesteld door de docent.');
+        return;
+    }
     const form = document.getElementById('self-form');
     if (form.classList.contains('hidden')) {
         renderForm();
@@ -171,22 +178,17 @@ function updateTotaal() {
 
 async function opslaanZelf(definitief) {
     if (!stageId) { alert('Geen stage gevonden.'); return; }
+    if (!evaluatieOpen(huidigType)) { alert('Deze evaluatie is nog niet opengesteld door de docent.'); return; }
+
     const lijst = Object.entries(scores)
         .filter(([, d]) => d.score !== null && d.score !== undefined)
-        .map(([competentie_id, d]) => ({
-            competentie_id: Number(competentie_id),
-            score: d.score,
-            feedback: d.feedback || ''
-        }));
+        .map(([competentie_id, d]) => ({ competentie_id: Number(competentie_id), score: d.score, feedback: d.feedback || '' }));
 
     if (definitief && lijst.length < competenties.length) {
         alert('Beoordeel eerst alle competenties voordat je definitief indient.');
         return;
     }
-    if (lijst.length === 0) {
-        alert('Er zijn nog geen scores om op te slaan.');
-        return;
-    }
+    if (lijst.length === 0) { alert('Er zijn nog geen scores om op te slaan.'); return; }
 
     try {
         await apiFetch('/evaluatie/opslaan', {
@@ -207,22 +209,18 @@ function rolLabel(rol) {
     if (rol === 'student') return 'Jij — zelfevaluatie';
     return 'Stagementor';
 }
-
 function rolAvatar(rol) {
     if (rol === 'docent') return 'avatar-blauw';
     if (rol === 'student') return 'avatar-groen';
     return 'avatar-grijs';
 }
-
 function initialen(naam) {
     return (naam || '?').split(' ').filter(Boolean).slice(0, 2).map(w => w[0]).join('').toUpperCase();
 }
-
 function formatDatum(d) {
     if (!d) return '';
     return new Date(d).toLocaleDateString('nl-BE', { day: 'numeric', month: 'long', year: 'numeric' });
 }
-
 function scoreKlasse(score) {
     if (score >= 4) return 'score-5';
     if (score >= 2) return 'score-2';
@@ -245,20 +243,12 @@ function renderOntvangen(data, container) {
         container.innerHTML = `<div class="eval-card"><div class="eval-body placeholder">Nog geen ${huidigType === 'finaal' ? 'finale' : 'tussentijdse'} evaluatie ontvangen.</div></div>`;
         return;
     }
-
     const aantalComp = data.competenties ? data.competenties.length : 0;
     const metrics = `
         <div class="metrics">
-            <div class="metric-card">
-                <div class="metric-label">Evaluaties ontvangen</div>
-                <div class="metric-value">${data.evaluaties.length}</div>
-            </div>
-            <div class="metric-card">
-                <div class="metric-label">Competenties beoordeeld</div>
-                <div class="metric-value">${aantalComp}</div>
-            </div>
+            <div class="metric-card"><div class="metric-label">Evaluaties ontvangen</div><div class="metric-value">${data.evaluaties.length}</div></div>
+            <div class="metric-card"><div class="metric-label">Competenties beoordeeld</div><div class="metric-value">${aantalComp}</div></div>
         </div>`;
-
     const kaarten = data.evaluaties.map(e => {
         const compRijen = (data.competenties || [])
             .filter(c => c.beoordelaar_rol === e.beoordelaar_rol)
@@ -268,12 +258,9 @@ function renderOntvangen(data, container) {
                         <div class="comp-naam">${c.competentie_naam}</div>
                         ${c.commentaar ? `<div class="comp-comment">"${c.commentaar}"</div>` : ''}
                     </div>
-                    <div class="comp-score-wrap">
-                        <div class="comp-score ${scoreKlasse(c.score)}">${c.score}</div>
-                    </div>
+                    <div class="comp-score-wrap"><div class="comp-score ${scoreKlasse(c.score)}">${c.score}</div></div>
                 </div>
             `).join('');
-
         return `
             <div class="eval-card">
                 <div class="eval-header">
@@ -293,6 +280,5 @@ function renderOntvangen(data, container) {
             </div>
         `;
     }).join('');
-
     container.innerHTML = metrics + kaarten;
 }

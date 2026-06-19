@@ -1,6 +1,7 @@
 // ============================================================
 //  mentor_evaluaties.js
-//  Laadt stagiairs, competenties en slaat evaluaties op
+//  Laadt stagiairs, competenties en slaat evaluaties op.
+//  Open/dicht wordt bepaald door de docent-planning (niet de einddatum).
 // ============================================================
 
 let huidigStudent   = null;
@@ -8,11 +9,13 @@ let scores          = {};
 let competenties    = [];
 let alleStudenten   = [];
 let evaluatieType   = 'tussentijds';
+let planning        = { tussentijds_vanaf: null, finaal_vanaf: null };
 
-// Stage geëindigd? (voor de Finaal-blokkering)
-function stageGeeindigd(einddatum) {
-    if (!einddatum) return false;
-    return new Date(einddatum) <= new Date();
+// Is dit evaluatietype opengesteld door de docent?
+function evaluatieOpen(type) {
+    const vanaf = type === 'finaal' ? planning.finaal_vanaf : planning.tussentijds_vanaf;
+    if (!vanaf) return false;
+    return new Date(vanaf) <= new Date();
 }
 
 // ── Init ────────────────────────────────────────────────────
@@ -26,7 +29,6 @@ document.addEventListener('DOMContentLoaded', () => {
 // ── 1. Studenten ophalen ─────────────────────────────────────
 async function laadStudenten() {
     verbergError();
-
     try {
         const data = await apiFetch('/mentor/studenten');
         alleStudenten = Array.isArray(data) ? data : [];
@@ -77,12 +79,10 @@ async function selecteerStudent(id) {
     huidigStudent = student;
     scores        = {};
 
-    // Actieve knop markeren
     document.querySelectorAll('.student-select-btn').forEach(b => b.classList.remove('active'));
     const btn = document.getElementById(`student-btn-${id}`);
     if (btn) btn.classList.add('active');
 
-    // Student info invullen
     const naam      = student.studentnaam  || student.naam    || '—';
     const bedrijf   = student.bedrijfsnaam || student.bedrijf || '—';
     const opleiding = student.opleiding    || '';
@@ -93,12 +93,31 @@ async function selecteerStudent(id) {
     const avatar = document.getElementById('student-avatar');
     if (avatar) avatar.textContent = naam.charAt(0).toUpperCase();
 
-    // Detail card tonen
     const detail = document.getElementById('evaluatie-detail');
     if (detail) detail.classList.remove('hidden');
 
-    // Competenties laden
+    // Planning van deze student ophalen → bepaalt open/dicht
+    await laadPlanning();
+    updateEvalTabs();
+
     await laadCompetenties();
+}
+
+// ── Planning ophalen ────────────────────────────────────────
+async function laadPlanning() {
+    const stageId = huidigStudent.stage_id || huidigStudent.id;
+    try {
+        planning = await apiFetch(`/evaluatie/planning?stage_id=${stageId}`);
+    } catch (_) {
+        planning = { tussentijds_vanaf: null, finaal_vanaf: null };
+    }
+}
+
+// Tabs visueel op slot zetten (🔒) als de docent het nog niet opengesteld heeft
+function updateEvalTabs() {
+    const tabs = document.querySelectorAll('.eval-tab');
+    if (tabs[0]) tabs[0].innerHTML = `📊 Tussentijds${evaluatieOpen('tussentijds') ? '' : ' 🔒'}`;
+    if (tabs[1]) tabs[1].innerHTML = `🎯 Eindevaluatie${evaluatieOpen('finaal') ? '' : ' 🔒'}`;
 }
 
 // ── 4. Competenties ophalen ────────────────────────────────────
@@ -118,20 +137,14 @@ async function laadCompetenties() {
         const data    = await apiFetch(`/evaluatie/competenties?stage_id=${stageId}&type=${evaluatieType}`);
         competenties  = Array.isArray(data) ? data : [];
 
-        // Probeer bestaand concept laden
         try {
             const concept = await apiFetch(`/evaluatie/concept?stage_id=${stageId}&type=${evaluatieType}`);
             if (concept && concept.scores) {
                 concept.scores.forEach(s => {
-                    scores[s.competentie_id] = {
-                        score:    s.score,
-                        feedback: s.feedback || ''
-                    };
+                    scores[s.competentie_id] = { score: s.score, feedback: s.feedback || '' };
                 });
             }
-        } catch (_) {
-            // Geen concept – geen probleem
-        }
+        } catch (_) { /* geen concept */ }
 
         toonCompetenties(competenties);
         updateTotaalScore();
@@ -217,19 +230,16 @@ function toonCompetenties(lijst) {
 async function wisselType(type, tabEl) {
     if (type === evaluatieType) return;
 
-    // Finale evaluatie pas beschikbaar nadat de stage is afgelopen
-    if (type === 'finaal' && huidigStudent && !stageGeeindigd(huidigStudent.einddatum)) {
-        alert('De finale evaluatie is nog niet beschikbaar — die kan pas ingevuld worden nadat de stage is afgelopen.');
+    if (!evaluatieOpen(type)) {
+        alert(`De ${type === 'finaal' ? 'finale' : 'tussentijdse'} evaluatie is nog niet opengesteld door de docent.`);
         return;
     }
 
     evaluatieType = type;
 
-    // Tabs visueel bijwerken
     document.querySelectorAll('.eval-tab').forEach(t => t.classList.remove('active'));
     if (tabEl) tabEl.classList.add('active');
 
-    // Scores resetten en heropladen
     scores = {};
     if (huidigStudent) await laadCompetenties();
 }
@@ -291,6 +301,11 @@ async function slaEvaluatieOp() {
 async function verstuurEvaluatie(definitief) {
     if (!huidigStudent) return;
 
+    if (!evaluatieOpen(evaluatieType)) {
+        alert('Deze evaluatie is nog niet opengesteld door de docent.');
+        return;
+    }
+
     const stageId = huidigStudent.stage_id || huidigStudent.id;
 
     const payload = {
@@ -315,7 +330,6 @@ async function verstuurEvaluatie(definitief) {
                 ? 'Evaluatie definitief opgeslagen en verzonden naar de docent.'
                 : 'Concept opgeslagen. Je kan verder aanvullen.'
         );
-
     } catch (err) {
         console.error('Opslaan mislukt:', err);
         alert(`Fout bij opslaan: ${err.message}`);

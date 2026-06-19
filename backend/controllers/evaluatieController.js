@@ -1,6 +1,6 @@
 const db = require('../config/db');
 
-// Get all competenties
+// Get all competenties (met rubriek-niveaus)
 exports.getCompetenties = async (req, res) => {
     try {
         const [comps] = await db.query(
@@ -22,7 +22,25 @@ exports.getCompetenties = async (req, res) => {
     }
 };
 
-// Get concept evaluatie for a given stage and type
+// Planning van een stage (door de docent ingesteld) — leesbaar voor student/mentor/docent
+exports.getPlanning = async (req, res) => {
+    const { stage_id } = req.query;
+    if (!stage_id) return res.status(400).json({ error: 'stage_id is verplicht' });
+    try {
+        const [rows] = await db.query(
+            `SELECT DATE_FORMAT(eval_tussentijds_vanaf, '%Y-%m-%d') AS tussentijds_vanaf,
+                    DATE_FORMAT(eval_finaal_vanaf, '%Y-%m-%d') AS finaal_vanaf
+             FROM STAGE WHERE stage_id = ?`,
+            [stage_id]
+        );
+        res.json(rows[0] || { tussentijds_vanaf: null, finaal_vanaf: null });
+    } catch (err) {
+        console.error('Error fetching planning:', err);
+        res.status(500).json({ error: 'Server error' });
+    }
+};
+
+// Concept evaluatie voor een stage + type (eigen evaluatie van de ingelogde beoordelaar)
 exports.getConcept = async (req, res) => {
     try {
         const { stage_id, type } = req.query;
@@ -42,17 +60,14 @@ exports.getConcept = async (req, res) => {
             [evaluatie_id]
         );
 
-        res.json({
-            evaluatie: evaluaties[0],
-            scores: scores
-        });
+        res.json({ evaluatie: evaluaties[0], scores });
     } catch (err) {
         console.error('Error fetching concept evaluatie:', err);
         res.status(500).json({ error: 'Server error' });
     }
 };
 
-// Save evaluatie (concept or final)
+// Evaluatie opslaan (concept of definitief)
 exports.saveEvaluatie = async (req, res) => {
     try {
         const { stage_id, type, definitief, scores } = req.body;
@@ -61,12 +76,17 @@ exports.saveEvaluatie = async (req, res) => {
         const datum = new Date();
         const isDefinitief = definitief ? 1 : 0;
 
-        // Finale evaluatie pas toegestaan nadat de stage is afgelopen
-        if (type === 'finaal') {
-            const [st] = await db.query('SELECT einddatum FROM STAGE WHERE stage_id = ?', [stage_id]);
-            if (st.length && st[0].einddatum && new Date(st[0].einddatum) > new Date()) {
-                return res.status(403).json({ error: 'De finale evaluatie kan pas ingevuld worden nadat de stage is afgelopen.' });
-            }
+        // Alleen open vanaf de door de docent ingestelde datum. Geen datum = dicht.
+        const [stRows] = await db.query(
+            'SELECT eval_tussentijds_vanaf, eval_finaal_vanaf FROM STAGE WHERE stage_id = ?',
+            [stage_id]
+        );
+        const planning = stRows[0] || {};
+        const vanaf = type === 'finaal' ? planning.eval_finaal_vanaf : planning.eval_tussentijds_vanaf;
+        if (!vanaf || new Date(vanaf) > new Date()) {
+            return res.status(403).json({
+                error: `De ${type === 'finaal' ? 'finale' : 'tussentijdse'} evaluatie is nog niet opengesteld door de docent.`
+            });
         }
 
         const [existing] = await db.query(

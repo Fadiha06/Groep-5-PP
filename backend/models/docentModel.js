@@ -217,7 +217,6 @@ const getActieveStagesMetLogboek = async (docentId) => {
 
 // Todo's voor de docent: nog te tekenen contracten + net ingediende logboeken
 const getTodos = async (docentId) => {
-    // Contracten die de docent nog moet tekenen
     const [contracten] = await pool.query(
         `SELECT g.naam AS student
          FROM CONTRACT c
@@ -229,7 +228,6 @@ const getTodos = async (docentId) => {
         [docentId]
     );
 
-    // Actieve stages zonder tussentijdse evaluatie van deze docent
     const [evaluaties] = await pool.query(
         `SELECT g.naam AS student
          FROM STAGE st
@@ -312,6 +310,24 @@ const getEvaluatieVergelijking = async (stageId, type) => {
     });
 };
 
+// Evaluatieplanning per stage (door de docent ingesteld)
+const getEvaluatiePlanning = async (stageId) => {
+    const [rows] = await pool.query(
+        `SELECT DATE_FORMAT(eval_tussentijds_vanaf, '%Y-%m-%d') AS tussentijds_vanaf,
+                DATE_FORMAT(eval_finaal_vanaf, '%Y-%m-%d') AS finaal_vanaf
+         FROM STAGE WHERE stage_id = ?`,
+        [stageId]
+    );
+    return rows[0] || { tussentijds_vanaf: null, finaal_vanaf: null };
+};
+
+const setEvaluatiePlanning = async (stageId, tussentijds, finaal) => {
+    await pool.query(
+        'UPDATE STAGE SET eval_tussentijds_vanaf = ?, eval_finaal_vanaf = ? WHERE stage_id = ?',
+        [tussentijds || null, finaal || null, stageId]
+    );
+};
+
 module.exports = {
     getDocent,
     getStudentenMetLogboekStatus,
@@ -327,5 +343,7 @@ module.exports = {
     getActieveStagesMetLogboek,
     getTodos,
     getPuntenAggregatie,
-    getEvaluatieVergelijking
+    getEvaluatieVergelijking,
+    getEvaluatiePlanning,
+    setEvaluatiePlanning
 };

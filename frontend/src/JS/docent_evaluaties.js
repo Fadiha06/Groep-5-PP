@@ -3,18 +3,30 @@ let actieveStageId  = null;
 let evaluatieType   = 'tussentijds';
 let vergelijking    = [];
 let scores          = {};      // { [competentie_id]: { score, feedback } }
+let planning        = { tussentijds_vanaf: null, finaal_vanaf: null };
 
 const TYPES = [
     { key: 'tussentijds', label: 'Tussentijds' },
     { key: 'finaal',      label: 'Finaal' }
 ];
 
-// Fallback als een competentie (nog) geen rubriek heeft
 const STANDAARD_NIVEAUS = [
     { punten: 1, omschrijving: 'Onvoldoende' },
     { punten: 3, omschrijving: 'Goed' },
     { punten: 5, omschrijving: 'Uitstekend' }
 ];
+
+// Is dit evaluatietype opengesteld (datum gezet én bereikt)?
+function evaluatieOpen(type) {
+    const vanaf = type === 'finaal' ? planning.finaal_vanaf : planning.tussentijds_vanaf;
+    if (!vanaf) return false;
+    return new Date(vanaf) <= new Date();
+}
+
+function formatDatum(d) {
+    if (!d) return null;
+    return new Date(d).toLocaleDateString('nl-BE', { day: 'numeric', month: 'long', year: 'numeric' });
+}
 
 document.addEventListener('DOMContentLoaded', () => {
     if (typeof requireAuth === 'function') {
@@ -23,11 +35,17 @@ document.addEventListener('DOMContentLoaded', () => {
     laadStudenten();
 });
 
-// ── 1. Studenten ────────────────────────────────────────────
+// ── 1. Studenten (incl. afgelopen stages via /docent/dossiers) ──
 async function laadStudenten() {
     try {
-        const data = await apiFetch('/docent/studenten');
-        studentenData = Array.isArray(data.studenten) ? data.studenten : [];
+        const data = await apiFetch('/docent/dossiers');
+        const ruw = Array.isArray(data.studenten) ? data.studenten : [];
+        const gezien = new Set();
+        studentenData = ruw.filter(s => {
+            if (gezien.has(s.stage_id)) return false;
+            gezien.add(s.stage_id);
+            return true;
+        });
         renderStudentList();
         if (studentenData.length > 0) {
             selectStudent(studentenData[0].stage_id);
@@ -42,59 +60,104 @@ async function laadStudenten() {
     }
 }
 
+function studentNaam(s) { return s.student || s.student_naam || s.naam || '—'; }
+function studentBedrijf(s) { return s.bedrijf || s.bedrijf_naam || ''; }
+
 function renderStudentList() {
     const container = document.getElementById('student-items');
     container.innerHTML = studentenData.map(s => {
-        const naam = s.student || s.naam || '—';
+        const naam = studentNaam(s);
         const isActief = s.stage_id === actieveStageId;
         return `
         <div class="student-item ${isActief ? 'active' : ''}" onclick="selectStudent(${s.stage_id})">
             <div class="avatar ${isActief ? 'active' : ''}">${naam.charAt(0).toUpperCase()}</div>
             <div>
                 <div class="student-naam">${naam}</div>
-                <div class="student-meta">${s.bedrijf || ''}</div>
+                <div class="student-meta">${studentBedrijf(s)}</div>
             </div>
         </div>`;
     }).join('');
 }
 
 // ── 2. Student selecteren ───────────────────────────────────
-function selectStudent(stageId) {
+async function selectStudent(stageId) {
     actieveStageId = stageId;
     scores = {};
     renderStudentList();
-    renderTypeTabs();
 
     const s = studentenData.find(x => x.stage_id === stageId);
     if (s) {
-        document.getElementById('eval-titel').textContent =
-            `Samengebrachte score — ${s.student || s.naam || ''}`;
+        document.getElementById('eval-titel').textContent = `Samengebrachte score — ${studentNaam(s)}`;
     }
+
+    await laadPlanning();
+    renderTypeTabs();
     laadVergelijking();
 }
 
-// ── 3. Type-tabs ────────────────────────────────────────────
+// ── 3. Planning ─────────────────────────────────────────────
+async function laadPlanning() {
+    try {
+        planning = await apiFetch(`/docent/evaluatie-planning?stage_id=${actieveStageId}`);
+    } catch (_) {
+        planning = { tussentijds_vanaf: null, finaal_vanaf: null };
+    }
+    document.getElementById('plan-tussentijds').value = planning.tussentijds_vanaf || '';
+    document.getElementById('plan-finaal').value = planning.finaal_vanaf || '';
+    updatePlanningSub();
+}
+
+function updatePlanningSub() {
+    const t = planning.tussentijds_vanaf ? `vanaf ${formatDatum(planning.tussentijds_vanaf)}` : 'nog niet gepland';
+    const f = planning.finaal_vanaf ? `vanaf ${formatDatum(planning.finaal_vanaf)}` : 'nog niet gepland';
+    document.getElementById('planning-sub').textContent = `Tussentijds: ${t}  ·  Eindevaluatie: ${f}`;
+}
+
+async function opslaanPlanning() {
+    if (!actieveStageId) { alert('Selecteer eerst een student.'); return; }
+    const tussentijds_vanaf = document.getElementById('plan-tussentijds').value || null;
+    const finaal_vanaf = document.getElementById('plan-finaal').value || null;
+    try {
+        await apiFetch('/docent/evaluatie-planning', {
+            method: 'PUT',
+            body: JSON.stringify({ stage_id: actieveStageId, tussentijds_vanaf, finaal_vanaf })
+        });
+        planning = { tussentijds_vanaf, finaal_vanaf };
+        updatePlanningSub();
+        renderTypeTabs();
+        renderCompetenties();
+        alert('Evaluatieplanning opgeslagen.');
+    } catch (err) {
+        alert(err.message || 'Kon de planning niet opslaan.');
+    }
+}
+
+// ── 4. Type-tabs ────────────────────────────────────────────
 function renderTypeTabs() {
-    document.getElementById('week-tabs').innerHTML = TYPES.map(t => `
-        <button class="week-tab ${t.key === evaluatieType ? 'active' : ''}"
-                onclick="selectType('${t.key}')">${t.label}</button>
-    `).join('');
+    document.getElementById('week-tabs').innerHTML = TYPES.map(t => {
+        const open = evaluatieOpen(t.key);
+        return `<button class="week-tab ${t.key === evaluatieType ? 'active' : ''}"
+                onclick="selectType('${t.key}')">${t.label}${open ? '' : ' 🔒'}</button>`;
+    }).join('');
 }
 
 function selectType(type) {
+    if (!evaluatieOpen(type)) {
+        alert(`De ${type === 'finaal' ? 'finale' : 'tussentijdse'} evaluatie is nog niet opengesteld. Stel hierboven eerst een datum in (vandaag of eerder).`);
+        return;
+    }
     evaluatieType = type;
     scores = {};
     renderTypeTabs();
     laadVergelijking();
 }
 
-// ── 4. Vergelijking laden ───────────────────────────────────
+// ── 5. Vergelijking laden ───────────────────────────────────
 async function laadVergelijking() {
     const container = document.getElementById('competenties-container');
     container.innerHTML = `<div style="padding:30px;text-align:center;color:#9CA3AF;font-size:13px">Laden...</div>`;
     try {
         vergelijking = await apiFetch(`/docent/evaluatie-vergelijking?stage_id=${actieveStageId}&type=${evaluatieType}`);
-        // Bestaande docentscore voorinvullen
         vergelijking.forEach(c => {
             if (c.score_docent !== null && c.score_docent !== undefined) {
                 scores[c.competentie_id] = { score: c.score_docent, feedback: c.commentaar_docent || '' };
@@ -107,13 +170,14 @@ async function laadVergelijking() {
     }
 }
 
-// ── 5. Renderen ─────────────────────────────────────────────
+// ── 6. Renderen ─────────────────────────────────────────────
 function renderCompetenties() {
     const container = document.getElementById('competenties-container');
 
     if (!vergelijking || vergelijking.length === 0) {
         container.innerHTML = `<div style="padding:30px;text-align:center;color:#9CA3AF;font-size:13px">Geen competenties.</div>`;
         document.getElementById('totaal-badge').textContent = 'Totaal: — / —';
+        zetSaveKnop();
         return;
     }
 
@@ -175,9 +239,17 @@ function renderCompetenties() {
     }).join('');
 
     updateTotaal();
+    zetSaveKnop();
 }
 
-// ── 6. Score kiezen ─────────────────────────────────────────
+function zetSaveKnop() {
+    const btn = document.getElementById('btn-opslaan');
+    const open = evaluatieOpen(evaluatieType);
+    btn.disabled = !open;
+    btn.textContent = open ? 'Opslaan score' : 'Nog niet opengesteld 🔒';
+}
+
+// ── 7. Score kiezen ─────────────────────────────────────────
 function kiesScore(id, score) {
     if (!scores[id]) scores[id] = { score: null, feedback: '' };
     scores[id].score = score;
@@ -203,9 +275,13 @@ function updateTotaal() {
     document.getElementById('totaal-badge').textContent = `Totaal: ${totaal} / ${max}`;
 }
 
-// ── 7. Opslaan ──────────────────────────────────────────────
+// ── 8. Opslaan ──────────────────────────────────────────────
 async function opslaanScore() {
     if (!actieveStageId) { alert('Selecteer eerst een student.'); return; }
+    if (!evaluatieOpen(evaluatieType)) {
+        alert('Deze evaluatie is nog niet opengesteld.');
+        return;
+    }
 
     const scoreLijst = Object.entries(scores)
         .filter(([, d]) => d.score !== null && d.score !== undefined)
@@ -232,20 +308,19 @@ async function opslaanScore() {
             })
         });
         btn.textContent = 'Opgeslagen ✓';
-        setTimeout(() => { btn.textContent = 'Opslaan score'; btn.disabled = false; }, 1500);
+        setTimeout(() => { zetSaveKnop(); }, 1500);
         laadVergelijking();
     } catch (err) {
         alert(err.message || 'Kon de scores niet opslaan.');
-        btn.disabled = false;
-        btn.textContent = 'Opslaan score';
+        zetSaveKnop();
     }
 }
 
-// ── 8. Zoeken ───────────────────────────────────────────────
+// ── 9. Zoeken ───────────────────────────────────────────────
 function filterStudents() {
     const q = document.querySelector('.search').value.toLowerCase();
     document.querySelectorAll('.student-item').forEach((item, i) => {
-        const naam = (studentenData[i].student || studentenData[i].naam || '').toLowerCase();
+        const naam = studentNaam(studentenData[i]).toLowerCase();
         item.style.display = naam.includes(q) ? '' : 'none';
     });
 }

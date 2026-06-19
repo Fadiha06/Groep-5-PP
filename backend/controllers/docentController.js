@@ -221,4 +221,40 @@ const getEvaluatieVergelijking = async (req, res) => {
     }
 };
 
-module.exports = { getStudenten, stuurReminder, getMilestones, getDossiers, getMeldingen, getLogboeken, keurLogboekGoed, geefLogboekFeedback, getTodos, getPunten, getEvaluatieVergelijking };
+// GET /api/docent/evaluatie-planning?stage_id=X
+const getEvaluatiePlanning = async (req, res) => {
+    const { stage_id } = req.query;
+    if (!stage_id) return res.status(400).json({ error: 'stage_id is verplicht' });
+    try {
+        const docent = await docentModel.getDocent(req.user.id);
+        if (!docent) return res.status(404).json({ error: 'Geen docent gevonden' });
+        if (!(await docentModel.isEigenStage(docent.docent_id, stage_id))) {
+            return res.status(403).json({ error: 'Dit is niet jouw student' });
+        }
+        const planning = await docentModel.getEvaluatiePlanning(stage_id);
+        res.json(planning);
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: 'Serverfout bij ophalen planning' });
+    }
+};
+
+// PUT /api/docent/evaluatie-planning
+const setEvaluatiePlanning = async (req, res) => {
+    const { stage_id, tussentijds_vanaf, finaal_vanaf } = req.body;
+    if (!stage_id) return res.status(400).json({ error: 'stage_id is verplicht' });
+    try {
+        const docent = await docentModel.getDocent(req.user.id);
+        if (!docent) return res.status(404).json({ error: 'Geen docent gevonden' });
+        if (!(await docentModel.isEigenStage(docent.docent_id, stage_id))) {
+            return res.status(403).json({ error: 'Dit is niet jouw student' });
+        }
+        await docentModel.setEvaluatiePlanning(stage_id, tussentijds_vanaf, finaal_vanaf);
+        res.json({ message: 'Evaluatieplanning opgeslagen' });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: 'Serverfout bij opslaan planning' });
+    }
+};
+
+module.exports = { getStudenten, stuurReminder, getMilestones, getDossiers, getMeldingen, getLogboeken, keurLogboekGoed, geefLogboekFeedback, getTodos, getPunten, getEvaluatieVergelijking, getEvaluatiePlanning, setEvaluatiePlanning };
