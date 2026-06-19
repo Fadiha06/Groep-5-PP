@@ -93,7 +93,7 @@ class StudentModel {
 
     static async getStageHeader(gebruikerId) {
         const [rows] = await db.query(
-            `SELECT st.titel, st.startdatum, st.einddatum, b.naam AS bedrijf_naam
+            `SELECT st.stage_id, st.titel, st.startdatum, st.einddatum, b.naam AS bedrijf_naam
             FROM STUDENT s
             JOIN STAGE st ON st.student_id = s.student_id
             LEFT JOIN BEDRIJF b ON b.bedrijf_id = st.bedrijf_id
@@ -159,7 +159,8 @@ class StudentModel {
 
         const [competenties] = await db.query(
             `SELECT ec.score, ec.commentaar,
-                    c.naam AS competentie_naam
+                    c.naam AS competentie_naam,
+                    e.beoordelaar_rol
              FROM EVALUATIE e
              JOIN EVALUATIE_COMPETENTIE ec ON e.evaluatie_id = ec.evaluatie_id
              JOIN COMPETENTIE c ON ec.competentie_id = c.competentie_id
