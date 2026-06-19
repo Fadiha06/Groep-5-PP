@@ -1,4 +1,5 @@
 const AdminDashboardModel = require('../models/adminDashboardModel');
+const ContractModel = require('../models/contractModel');
 
 exports.getOpleidingen = async (req, res) => {
     try {
@@ -7,6 +8,93 @@ exports.getOpleidingen = async (req, res) => {
         res.json(rows.map(r => r.opleiding)); 
     } catch (error) {
         res.status(500).json({ error: 'Serverfout bij ophalen opleidingen' });
+    }
+};
+
+exports.getCompetenties = async (req, res) => {
+    try {
+        const db = require('../config/db');
+        const opleiding = req.query.opleiding_id;
+
+        const [competenties] = await db.query('SELECT * FROM COMPETENTIE WHERE opleiding = ?', [opleiding]);
+        for (const c of competenties) {
+            const [rubrieken] = await db.query(
+                'SELECT rubriek_id, punten AS score, label, omschrijving FROM RUBRIEK WHERE competentie_id = ? ORDER BY punten ASC',
+                [c.competentie_id]
+            );
+            c.rubrieken = rubrieken;
+        }
+
+        const [instRows] = await db.query('SELECT * FROM INSTELLINGEN WHERE opleiding = ?', [opleiding]);
+        const instellingen = instRows[0] || {};
+
+        res.json({ competenties, instellingen });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Fout bij ophalen competenties' });
+    }
+};
+
+exports.saveCompetenties = async (req, res) => {
+    const db = require('../config/db');
+    const { opleiding_id, competenties, instellingen } = req.body;
+
+    if (!opleiding_id || !Array.isArray(competenties)) {
+        return res.status(400).json({ error: 'opleiding_id en competenties zijn verplicht' });
+    }
+
+    const connection = await db.getConnection();
+    try {
+        await connection.beginTransaction();
+
+        const [existing] = await connection.query('SELECT competentie_id FROM COMPETENTIE WHERE opleiding = ?', [opleiding_id]);
+        const keepIds = competenties.filter(c => c.competentie_id > 0).map(c => c.competentie_id);
+        const toDelete = existing.map(r => r.competentie_id).filter(id => !keepIds.includes(id));
+        for (const id of toDelete) {
+            await connection.query('DELETE FROM COMPETENTIE WHERE competentie_id = ?', [id]);
+        }
+
+        for (const c of competenties) {
+            let competentieId = c.competentie_id;
+            if (!competentieId || competentieId < 0) {
+                const [result] = await connection.query(
+                    'INSERT INTO COMPETENTIE (naam, omschrijving, opleiding, weging) VALUES (?, ?, ?, ?)',
+                    [c.naam, c.omschrijving, opleiding_id, c.weging || 0]
+                );
+                competentieId = result.insertId;
+            } else {
+                await connection.query(
+                    'UPDATE COMPETENTIE SET naam = ?, omschrijving = ?, weging = ? WHERE competentie_id = ?',
+                    [c.naam, c.omschrijving, c.weging || 0, competentieId]
+                );
+            }
+
+            await connection.query('DELETE FROM RUBRIEK WHERE competentie_id = ?', [competentieId]);
+            for (const r of c.rubrieken || []) {
+                await connection.query(
+                    'INSERT INTO RUBRIEK (competentie_id, punten, label, omschrijving) VALUES (?, ?, ?, ?)',
+                    [competentieId, r.score, r.label, r.omschrijving]
+                );
+            }
+        }
+
+        if (instellingen) {
+            await connection.query(
+                `INSERT INTO INSTELLINGEN (opleiding, max_score, aantal_logboeken, slaagdrempel) VALUES (?, ?, ?, ?)
+                 ON DUPLICATE KEY UPDATE max_score = ?, aantal_logboeken = ?, slaagdrempel = ?`,
+                [opleiding_id, instellingen.max_score, instellingen.aantal_logboeken, instellingen.slaagdrempel,
+                 instellingen.max_score, instellingen.aantal_logboeken, instellingen.slaagdrempel]
+            );
+        }
+
+        await connection.commit();
+        res.json({ message: 'Competenties opgeslagen' });
+    } catch (error) {
+        await connection.rollback();
+        console.error(error);
+        res.status(500).json({ error: 'Fout bij opslaan competenties' });
+    } finally {
+        connection.release();
     }
 };
 
@@ -140,14 +228,17 @@ exports.approveContract = async (req, res) => {
     try {
         const contractId = req.params.id;
         const { signature } = req.body;
-        if (!signature) return res.status(400).json({ error: 'Handtekening ontbreekt' });
 
-        const db = require('../config/db');
-        const ContractModel = require('../models/contractModel');
+        const contract = await ContractModel.getById(contractId);
+        if (!contract) return res.status(404).json({ error: 'Contract niet gevonden' });
 
-        await ContractModel.signAsDocent(contractId, signature);
+        if (!contract.docent_getekend) {
+            if (!signature) return res.status(400).json({ error: 'Handtekening ontbreekt' });
+            await ContractModel.signAsDocent(contractId, signature);
+        }
 
-        res.json({ message: 'Overeenkomst goedgekeurd en ondertekend door administratie.' });
+        await AdminDashboardModel.updateContractState(contractId, 'goedgekeurd', null);
+        res.json({ message: 'Goedgekeurd en getekend' });
     } catch (err) {
         console.error(err);
         res.status(500).json({ error: 'Fout bij goedkeuren' });
@@ -298,33 +389,3 @@ exports.getReports = async (req, res) => {
     }
 };
 
-exports.getContractenTeTekenen = async (req, res) => {
-    try {
-        const pool = require('../config/db');
-        const [rows] = await pool.query(`
-            SELECT c.contract_id, c.student_getekend, c.mentor_getekend, c.docent_getekend,
-                   CONCAT(g.voornaam, ' ', g.achternaam) AS student_naam,
-                   b.naam AS bedrijf_naam,
-                   st.startdatum, st.einddatum
-            FROM CONTRACT c
-            JOIN STAGE st ON st.stage_id = c.stage_id
-            JOIN STUDENT s ON s.student_id = st.student_id
-            JOIN GEBRUIKER g ON g.id = s.gebruiker_id
-            LEFT JOIN BEDRIJF b ON b.bedrijf_id = st.bedrijf_id
-            ORDER BY c.contract_id DESC
-        `);
-        res.json(rows.map(r => ({
-            contract_id: r.contract_id,
-            student_naam: r.student_naam,
-            bedrijf_naam: r.bedrijf_naam || '—',
-            startdatum: r.startdatum,
-            einddatum: r.einddatum,
-            student_getekend: !!r.student_getekend,
-            mentor_getekend: !!r.mentor_getekend,
-            admin_getekend: !!r.docent_getekend
-        })));
-    } catch (err) {
-        console.error(err);
-        res.status(500).json({ error: 'Serverfout' });
-    }
-};

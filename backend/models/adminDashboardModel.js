@@ -3,14 +3,24 @@ const db = require('../config/db');
 class AdminDashboardModel {
     static async getStats() {
         const [studenten] = await db.query("SELECT COUNT(*) AS total_students FROM GEBRUIKER WHERE rol = 'student'");
-        const [aanvragen] = await db.query("SELECT COUNT(*) AS pending_stages FROM STAGE s JOIN STUDENT st ON s.student_id = st.student_id JOIN GEBRUIKER g ON st.gebruiker_id = g.id WHERE s.status = 'in_aanvraag' AND g.rol = 'student'");
-        const [review] = await db.query("SELECT COUNT(*) AS legal_check FROM STAGE WHERE status = 'in_review'");
-        
+        const [aanvragen] = await db.query(`
+            SELECT COUNT(*) AS pending_contracts
+            FROM CONTRACT c
+            JOIN STAGE s ON s.stage_id = c.stage_id
+            JOIN STUDENT st ON s.student_id = st.student_id
+            JOIN GEBRUIKER g ON st.gebruiker_id = g.id
+            WHERE g.rol = 'student'
+              AND (c.docent_getekend = 0 OR c.docent_getekend IS NULL)
+        `);
         const totalStudents = studenten[0].total_students;
-        const pendingContracts = aanvragen[0].pending_stages;
-        const legalCheck = review[0].legal_check;
+        const pendingContracts = aanvragen[0].pending_contracts;
+        // Voorlopig zelfde telling als pendingContracts: er is nog geen apart
+        // "juridisch probleem"-veld zolang de checklist (saveContractControle) niet wordt opgeslagen.
+        const legalCheck = pendingContracts;
         const activeExtensions = 0; // Geen tabel voor verlengingen momenteel
-        const melding = `${pendingContracts + legalCheck} zaken vereisen jouw actie vandaag — ${pendingContracts} contracten wachten op controle, ${legalCheck} juridisch probleem.`;
+        const melding = pendingContracts === 1
+            ? '1 contract vereist jouw actie vandaag.'
+            : `${pendingContracts} contracten vereisen jouw actie vandaag.`;
 
         return {
             totalStudents,
@@ -104,7 +114,6 @@ class AdminDashboardModel {
             JOIN GEBRUIKER g ON st.gebruiker_id = g.id
             LEFT JOIN BEDRIJF b ON s.bedrijf_id = b.bedrijf_id
             WHERE g.rol = 'student'
-              AND c.student_getekend = 1
               AND (c.docent_getekend = 0 OR c.docent_getekend IS NULL)
             ORDER BY c.aangemaakt_op DESC
         `;
