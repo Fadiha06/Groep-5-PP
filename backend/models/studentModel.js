@@ -6,6 +6,12 @@ class StudentModel {
         return result.insertId;
     }
 
+    // Studentprofiel ophalen via de ingelogde gebruiker (nodig voor dashboard/logboek/evaluaties)
+    static async getStudentByGebruikerId(gebruikerId) {
+        const [rows] = await db.query('SELECT * FROM STUDENT WHERE gebruiker_id = ?', [gebruikerId]);
+        return rows[0];
+    }
+
     // ===== Logboek-feature =====
     static async getStudentMetStage(gebruikerId) {
         const [rows] = await db.query(
