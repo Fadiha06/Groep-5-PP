@@ -86,7 +86,7 @@ exports.approveLogboek = async (req, res) => {
 
         await db.query(
             'UPDATE LOGBOEK_WEEK SET mentor_feedback = ?, status = ? WHERE stage_id = ? AND weeknummer = ?',
-            [mentor_feedback, 'goedgekeurd', logId, week_nr]
+            [mentor_feedback, 'approved', logId, week_nr]
         );
 
         res.json({ message: 'Logboek approved' });

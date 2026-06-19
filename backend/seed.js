@@ -76,6 +76,29 @@ async function seed() {
             `);
         }
 
+        // Seed Rubrieken
+        const [rubRows] = await connection.query('SELECT COUNT(*) AS n FROM RUBRIEK');
+        if (rubRows[0].n === 0) {
+            const [comps] = await connection.query('SELECT competentie_id FROM COMPETENTIE');
+            if (comps.length > 0) {
+                const rubrieken = [];
+                for (const c of comps) {
+                    rubrieken.push(
+                        [c.competentie_id, 1, 'De student toont dit zelden of nauwelijks aan.'],
+                        [c.competentie_id, 2, 'De student toont dit met begeleiding aan.'],
+                        [c.competentie_id, 3, 'De student toont dit zelfstandig aan.'],
+                        [c.competentie_id, 4, 'De student toont dit uitstekend en proactief aan.'],
+                        [c.competentie_id, 5, 'De student overtreft de verwachtingen en coacht anderen.']
+                    );
+                }
+                await connection.query(
+                    'INSERT INTO RUBRIEK (competentie_id, punten, omschrijving) VALUES ?',
+                    [rubrieken]
+                );
+                console.log('Seeded RUBRIEK levels for ' + comps.length + ' competencies.');
+            }
+        }
+
         connection.release();
         console.log('Seed completed successfully!');
         process.exit(0);
