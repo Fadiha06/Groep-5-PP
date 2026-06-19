@@ -1,353 +1,84 @@
-/* Base Styles */
-* {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
-}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'42dot Sans',sans-serif;background:#F9FAFB;color:#111827;line-height:1.5;min-height:100vh;display:flex}
 
-body {
-  font-family: '42dot Sans', sans-serif;
-  font-size: 14px;
-  background-color: #F9FAFB;
-  color: #111827;
-  line-height: 1.5;
-}
+.root{display:flex;width:100%;min-height:100vh}
 
-/* Layout */
-.sidebar {
-  position: fixed;
-  width: 260px;
-  height: 100vh;
-  background-color: #1F2937;
-  color: white;
-  padding: 20px;
-}
+/* Sidebar (1:1 met gebruikersbeheer.css) */
+.sidebar{width:240px;flex-shrink:0;background:#1F2937;display:flex;flex-direction:column;min-height:100vh}
+.sb-logo{padding:20px 20px 16px;border-bottom:1px solid rgba(255,255,255,0.08)}
+.sb-logo-title{color:white;font-size:16px;font-weight:700}
+.sb-logo-sub{color:#6B7280;font-size:12px;margin-top:2px}
+.sb-nav{padding:12px 0;flex:1}
+.sb-item{display:flex;align-items:center;gap:10px;padding:10px 16px;font-size:14px;color:#9CA3AF;cursor:pointer;text-decoration:none;border-radius:6px;margin:0 8px}
+.sb-item.active{background:#D1193E;color:white;font-weight:500}
+.sb-item:not(.active):hover{background:rgba(255,255,255,0.05)}
+.sb-footer{padding:14px 16px;border-top:1px solid rgba(255,255,255,0.08);font-size:12px;color:#6B7280;margin-top:auto}
 
-.main {
-  margin-left: 260px;
-  padding: 40px;
-  min-height: 100vh;
-}
+/* Main */
+.main{flex:1;padding:40px;display:flex;flex-direction:column;gap:24px}
 
-/* Sidebar Styles */
-.sidebar-brand {
-  margin-bottom: 60px;
-}
-
-.sidebar-brand-title {
-  font-size: 20px;
-  font-weight: bold;
-  margin-bottom: 4px;
-}
-
-.sidebar-brand-subtitle {
-  color: #6B7280;
-  font-size: 13px;
-}
-
-.sidebar-nav {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.nav-item {
-  display: flex;
-  align-items: center;
-  padding: 12px;
-  border-radius: 6px;
-  cursor: pointer;
-  transition: background-color 0.2s;
-}
-
-.nav-item:hover {
-  background-color: rgba(255, 255, 255, 0.1);
-}
-
-.nav-item.active {
-  background-color: #d1193e;;
-}
-
-.nav-item-icon {
-  width: 20px;
-  height: 20px;
-  margin-right: 12px;
-  background-color: #3B82F6;
-  border-radius: 3px;
-}
-
-.nav-item-text {
-  font-size: 15px;
-}
-
-.nav-spacer {
-  flex-grow: 1;
-}
-
-/* Header Styles */
-.header {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  margin-bottom: 40px;
-  position: relative;
-}
-
-.header-title {
-  font-size: 28px;
-  font-weight: bold;
-}
-
-.header-subtitle {
-  color: #6B7280;
-  font-size: 14px;
-}
-
-.logout-btn {
-  position: absolute;
-  top: 20px;
-  right: 0;
-  width: 76px;
-  height: 35px;
-  background-color: white;
-  border-radius: 6px;
-  border: none;
-  font-size: 13px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: box-shadow 0.2s;
-}
-
-.logout-btn:hover {
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-}
+/* Header */
+.header{display:flex;align-items:flex-start;justify-content:space-between;position:relative}
+.header-title{font-size:28px;font-weight:700;color:#111827}
+.header-subtitle{color:#6B7280;font-size:14px;margin-top:8px}
+.logout-btn{padding:8px 18px;background:white;border-radius:6px;border:0.8px solid #E5E7EB;font-size:13px;font-weight:500;cursor:pointer;transition:box-shadow 0.2s;white-space:nowrap}
+.logout-btn:hover{box-shadow:0 2px 8px rgba(0,0,0,0.1)}
 
 /* Stats Grid */
-.stats-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 24px;
-  margin-bottom: 40px;
-}
+.stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:24px}
+.stat-card{background:white;padding:20px;border-radius:12px;box-shadow:0 1px 3px rgba(0,0,0,0.05);border:0.8px solid #E5E7EB;text-align:center}
+.stat-card.warn{border-bottom:4px solid #E5E7EB}
+.stat-label{color:#6B7280;font-size:14px;margin-bottom:12px}
+.stat-value{font-size:32px;font-weight:700;color:#111827}
+.stat-value.value-amber{color:#F59E0B}
+.stat-value.value-red{color:#D1193E}
+.stat-value.value-blue{color:#3B82F6}
 
-.stat-card {
-  background-color: white;
-  padding: 24px;
-  border-radius: 12px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-}
+/* Sections */
+.content-row{display:grid;grid-template-columns:2fr 1fr;gap:24px}
+.card{background:white;border-radius:12px;box-shadow:0 1px 3px rgba(0,0,0,0.05);border:0.8px solid #E5E7EB;padding:24px}
+.card-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px}
+.card-title{font-size:18px;font-weight:400;color:#111827}
+.section-title{font-size:18px;font-weight:600;color:#111827;margin-bottom:20px}
+.section-badge{background:#FEF3C7;color:#B45309;border:0.8px solid #FDE68A;padding:6px 14px;border-radius:20px;font-size:12px}
 
-.stat-label {
-  color: #6B7280;
-  font-size: 14px;
-  margin-bottom: 8px;
-}
+/* Action required - contract card */
+.contract-card{background:#F9FAFB;border:0.8px solid #E5E7EB;border-radius:8px;padding:20px}
+.contract-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+.contract-title{font-size:16px;font-weight:700;color:#111827}
+.contract-date{color:#6B7280;font-size:13px}
+.contract-details p{color:#111827;font-size:14px;line-height:1.8}
+.contract-details strong{font-weight:700}
+.status-ok{color:#10B981}
+.status-bad{color:#EF4444}
+.action-btn{margin-top:16px;padding:9px 20px;background:#10B981;color:white;border:none;border-radius:6px;font-size:13px;cursor:pointer}
+.action-btn:hover{background:#0D9C6F}
 
-.stat-value {
-  font-size: 32px;
-  font-weight: bold;
-  color: #111827;
-}
+/* Activity list */
+.activity-list{display:flex;flex-direction:column}
+.activity-item{padding:16px 0;border-bottom:0.8px solid #E5E7EB}
+.activity-item:last-child{border-bottom:none;padding-bottom:0}
+.activity-item h4{font-size:14px;font-weight:700;color:#111827;margin-bottom:4px}
+.activity-time{color:#6B7280;font-size:14px}
 
-/* Section Styles */
-.section {
-  margin-bottom: 40px;
-}
+/* Contracts table */
+.table-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse}
+th{background:#F9FAFB;color:#6B7280;font-size:14px;font-weight:400;text-align:left;padding:14px 16px;border-bottom:0.8px solid #E5E7EB}
+td{padding:22px 16px;border-bottom:0.8px solid #E5E7EB;font-size:14px;color:#111827}
+tr:last-child td{border-bottom:none}
+.td-name{font-weight:700}
 
-.section-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 24px;
-}
+.export-btn{padding:8px 18px;background:white;border:0.8px solid #E5E7EB;border-radius:6px;font-size:12px;cursor:pointer}
+.export-btn:hover{background:#F9FAFB}
 
-.section-title {
-  font-size: 18px;
-  font-weight: 600;
-  color: #111827;
-}
+.badge{display:inline-block;padding:7px 14px;border-radius:20px;font-size:12px;border:0.8px solid}
+.badge-goedgekeurd{background:#D1FAE5;color:#047857;border-color:#A7F3D0}
+.badge-review{background:#FEF3C7;color:#B45309;border-color:#FDE68A}
+.badge-afwachting{background:#F3F4F6;color:#4B5563;border-color:#D1D5DB}
+.badge-verzonden{background:#DBEAFE;color:#1D4ED8;border-color:#BFDBFE}
+.badge-voltooid{background:#D1FAE5;color:#047857;border-color:#A7F3D0}
+.badge-nognie{background:#F3F4F6;color:#4B5563;border-color:#D1D5DB}
 
-.section-badge {
-  background-color: #FEF3C7;
-  color: #92400E;
-  padding: 6px 12px;
-  border-radius: 20px;
-  font-size: 12px;
-  font-weight: 500;
-}
-
-/* Contract Card */
-.contract-card {
-  background-color: white;
-  border-radius: 12px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-  padding: 24px;
-  margin-bottom: 24px;
-}
-
-.contract-header {
-  margin-bottom: 16px;
-}
-
-.contract-title {
-  font-size: 16px;
-  font-weight: 600;
-  margin-bottom: 4px;
-}
-
-.contract-date {
-  color: #6B7280;
-  font-size: 13px;
-}
-
-.contract-details {
-  color: #111827;
-  margin-bottom: 20px;
-  line-height: 1.6;
-}
-
-.contract-details p {
-  margin-bottom: 8px;
-}
-
-.action-btn {
-  background-color: #3B82F6;
-  color: white;
-  border: none;
-  padding: 8px 16px;
-  border-radius: 6px;
-  font-size: 14px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: background-color 0.2s;
-}
-
-.action-btn:hover {
-  background-color: #2563EB;
-}
-
-/* Activity List */
-.activity-list {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
-
-.activity-item {
-  background-color: white;
-  border-radius: 8px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-  padding: 16px;
-}
-
-.activity-content h4 {
-  font-size: 14px;
-  font-weight: 500;
-  margin-bottom: 4px;
-}
-
-.activity-time {
-  color: #6B7280;
-  font-size: 12px;
-}
-
-/* Contracts Table */
-.contracts-table {
-  background-color: white;
-  border-radius: 12px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-  overflow: hidden;
-}
-
-.table-header {
-  display: grid;
-  grid-template-columns: 1fr 1fr 1fr 1fr 1fr 1fr;
-  background-color: #F9FAFB;
-  padding: 12px 16px;
-  font-weight: 600;
-  color: #6B7280;
-  font-size: 13px;
-}
-
-.table-row {
-  display: grid;
-  grid-template-columns: 1fr 1fr 1fr 1fr 1fr 1fr;
-  padding: 16px;
-  border-bottom: 1px solid #E5E7EB;
-  align-items: center;
-}
-
-.table-cell {
-  font-size: 14px;
-  color: #111827;
-}
-
-.status-badge {
-  padding: 4px 12px;
-  border-radius: 20px;
-  font-size: 12px;
-  font-weight: 500;
-  display: inline-block;
-}
-
-.status-badge.approved {
-  background-color: #DCFCE7;
-  color: #15803D;
-}
-
-.status-badge.in-review {
-  background-color: #FEF3C7;
-  color: #92400E;
-}
-
-.status-badge.pending {
-  background-color: #FEE2E2;
-  color: #DC2626;
-}
-
-.status-badge.not-sent {
-  background-color: #F3F4F6;
-  color: #6B7280;
-}
-
-.status-badge.sent {
-  background-color: #DBEAFE;
-  color: #1E40AF;
-}
-
-.status-badge.completed {
-  background-color: #DCFCE7;
-  color: #15803D;
-}
-
-.view-btn {
-  background-color: white;
-  color: #111827;
-  border: 1px solid #D1D5DB;
-  padding: 6px 12px;
-  border-radius: 6px;
-  font-size: 12px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.view-btn:hover {
-  background-color: #F9FAFB;
-}
-
-.export-btn {
-  background-color: white;
-  color: #111827;
-  border: 1px solid #D1D5DB;
-  padding: 8px 16px;
-  border-radius: 6px;
-  font-size: 14px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.export-btn:hover {
-  background-color: #F9FAFB;
-}
+.view-btn{padding:8px 16px;background:white;border:0.8px solid #E5E7EB;border-radius:6px;font-size:13px;cursor:pointer;white-space:nowrap}
+.view-btn:hover{background:#F9FAFB}
