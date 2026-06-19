@@ -142,8 +142,8 @@ class StudentController {
 
             return res.status(nieuw ? 201 : 200).json({ message: nieuw ? 'Dag toegevoegd' : 'Dag bijgewerkt', dag_id: dagId, weeknummer });
         } catch (err) {
-            console.error(err);
-            res.status(500).json({ error: 'Serverfout bij invullen logboek' });
+            console.error('[vulDagIn]', err.message, err.code);
+            res.status(500).json({ error: 'Serverfout bij invullen logboek', detail: err.message });
         }
     }
 
@@ -155,7 +155,15 @@ class StudentController {
             const week = await StudentModel.findWeek(info.stage_id, weeknummer);
             if (!week) return res.status(404).json({ error: 'Deze week bestaat nog niet' });
             const dagen = await StudentModel.getDagenVanWeek(week.week_id);
-            res.json({ weeknummer: week.weeknummer, status: week.status, ingediend_op: week.ingediend_op, dagen });
+            res.json({
+                weeknummer: week.weeknummer,
+                status: week.status,
+                ingediend_op: week.ingediend_op,
+                mentor_feedback: week.mentor_feedback || null,
+                docent_feedback: week.docent_feedback || null,
+                docent_goedgekeurd: week.docent_goedgekeurd || false,
+                dagen
+            });
         } catch (err) {
             console.error(err);
             res.status(500).json({ error: 'Serverfout bij ophalen week' });
@@ -169,7 +177,7 @@ class StudentController {
             if (!info) return res.status(404).json({ error: 'Geen student of stage gevonden' });
             const week = await StudentModel.findWeek(info.stage_id, weeknummer);
             if (!week) return res.status(404).json({ error: 'Deze week bestaat nog niet' });
-            if (week.status === 'ingediend') return res.status(409).json({ error: 'Deze week is al ingediend' });
+            if (week.status === 'ingediend' || week.status === 'goedgekeurd') return res.status(409).json({ error: 'Deze week is al ingediend' });
             await StudentModel.dienWeekIn(week.week_id);
             res.json({ message: `Week ${weeknummer} ingediend` });
         } catch (err) {

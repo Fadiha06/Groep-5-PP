@@ -1,29 +1,33 @@
 const docentModel = require('../models/docentModel');
 
-// GET /api/docent/studenten — actieve stages + status logboekweek van nu
+// GET /api/docent/studenten?week=4 — lijst voor "Logboek Controle"
 const getStudenten = async (req, res) => {
+    const weeknummer = Number(req.query.week) || 1;
+
     try {
         const docent = await docentModel.getDocent(req.user.id);
         if (!docent) {
             return res.status(404).json({ error: 'Geen docent gevonden' });
         }
 
-        const rijen = await docentModel.getActieveStagesMetLogboek(docent.docent_id);
-        const ingediendeStatussen = ['ingediend', 'goedgekeurd', 'te-laat', 'feedback'];
+        const rijen = await docentModel.getStudentenMetLogboekStatus(docent.docent_id, weeknummer);
 
-        const studenten = rijen.map(r => {
-            const ingediend = r.logboek_status !== null && ingediendeStatussen.includes(r.logboek_status);
-            return {
-                stage_id: r.stage_id,
-                student: r.student_naam,
-                bedrijf: r.bedrijf_naam || '—',
-                week: r.huidige_week,
-                status: ingediend ? `Ingediend (${r.totaal_uren ?? 0}u)` : 'Nog niet ingediend',
-                ingevuld: ingediend
-            };
+        // NULL-status netjes omzetten naar "Ontbreekt" voor de frontend
+        const studenten = rijen.map(r => ({
+            stage_id: r.stage_id,
+            student: r.student_naam,
+            bedrijf: r.bedrijf_naam || '—',
+            status: r.logboek_status
+                ? `Ingediend (${r.totaal_uren ?? 0}u)`
+                : 'Ontbreekt',
+            ingevuld: r.logboek_status !== null
+        }));
+
+        res.json({
+            docent: docent.naam,
+            weeknummer,
+            studenten
         });
-
-        res.json({ docent: docent.naam, studenten });
     } catch (err) {
         console.error(err);
         res.status(500).json({ error: 'Serverfout bij ophalen studenten' });
@@ -80,11 +84,17 @@ const getMilestones = async (req, res) => {
 
         const milestones = rijen.map(r => ({
             stage_id: r.stage_id,
+            contract_id: r.contract_id || null,
             student: r.student_naam,
-            stageovereenkomst: (r.student_getekend && r.mentor_getekend)
-                ? 'Stageovereenkomst OK'
-                : 'Stageovereenkomst nog niet getekend',
-            getekend: !!(r.student_getekend && r.mentor_getekend)
+            student_getekend: !!r.student_getekend,
+            mentor_getekend: !!r.mentor_getekend,
+            docent_getekend: !!r.docent_getekend,
+            stageovereenkomst: (r.student_getekend && r.mentor_getekend && r.docent_getekend)
+                ? 'Volledig getekend'
+                : (r.student_getekend && r.mentor_getekend)
+                    ? 'Wacht op docent'
+                    : 'Nog niet volledig getekend',
+            getekend: !!(r.student_getekend && r.mentor_getekend && r.docent_getekend)
         }));
 
         res.json({ docent: docent.naam, milestones });
@@ -131,12 +141,22 @@ const getMeldingen = async (req, res) => {
     }
 };
 
-// GET /api/docent/logboeken
+
+// GET /api/docenten/logboeken
 const getLogboeken = async (req, res) => {
     try {
         const docent = await docentModel.getDocent(req.user.id);
         if (!docent) return res.status(404).json({ error: 'Geen docent gevonden' });
-        const logboeken = await docentModel.getLogboekenVoorDocent(docent.docent_id);
+        const rijen = await docentModel.getLogboeken(docent.docent_id);
+        const logboeken = await Promise.all(rijen.map(async (r) => {
+            const dagen = await docentModel.getDagenVoorWeek(r.week_id);
+            // Voeg competentie-scores toe per dag
+            const dagenMetCompetenties = await Promise.all(dagen.map(async (d) => {
+                const competenties = await docentModel.getCompetentiesVoorDag(d.dag_id);
+                return { ...d, competenties };
+            }));
+            return { ...r, dagen: dagenMetCompetenties };
+        }));
         res.json(logboeken);
     } catch (err) {
         console.error(err);
@@ -144,15 +164,15 @@ const getLogboeken = async (req, res) => {
     }
 };
 
-// POST /api/docent/logboek/goedkeuren
-const keurLogboekGoed = async (req, res) => {
+// POST /api/docenten/logboek/goedkeuren
+const goedkeurLogboek = async (req, res) => {
     const { stage_id, week } = req.body;
+    if (!stage_id || !week) return res.status(400).json({ error: 'stage_id en week zijn verplicht' });
     try {
-        const docent = await docentModel.getDocent(req.user.id);
-        if (!docent) return res.status(404).json({ error: 'Geen docent gevonden' });
-        if (!(await docentModel.isEigenStage(docent.docent_id, stage_id)))
-            return res.status(403).json({ error: 'Dit is niet jouw student' });
-        await docentModel.keurLogboekWeekGoed(stage_id, week);
+        const db = require('../config/db');
+        const [rows] = await db.query('SELECT week_id FROM LOGBOEK_WEEK WHERE stage_id = ? AND weeknummer = ?', [stage_id, week]);
+        if (!rows[0]) return res.status(404).json({ error: 'Logboek niet gevonden' });
+        await docentModel.goedkeurLogboek(rows[0].week_id);
         res.json({ message: 'Logboek goedgekeurd' });
     } catch (err) {
         console.error(err);
@@ -160,47 +180,81 @@ const keurLogboekGoed = async (req, res) => {
     }
 };
 
-// POST /api/docent/logboek/feedback
+// POST /api/docenten/logboek/feedback
 const geefLogboekFeedback = async (req, res) => {
     const { stage_id, week, feedback } = req.body;
-    if (!feedback) return res.status(400).json({ error: 'Feedback ontbreekt' });
+    if (!stage_id || !week || !feedback) return res.status(400).json({ error: 'stage_id, week en feedback zijn verplicht' });
     try {
-        const docent = await docentModel.getDocent(req.user.id);
-        if (!docent) return res.status(404).json({ error: 'Geen docent gevonden' });
-        if (!(await docentModel.isEigenStage(docent.docent_id, stage_id)))
-            return res.status(403).json({ error: 'Dit is niet jouw student' });
-        await docentModel.geefLogboekWeekFeedback(stage_id, week, feedback);
-        res.json({ message: 'Feedback verstuurd' });
+        const db = require('../config/db');
+        const [rows] = await db.query('SELECT week_id FROM LOGBOEK_WEEK WHERE stage_id = ? AND weeknummer = ?', [stage_id, week]);
+        if (!rows[0]) return res.status(404).json({ error: 'Logboek niet gevonden' });
+        await docentModel.slaFeedbackOp(rows[0].week_id, feedback);
+        res.json({ message: 'Feedback opgeslagen' });
     } catch (err) {
         console.error(err);
         res.status(500).json({ error: 'Serverfout bij feedback' });
     }
 };
 
-// GET /api/docent/todos
-const getTodos = async (req, res) => {
+// GET /api/docenten/evaluatie-studenten
+const getEvaluatieStudenten = async (req, res) => {
     try {
         const docent = await docentModel.getDocent(req.user.id);
         if (!docent) return res.status(404).json({ error: 'Geen docent gevonden' });
-        const todos = await docentModel.getTodos(docent.docent_id);
-        res.json(todos);
+        const studenten = await docentModel.getEvaluatieStudenten(docent.docent_id);
+        res.json(studenten);
     } catch (err) {
         console.error(err);
-        res.status(500).json({ error: 'Serverfout bij ophalen todos' });
+        res.status(500).json({ error: 'Serverfout bij ophalen studenten' });
     }
 };
 
-// GET /api/docent/punten
-const getPunten = async (req, res) => {
+// GET /api/docenten/evaluatie?stage_id=&week=
+const getEvaluatie = async (req, res) => {
+    const { stage_id, week } = req.query;
+    if (!stage_id || !week) return res.status(400).json({ error: 'stage_id en week zijn verplicht' });
     try {
-        const docent = await docentModel.getDocent(req.user.id);
-        if (!docent) return res.status(404).json({ error: 'Geen docent gevonden' });
-        const punten = await docentModel.getPuntenAggregatie(docent.docent_id);
-        res.json({ punten });
+        const rijen = await docentModel.getEvaluaties(stage_id, week);
+        res.json(rijen);
     } catch (err) {
         console.error(err);
-        res.status(500).json({ error: 'Serverfout bij ophalen punten' });
+        res.status(500).json({ error: 'Serverfout bij ophalen evaluatie' });
     }
 };
 
-module.exports = { getStudenten, stuurReminder, getMilestones, getDossiers, getMeldingen, getLogboeken, keurLogboekGoed, geefLogboekFeedback, getTodos, getPunten };
+// POST /api/docenten/evaluatie/opslaan
+const slaEvaluatieOp = async (req, res) => {
+    const { stage_id, week, scores } = req.body;
+    if (!stage_id || !week || !scores) return res.status(400).json({ error: 'stage_id, week en scores zijn verplicht' });
+    try {
+        await docentModel.slaEvaluatieOp(stage_id, week, req.user.id, scores);
+        res.json({ message: 'Evaluatie opgeslagen' });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: 'Serverfout bij opslaan evaluatie' });
+    }
+};
+
+// GET /api/docenten/logboek/evaluatie?stage_id=&week= — haal per-competentie scores van de mentor op (read-only voor docent)
+const getLogboekEvaluatie = async (req, res) => {
+    const { stage_id, week } = req.query;
+    if (!stage_id || !week) return res.status(400).json({ error: 'stage_id en week zijn verplicht' });
+    try {
+        const type = `week${week}`;
+        const [rows] = await require('../config/db').query(
+            `SELECT e.evaluatie_id, e.feedback, e.beoordelaar_rol,
+                    ec.competentie_id, c.naam AS competentie_naam, ec.score
+             FROM EVALUATIE e
+             JOIN EVALUATIE_COMPETENTIE ec ON ec.evaluatie_id = e.evaluatie_id
+             JOIN COMPETENTIE c ON c.competentie_id = ec.competentie_id
+             WHERE e.stage_id = ? AND e.type = ? AND e.beoordelaar_rol = 'mentor'`,
+            [stage_id, type]
+        );
+        res.json(rows);
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: 'Serverfout bij ophalen logboek evaluatie' });
+    }
+};
+
+module.exports = { getStudenten, stuurReminder, getMilestones, getDossiers, getMeldingen, getLogboeken, goedkeurLogboek, geefLogboekFeedback, getEvaluatieStudenten, getEvaluatie, slaEvaluatieOp, getLogboekEvaluatie };

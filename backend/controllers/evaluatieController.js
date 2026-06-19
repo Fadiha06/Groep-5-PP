@@ -1,10 +1,22 @@
 const db = require('../config/db');
 
-// Get all competenties
+// Get all competenties met rubrieken/niveaus
 exports.getCompetenties = async (req, res) => {
     try {
-        const [competenties] = await db.query('SELECT * FROM COMPETENTIE');
-        res.json(competenties);
+        const [competenties] = await db.query('SELECT * FROM COMPETENTIE ORDER BY competentie_id ASC');
+        const [rubrieken] = await db.query('SELECT * FROM RUBRIEK ORDER BY competentie_id, punten ASC');
+        const result = competenties.map(comp => ({
+            ...comp,
+            niveaus: rubrieken
+                .filter(r => r.competentie_id === comp.competentie_id)
+                .map(r => ({
+                    score: r.punten,
+                    code: r.punten <= 1 ? 'O' : r.punten <= 2 ? 'V' : r.punten <= 3 ? 'G' : 'UG',
+                    label: r.punten <= 1 ? 'Onvoldoende' : r.punten <= 2 ? 'Voldoende' : r.punten <= 3 ? 'Goed' : 'Uitstekend',
+                    omschrijving: r.omschrijving || ''
+                }))
+        }));
+        res.json(result);
     } catch (err) {
         console.error('Error fetching competenties:', err);
         res.status(500).json({ error: 'Server error' });

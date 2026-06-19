@@ -5,31 +5,28 @@ const SECRET = process.env.JWT_SECRET || 'supersecret';
 
 class ContractController {
 
-    // GET /api/contracten/mijn — contract van de ingelogde student
     static async getMijnContract(req, res) {
         try {
             const contract = await ContractModel.getByGebruiker(req.user.id);
             if (!contract) return res.status(404).json({ error: 'Geen contract gevonden voor deze student' });
             res.json(contract);
         } catch (err) {
-            console.error(err);
+            console.error('[getMijnContract]', err);
             res.status(500).json({ error: 'Serverfout bij ophalen contract' });
         }
     }
 
-    // GET /api/contracten/:id — contract + weergavegegevens
     static async getContract(req, res) {
         try {
             const contract = await ContractModel.getDetailsById(req.params.id);
             if (!contract) return res.status(404).json({ error: 'Contract niet gevonden' });
             res.json(contract);
         } catch (err) {
-            console.error(err);
+            console.error('[getContract]', err);
             res.status(500).json({ error: 'Serverfout bij ophalen contract' });
         }
     }
 
-    // POST /api/contracten/:id/tekenen — student tekent (enkel z'n eigen contract)
     static async tekenStudent(req, res) {
         const { signature } = req.body;
         if (!signature) return res.status(400).json({ error: 'Handtekening ontbreekt' });
@@ -43,32 +40,16 @@ class ContractController {
             }
             await ContractModel.signAsStudent(req.params.id, signature);
 
-            // Stuur automatisch de teken-link naar het stagebedrijf
             let mailVerstuurd = false;
-            try {
-                const email = await ContractModel.getBedrijfEmail(req.params.id);
-                if (email) {
-                    const token = jwt.sign(
-                        { contractId: Number(req.params.id), type: 'mentor_sign' },
-                        SECRET,
-                        { expiresIn: '48h' }
-                    );
-                    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
-                    await stuurContractLink(email, `${frontendUrl}/mentor_contract.html?token=${token}`);
-                    mailVerstuurd = true;
-                }
-            } catch (mailErr) {
-                console.error('Mail versturen mislukt:', mailErr.message);
-            }
-
+            // ponytail: mail moved to admin approval step.
             res.json({ message: 'Contract ondertekend door student', mailVerstuurd });
         } catch (err) {
-            console.error(err);
-            res.status(500).json({ error: 'Serverfout bij ondertekenen' });
+            console.error('[tekenStudent] FOUT:', err.message, err.code);
+            const detail = process.env.NODE_ENV === 'development' ? err.message : undefined;
+            res.status(500).json({ error: 'Serverfout bij ondertekenen', detail });
         }
     }
 
-    // GET /api/contracten/:id/mentor-link — ondertekenlink voor de mentor
     static async mentorLink(req, res) {
         try {
             const contract = await ContractModel.getById(req.params.id);
@@ -77,12 +58,11 @@ class ContractController {
             const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
             res.json({ link: `${frontendUrl}/mentor_contract.html?token=${token}` });
         } catch (err) {
-            console.error(err);
+            console.error('[mentorLink]', err);
             res.status(500).json({ error: 'Serverfout bij genereren mentor-link' });
         }
     }
 
-    // GET /api/contracten/mentor-view?token=... — contract tonen aan de mentor (via token, geen login)
     static async getMentorView(req, res) {
         const { token } = req.query;
         if (!token) return res.status(400).json({ error: 'Token ontbreekt' });
@@ -93,34 +73,39 @@ class ContractController {
             if (!contract) return res.status(404).json({ error: 'Contract niet gevonden' });
             res.json(contract);
         } catch (err) {
-            console.error(err);
+            console.error('[getMentorView]', err);
             res.status(400).json({ error: 'Ongeldige of verlopen token' });
         }
     }
 
-    // POST /api/contracten/:id/docent-tekenen — verantwoordelijke docent tekent (ingelogd)
     static async tekenDocent(req, res) {
         const { signature } = req.body;
         if (!signature) return res.status(400).json({ error: 'Handtekening ontbreekt' });
         try {
             const contract = await ContractModel.getById(req.params.id);
             if (!contract) return res.status(404).json({ error: 'Contract niet gevonden' });
-            const docentGid = await ContractModel.getDocentGebruikerId(req.params.id);
-            if (!docentGid || docentGid !== req.user.id) {
-                return res.status(403).json({ error: 'Je bent niet de verantwoordelijke docent voor dit contract' });
-            }
             if (contract.docent_getekend) {
-                return res.status(409).json({ error: 'Al ondertekend door de docent' });
+                return res.status(409).json({ error: 'Al ondertekend door de docent/administrator' });
             }
+
+            // Docent mag alleen zijn eigen contract tekenen; admins mogen alles
+            const rol = req.user.rol;
+            if (rol === 'docent') {
+                const toegewezenGebruikerId = await ContractModel.getDocentGebruikerId(req.params.id);
+                if (!toegewezenGebruikerId || toegewezenGebruikerId !== req.user.id) {
+                    return res.status(403).json({ error: 'Dit contract is niet aan jou toegewezen' });
+                }
+            }
+
             await ContractModel.signAsDocent(req.params.id, signature);
-            res.json({ message: 'Contract ondertekend door docent' });
+            res.json({ message: 'Contract ondertekend' });
         } catch (err) {
-            console.error(err);
-            res.status(500).json({ error: 'Serverfout bij ondertekenen' });
+            console.error('[tekenDocent] FOUT:', err.message, err.code);
+            const detail = process.env.NODE_ENV === 'development' ? err.message : undefined;
+            res.status(500).json({ error: 'Serverfout bij ondertekenen', detail });
         }
     }
 
-    // POST /api/contracten/mentor-tekenen — mentor tekent via token (geen login)
     static async tekenMentor(req, res) {
         const { token, signature } = req.body;
         if (!token || !signature) return res.status(400).json({ error: 'Token en handtekening verplicht' });
@@ -133,8 +118,9 @@ class ContractController {
             await ContractModel.signAsMentor(decoded.contractId, signature);
             res.json({ message: 'Contract ondertekend door mentor' });
         } catch (err) {
-            console.error(err);
-            res.status(400).json({ error: 'Ongeldige of verlopen token' });
+            console.error('[tekenMentor] FOUT:', err.message, err.code);
+            const detail = process.env.NODE_ENV === 'development' ? err.message : undefined;
+            res.status(400).json({ error: 'Ongeldige of verlopen token', detail });
         }
     }
 }

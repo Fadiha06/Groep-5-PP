@@ -105,10 +105,32 @@ exports.updateUser = async (req, res) => {
         const rolFormatted = rol.toLowerCase();
         const updatedStatus = status || 'Actief';
         
-        const updated = await UserModel.updateUser(userId, rolFormatted, updatedStatus);
-        if (!updated) {
+        const users = await UserModel.findById(userId);
+        if (!users || users.length === 0) {
             return res.status(404).json({ error: 'Gebruiker niet gevonden' });
         }
+        const currentRol = users[0].rol.toLowerCase();
+
+        if (currentRol !== rolFormatted) {
+            const db = require('../config/db');
+            if (currentRol === 'student') await db.query('DELETE FROM STUDENT WHERE gebruiker_id = ?', [userId]);
+            else if (currentRol === 'docent') await db.query('DELETE FROM DOCENT WHERE gebruiker_id = ?', [userId]);
+            else if (currentRol === 'commissie' || currentRol === 'stagecommissie') await db.query('DELETE FROM STAGECOMMISSIE WHERE gebruiker_id = ?', [userId]);
+            else if (currentRol === 'administrator' || currentRol === 'admin') await db.query('DELETE FROM ADMINISTRATIE WHERE gebruiker_id = ?', [userId]);
+            else if (currentRol === 'mentor' || currentRol === 'stagementor') await db.query('DELETE FROM STAGEMENTOR WHERE gebruiker_id = ?', [userId]);
+
+            if (rolFormatted === 'student') await StudentModel.createProfile(userId);
+            else if (rolFormatted === 'docent') await DocentModel.createProfile(userId);
+            else if (rolFormatted === 'commissie' || rolFormatted === 'stagecommissie') await CommissieModel.createProfile(userId);
+            else if (rolFormatted === 'administrator' || rolFormatted === 'admin') await AdminModel.createProfile(userId);
+            else if (rolFormatted === 'mentor' || rolFormatted === 'stagementor') {
+                const MentorModel = require('../models/mentorModel');
+                await MentorModel.createProfile(userId);
+            }
+        }
+        
+        await UserModel.updateUser(userId, rolFormatted, updatedStatus);
+        
         res.json({ message: 'Gebruiker succesvol bijgewerkt' });
     } catch (error) {
         console.error('Update user error:', error);

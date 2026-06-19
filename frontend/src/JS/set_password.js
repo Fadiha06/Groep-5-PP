@@ -39,6 +39,24 @@ function checkRequirements() {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
+  const urlParams = new URLSearchParams(window.location.search);
+  const token = urlParams.get('token');
+
+  if (token) {
+    try {
+      const payloadBase64 = token.split('.')[1];
+      const payloadJson = atob(payloadBase64);
+      const payload = JSON.parse(payloadJson);
+      
+      if (payload.exp && (Date.now() >= payload.exp * 1000)) {
+        window.location.href = 'sessie_vervallen.html';
+        return;
+      }
+    } catch (e) {
+      console.error("Fout bij het lezen van token:", e);
+    }
+  }
+
   document.getElementById('submit-btn').addEventListener('click', async () => {
     const urlParams = new URLSearchParams(window.location.search);
     const token = urlParams.get('token');
@@ -59,7 +77,11 @@ document.addEventListener('DOMContentLoaded', () => {
       window.location.href = 'index.html';
     } catch (err) {
       console.error(err);
-      alert(err.message || 'Kon geen verbinding maken met de server.');
+      if (err.message && err.message.includes('verlopen')) {
+        window.location.href = 'sessie_vervallen.html';
+      } else {
+        alert(err.message || 'Kon geen verbinding maken met de server.');
+      }
     }
   });
 

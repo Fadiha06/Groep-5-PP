@@ -2,7 +2,6 @@ const db = require('../config/db');
 const argon2 = require('argon2');
 const jwt = require('jsonwebtoken');
 const UserModel = require('../models/userModel');
-const { stuurWachtwoordLink } = require('../util/mail');
 
 exports.login = async (req, res) => {
     try {
@@ -53,46 +52,6 @@ exports.login = async (req, res) => {
     }
 };
 
-exports.forgotPassword = async (req, res) => {
-    try {
-        const { email } = req.body;
-        if (!email) {
-            return res.status(400).json({ error: 'E-mailadres is verplicht' });
-        }
-
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        if (!emailRegex.test(email)) {
-            return res.status(400).json({ error: 'Ongeldig e-mailadres' });
-        }
-
-        const users = await UserModel.findByEmail(email);
-
-        // Alleen een mail sturen als de gebruiker bestaat,
-        // maar altijd dezelfde respons (geen e-mailadressen lekken).
-        if (users.length > 0) {
-            const user = users[0];
-            const token = jwt.sign(
-                { id: user.id, type: 'set_password' },
-                process.env.JWT_SECRET || 'supersecret',
-                { expiresIn: '15m' }
-            );
-            const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
-            const link = `${frontendUrl}/set_password.html?token=${token}`;
-
-            try {
-                await stuurWachtwoordLink(email, link);
-            } catch (mailError) {
-                console.error('Reset-mail verzenden mislukt:', mailError);
-            }
-        }
-
-        res.json({ message: 'Als dit e-mailadres bekend is, is er een resetlink verstuurd.' });
-    } catch (error) {
-        console.error('Forgot password error:', error);
-        res.status(500).json({ error: 'Server error' });
-    }
-};
-
 exports.setPassword = async (req, res) => {
     try {
         const { token, password } = req.body;
@@ -109,5 +68,24 @@ exports.setPassword = async (req, res) => {
     } catch (error) {
         console.error('Set password error:', error);
         res.status(400).json({ error: 'Ongeldige of verlopen token' });
+    }
+};
+exports.getMe = async (req, res) => {
+    try {
+        if (!req.user || !req.user.id) {
+            return res.status(401).json({ error: 'Niet geautoriseerd' });
+        }
+        const users = await UserModel.findById(req.user.id);
+        if (users.length === 0) return res.status(404).json({ error: 'User not found' });
+        const u = users[0];
+        
+        // Return Achternaam Voornaam format
+        const achternaam = u.achternaam ? u.achternaam.trim() : '';
+        const voornaam = u.voornaam ? u.voornaam.trim() : '';
+        const naam = (achternaam + ' ' + voornaam).trim();
+        
+        res.json({ id: u.id, naam: naam, email: u.email, rol: u.rol });
+    } catch(err) {
+        res.status(500).json({ error: 'Server error' });
     }
 };

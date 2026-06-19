@@ -4,11 +4,10 @@ const authController = require('../controllers/authController');
 
 // Inloggen
 router.post('/login', authController.login);
-
-// Wachtwoord vergeten — stuurt een resetlink via mail
-router.post('/forgot-password', authController.forgotPassword);
-
-// Nieuw wachtwoord instellen via token
 router.post('/set-password', authController.setPassword);
+
+const { verifyToken } = require('../middleware/authMiddleware');
+router.get('/me', verifyToken, authController.getMe);
+
 
 module.exports = router;
