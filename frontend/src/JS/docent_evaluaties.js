@@ -54,7 +54,7 @@ async function laadStudenten() {
                 '<div style="padding:16px;font-size:12px;color:#9CA3AF">Geen studenten gevonden.</div>';
         }
     } catch (err) {
-        console.error(err);
+        console.error('Kon studenten niet laden:', err);
         document.getElementById('student-items').innerHTML =
             '<div style="padding:16px;font-size:12px;color:#EF4444">Fout bij laden van studenten.</div>';
     }

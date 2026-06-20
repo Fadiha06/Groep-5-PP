@@ -6,6 +6,54 @@
 <title>Logboeken — EhB StageTool</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="src/CSS/docent_logboeken.css">
+<style>
+.expand-row{display:none;border-top:1px solid #E5E7EB}
+.expand-row.open{display:table-row}
+.expand-row>td{padding:0;background:#FAFBFC}
+.expand-content{padding:20px 24px;display:flex;flex-direction:column;gap:14px}
+.dag-card{background:white;border-radius:8px;border:1px solid #E2E8F0;overflow:hidden}
+.dag-header{background:#F1F5F9;border-bottom:1px solid #E2E8F0;padding:12px 16px;display:flex;align-items:center;justify-content:space-between}
+.dag-naam{font-size:14px;font-weight:600;color:#0F172A}
+.uren-badge{background:#DBEAFE;color:#2563EB;font-size:12px;font-weight:700;padding:3px 10px;border-radius:4px}
+.dag-body{padding:16px}
+.dag-sectie{margin-bottom:14px}
+.dag-sectie:last-child{margin-bottom:0}
+.dag-label{font-size:13px;font-weight:700;color:#1E293B;margin-bottom:4px}
+.dag-tekst{font-size:13px;color:#475569;line-height:1.6}
+.competentie-tags{display:flex;gap:8px;flex-wrap:wrap;margin-top:6px}
+.comp-tag{background:#F8FAFC;color:#334155;font-size:11px;font-weight:500;padding:4px 12px;border-radius:20px;border:1px solid #CBD5E1}
+.acties-bar{display:flex;gap:8px;padding:16px 24px;background:#F8FAFC;border-top:1px solid #E5E7EB;flex-wrap:wrap;align-items:center}
+.acties-bar .spacer{flex:1}
+.btn-goedkeuren{padding:9px 20px;border-radius:8px;border:none;background:#10B981;color:white;font-size:13px;font-weight:600;cursor:pointer}
+.btn-goedkeuren:hover{background:#059669}
+.btn-feedback{padding:9px 20px;border-radius:8px;border:1px solid #E5E7EB;background:white;color:#374151;font-size:13px;font-weight:500;cursor:pointer}
+.btn-feedback:hover{background:#F9FAFB}
+.score-btn{width:34px;height:34px;border-radius:6px;border:1px solid #E2E8F0;background:white;color:#374151;font-size:13px;font-weight:600;cursor:pointer;transition:all 0.15s}
+.score-btn:hover{background:#EFF6FF;border-color:#2563EB}
+.score-btn--active{background:#2563EB;color:white;border-color:#2563EB}
+.scoring-rij{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid #F1F5F9}
+.scoring-rij:last-child{border-bottom:none}
+.scoring-naam{font-size:13px;font-weight:500;color:#334155;flex:1}
+.scoring-knoppen{display:flex;gap:4px}
+.scoring-sectie{padding:16px 0}
+.scoring-titel{font-size:14px;font-weight:700;color:#1E293B;margin-bottom:12px}
+.feedback-sectie{padding:16px 0}
+.feedback-label{font-size:14px;font-weight:700;color:#1E293B;margin-bottom:8px}
+.feedback-textarea{width:100%;min-height:80px;padding:12px;border-radius:8px;border:1px solid #E2E8F0;font-family:inherit;font-size:13px;resize:vertical;box-sizing:border-box}
+.feedback-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:10px}
+.bestaaand-box{background:#EFF6FF;border:1px solid #BFDBFE;border-radius:8px;padding:12px;margin-top:8px}
+.bestaaand-box--groen{background:#F0FDF4;border-color:#BBF7D0}
+.bestaaand-box__label{font-size:12px;font-weight:600;color:#1D4ED8;margin-bottom:4px}
+.bestaaand-box--groen .bestaaand-box__label{color:#166534}
+.bestaaand-box__tekst{font-size:13px;color:#1E40AF;white-space:pre-wrap}
+.bestaaand-box--groen .bestaaand-box__tekst{color:#166534}
+.tab-bar{display:flex;gap:0;border-bottom:1px solid #E5E7EB;background:#FAFBFC}
+.tab-btn{padding:10px 16px;font-size:13px;font-weight:500;color:#64748B;background:none;border:none;border-bottom:2px solid transparent;cursor:pointer}
+.tab-btn:hover{color:#334155}
+.tab-btn.active{color:#2563EB;border-bottom-color:#2563EB;font-weight:600}
+.tab-pane{display:none}
+.tab-pane.active{display:block}
+</style>
 </head>
 <body>
 <div class="root">
@@ -53,23 +101,6 @@
         </tbody>
       </table>
     </div>
-  </div>
-</div>
-
-<!-- Modal (alleen-lezen) -->
-<div class="modal-overlay" id="modal">
-  <div class="modal">
-    <div class="modal-header">
-      <div>
-        <div class="modal-header-title" id="modal-title">Logboek</div>
-        <div class="modal-header-sub" id="modal-sub"></div>
-      </div>
-      <div class="modal-header-right">
-        <span class="badge-goedgekeurd" id="modal-badge"></span>
-        <button class="btn-sluit" onclick="closeModal()">×</button>
-      </div>
-    </div>
-    <div class="modal-body" id="modal-body-content"></div>
   </div>
 </div>
 

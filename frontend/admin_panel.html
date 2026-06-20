@@ -13,13 +13,13 @@
   <nav class="sidebar">
     <div class="sb-logo">
       <div class="sb-logo-title">EhB StageTool</div>
-      <div class="sb-logo-sub">Administratie</div>
+      <div class="sb-logo-sub">Toegepaste Informatica</div>
     </div>
     <div class="sb-nav">
       <a class="sb-item" href="admin_dashboard.html">Dashboard</a>
-      <a class="sb-item" href="#">Overeenkomsten</a>
-      <a class="sb-item" href="admin_competentie.html">Competenties (Config)</a>
-      <a class="sb-item" href="#">Rapporten</a>
+      <a class="sb-item" href="admin_overeenkomst.html">Overeenkomsten</a>
+      <a class="sb-item" href="admin_competenties.html">Competenties</a>
+      <a class="sb-item" href="admin_rapporten.html">Rapporten</a>
       <a class="sb-item active" href="admin_panel.html">Gebruikers</a>
     </div>
     <div class="sb-footer">Ingelogd als Administrator</div>
@@ -51,7 +51,11 @@
           <option>Inactief</option>
         </select>
         <span class="count-label" id="count-label">6 gebruikers gevonden</span>
-        <button class="btn-new" onclick="openModal()">+ Nieuw account</button>
+        <div style="display:flex; gap:8px;">
+          <button class="btn-new" onclick="openDocentModal()" style="background:#4b5563;">+ Docent Toewijzen</button>
+          <button class="btn-new" onclick="openMentorModal()" style="background:#4b5563;">+ Mentor & Koppelen</button>
+          <button class="btn-new" onclick="openModal()">+ Nieuw account</button>
+        </div>
       </div>
 
       <div class="table-header-row">
@@ -132,6 +136,76 @@
     <div style="display: flex; gap: 12px; margin-top: 24px; justify-content: center;">
       <button class="btn-cancel" onclick="closeDeleteConfirm()">Annuleren</button>
       <button class="btn-deactiveer" onclick="executeDelete()">Ja, verwijder</button>
+    </div>
+  </div>
+</div>
+
+<!-- Mentor Modal -->
+<div class="modal-overlay" id="mentor-modal">
+  <div class="modal">
+    <div>
+      <div class="modal-title">Mentor Account Aanmaken & Koppelen</div>
+      <div class="modal-sub">Vul de gegevens in en kies een stage zonder mentor.</div>
+    </div>
+    <div class="modal-grid">
+      <div class="field">
+        <label>Voornaam</label>
+        <input type="text" id="inp-mentor-voornaam">
+      </div>
+      <div class="field">
+        <label>Achternaam</label>
+        <input type="text" id="inp-mentor-achternaam">
+      </div>
+      <div class="field modal-grid-full">
+        <label>E-mailadres</label>
+        <input type="email" id="inp-mentor-email">
+      </div>
+      <div class="field">
+        <label>Afdeling (optioneel)</label>
+        <input type="text" id="inp-mentor-afdeling">
+      </div>
+      <div class="field">
+        <label>Telefoonnummer</label>
+        <input type="text" id="inp-mentor-telefoon">
+      </div>
+      <div class="field modal-grid-full">
+        <label>Koppel aan Stage/Student</label>
+        <select id="inp-mentor-stage">
+            <option value="">Laden...</option>
+        </select>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancel" onclick="closeMentorModal()">Annuleren</button>
+      <button class="btn-create" onclick="createMentorAccount()">Aanmaken & Koppelen</button>
+    </div>
+  </div>
+</div>
+
+<!-- Docent Modal -->
+<div class="modal-overlay" id="docent-modal">
+  <div class="modal">
+    <div>
+      <div class="modal-title">Docent Toewijzen aan Stage</div>
+      <div class="modal-sub">Kies een stage en de docent die je eraan wil koppelen.</div>
+    </div>
+    <div class="modal-grid">
+      <div class="field modal-grid-full">
+        <label>Selecteer Stage</label>
+        <select id="inp-docent-stage">
+            <option value="">Laden...</option>
+        </select>
+      </div>
+      <div class="field modal-grid-full">
+        <label>Selecteer Docent</label>
+        <select id="inp-docent-docent">
+            <option value="">Laden...</option>
+        </select>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancel" onclick="closeDocentModal()">Annuleren</button>
+      <button class="btn-create" onclick="assignDocent()">Toewijzen</button>
     </div>
   </div>
 </div>

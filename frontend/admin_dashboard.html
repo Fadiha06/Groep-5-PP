@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link href="https://fonts.googleapis.com/css?family=42dot+Sans&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link href="src/CSS/admin_dashboard.css" rel="stylesheet">
   <title>EhB StageTool - Dashboard</title>
 </head>
@@ -18,29 +18,13 @@
     </div>
     <div class="sb-nav">
       <a class="sb-item active" href="admin_dashboard.html">Dashboard</a>
-      <a class="sb-item" href="#">Overeenkomsten</a>
+      <a class="sb-item" href="admin_overeenkomst.html">Overeenkomsten</a>
+      <a class="sb-item" href="admin_competenties.html">Competenties</a>
       <a class="sb-item" href="admin_rapporten.html">Rapporten</a>
-      <a class="sb-item" href="admin_competenties.html">Competenties (Config)</a>
       <a class="sb-item" href="admin_panel.html">Gebruikers</a>
     </div>
-    <nav class="sidebar-nav">
-      <a class="nav-item active" href="admin_dashboard.html" style="text-decoration: none;">
-        <span class="nav-item-text">Dashboard</span>
-      </a>
-      <a class="nav-item" href="#" style="text-decoration: none;">
-        <span class="nav-item-text">Overeenkomsten</span>
-      </a>
-      <a class="nav-item" href="#" style="text-decoration: none;">
-        <span class="nav-item-text">Rapporten</span>
-      </a>
-      <a class="nav-item" href="admin_competentie.html" style="text-decoration: none;">
-        <span class="nav-item-text">Competenties</span>
-      </a>
-      <a class="nav-item" href="admin_panel.html" style="text-decoration: none;">
-        <span class="nav-item-text">Gebruikers</span>
-      </a>
-    </nav>
-  </div>
+    <div class="sb-footer">Ingelogd als Administrator</div>
+  </nav>
 
   <!-- Main Content -->
   <main class="main">
@@ -56,22 +40,22 @@
 
     <!-- Stats Cards -->
     <div class="stats-grid">
-      <div class="stat-card">
+      <a class="stat-card" href="admin_panel.html?rol=Student" title="Bekijk alle studenten in Gebruikersbeheer">
         <div class="stat-label">Totale Studenten</div>
         <div class="stat-value" id="stat-total-students">-</div>
-      </div>
-      <div class="stat-card warn">
+      </a>
+      <a class="stat-card warn" href="admin_overeenkomst.html" title="Ga naar overeenkomsten die actie vereisen">
         <div class="stat-label">Contracten te reviewen</div>
         <div class="stat-value value-amber" id="stat-contracts-review">-</div>
-      </div>
-      <div class="stat-card warn">
+      </a>
+      <a class="stat-card warn" href="admin_overeenkomst.html" title="Ga naar de juridische controle">
         <div class="stat-label">Juridisch te controleren</div>
         <div class="stat-value value-red" id="stat-legal-check">-</div>
-      </div>
-      <div class="stat-card">
+      </a>
+      <a class="stat-card" href="admin_rapporten.html" title="Bekijk rapporten & lopende verlengingen">
         <div class="stat-label">Verlengingen actief</div>
         <div class="stat-value value-blue" id="stat-extensions">-</div>
-      </div>
+      </a>
     </div>
 
     <div class="content-row">

@@ -24,6 +24,7 @@
   <div>
     <div class="page-title">Stageaanvraag indienen</div>
     <div class="page-sub">Vul onderstaand formulier in om een stagevoorstel in te dienen bij de stagecommissie.</div>
+    <div id="conditie-alert" style="display: none; background-color: #fffbeb; color: #b45309; padding: 16px; border: 1px solid #fcd34d; border-radius: 8px; margin-top: 24px;"></div>
   </div>
 
   <div class="card">
@@ -31,10 +32,10 @@
     <div class="grid-4">
       <div class="field">
         <label>Studentennummer</label>
-        <input type="text" placeholder="Bijv. S123456">
+        <input type="text" id="inp-studentnummer" placeholder="Bijv. S123456">
       </div>
       <div class="field">
-        <label>Naam</label>
+        <label>Naam (Achternaam Voornaam)</label>
         <input type="text" id="inp-naam" readonly>
       </div>
       <div class="field">
@@ -86,7 +87,7 @@
       </div>
       <div class="field">
         <label>Afdeling (optioneel)</label>
-        <input type="text" placeholder="Bijv. Digital Solutions">
+        <input type="text" id="inp-afdeling" placeholder="Bijv. Digital Solutions">
       </div>
     </div>
   </div>
@@ -104,7 +105,7 @@
       </div>
       <div class="field">
         <label>Aantal uren per week</label>
-        <input type="number" placeholder="40" min="1" max="40">
+        <input type="number" id="inp-uren" placeholder="40" min="1" max="40">
       </div>
     </div>
   </div>
@@ -122,7 +123,7 @@
       </div>
       <div class="field">
         <label>Leerdoelen</label>
-        <textarea placeholder="Wat wil je leren tijdens deze stage?"></textarea>
+        <textarea id="inp-leerdoelen" placeholder="Wat wil je leren tijdens deze stage?"></textarea>
       </div>
     </div>
   </div>
@@ -133,8 +134,8 @@
   </div>
 </div>
 
-<script src="/src/JS/api.js"></script>
-<script src="/src/JS/stageaanvraag.js"></script>
+<script src="src/JS/api.js"></script>
+<script src="src/JS/stageaanvraag.js"></script>
 
 </body>
 </html>

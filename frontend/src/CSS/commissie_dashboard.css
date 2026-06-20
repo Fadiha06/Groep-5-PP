@@ -39,79 +39,21 @@ body {
   left: 0;
   width: 260px;
   height: 100vh;
-  background-color: var(--primary);
-  color: var(--white);
-  padding: 24px 16px;
+  background: #1F2937;
   display: flex;
   flex-direction: column;
   z-index: 100;
+  font-family: 'Inter', system-ui, sans-serif;
 }
-
-.sidebar__header {
-  margin-bottom: 40px;
-  padding-left: 8px;
-}
-
-.sidebar__title {
-  display: block;
-  font-size: 20px;
-  font-weight: 700;
-  margin-bottom: 4px;
-}
-
-.sidebar__subtitle {
-  display: block;
-  font-size: 13px;
-  color: rgba(255, 255, 255, 0.6);
-}
-
-.sidebar__menu {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.sidebar__item {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 10px 12px;
-  border-radius: 8px;
-  text-decoration: none;
-  color: rgba(255, 255, 255, 0.75);
-  font-size: 14px;
-  font-weight: 500;
-  transition: background-color 0.2s, color 0.2s;
-}
-
-.sidebar__item:hover {
-  background-color: rgba(255, 255, 255, 0.08);
-  color: var(--white);
-}
-
-.sidebar__item--active {
-  background-color: #ef4444;
-  color: var(--white);
-  border-left: 4px solid #b91c1c;
-  padding-left: 16px;
-}
-
-.sidebar__item--active:hover {
-  background-color: #dc2626;
-}
-
-.sidebar__label {
-  flex-grow: 1;
-}
-
-.sidebar__badge {
-  background-color: #FEF3C7;
-  color: #92400E;
-  padding: 2px 8px;
-  border-radius: 20px;
-  font-size: 12px;
-  font-weight: 600;
-}
+.sb-logo{padding:20px 20px 16px;border-bottom:1px solid rgba(255,255,255,0.08)}
+.sb-logo-title{color:white;font-size:16px;font-weight:700;line-height:1.2}
+.sb-logo-sub{color:#6B7280;font-size:12px;margin-top:2px;line-height:1.3}
+.sb-nav{padding:12px 0;flex:1}
+.sb-item{display:flex;align-items:center;gap:10px;padding:10px 16px;font-size:14px;line-height:1.2;font-family:'Inter',system-ui,sans-serif;color:#9CA3AF;cursor:pointer;text-decoration:none;border-radius:6px;margin:0 8px;white-space:nowrap}
+.sb-item.active{background:#D1193E;color:white;font-weight:500}
+.sb-item:not(.active):hover{background:rgba(255,255,255,0.05)}
+.sb-footer{padding:14px 16px;border-top:1px solid rgba(255,255,255,0.08);font-size:12px;color:#6B7280;margin-top:auto;line-height:1.3}
+.sb-badge{background:#FEF3C7;color:#92400E;padding:2px 8px;border-radius:20px;font-size:12px;font-weight:600;margin-left:auto;flex-shrink:0;line-height:1.2}
 
 /* ─── Main Content ────────────────────────────────────── */
 .main-content {
@@ -258,6 +200,52 @@ body {
 .point-card__problem {
   font-size: 13px;
   color: var(--medium-gray);
+}
+
+/* ─── Overeenkomsten actie-vereist ────────────────────── */
+.contract-action-card {
+  background-color: var(--white);
+  border-radius: var(--border-radius);
+  box-shadow: var(--box-shadow);
+  padding: 16px 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+}
+
+.contract-action-card__info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.contract-action-card__student {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--dark-gray);
+}
+
+.contract-action-card__bedrijf {
+  font-size: 13px;
+  color: var(--medium-gray);
+}
+
+.contract-action-card__btn {
+  background: var(--secondary);
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 9px 16px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  font-family: inherit;
+}
+
+.contract-action-card__btn:hover {
+  opacity: 0.9;
 }
 
 /* ─── Decisions List ──────────────────────────────────── */

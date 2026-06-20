@@ -7,7 +7,7 @@ let alleStudenten = [];
 
 document.addEventListener('DOMContentLoaded', () => {
   if (typeof requireAuth === 'function') {
-    if (!requireAuth(['mentor', 'administrator'])) return;
+    if (!requireAuth(['mentor', 'stagementor', 'docent', 'administrator'])) return;
   }
   laadDashboard();
 
@@ -22,15 +22,17 @@ async function laadDashboard() {
   verbergError();
 
   try {
-    const [studenten, logboeken, evaluaties] = await Promise.all([
-      apiFetch('/mentor/studenten'),
-      apiFetch('/mentor/logboeken/pending'),
-      apiFetch('/mentor/evaluaties/open')
+    const [studenten, logboeken, evaluaties, contracten] = await Promise.all([
+      apiFetch('/mentors/studenten'),
+      apiFetch('/mentors/logboeken/pending'),
+      apiFetch('/mentors/evaluaties/open'),
+      apiFetch('/mentors/contracten')
     ]);
 
     alleStudenten = Array.isArray(studenten) ? studenten : [];
     const openLogboeken = Array.isArray(logboeken) ? logboeken : [];
     const openEvaluaties = Array.isArray(evaluaties) ? evaluaties : [];
+    const alleContracten = Array.isArray(contracten) ? contracten : [];
 
     // Stat cards bijwerken
     stel('stat-studenten', alleStudenten.length);
@@ -40,6 +42,7 @@ async function laadDashboard() {
     // Lijsten tonen
     toonLogboeken(openLogboeken.slice(0, 5));
     toonStudenten(alleStudenten);
+    toonContracten(alleContracten);
 
   } catch (err) {
     toonError(err.message || 'Kan dashboard niet laden.');
@@ -78,6 +81,7 @@ function toonLogboeken(lijst) {
               <p class="student-meta">Week ${week}</p>
             </div>
             <span class="status-badge ${statusClass}">${statusText}</span>
+            <a href="mentor_logboeken.html?stage_id=${log.stage_id}&week=${week}" class="btn btn--secondary" style="margin-left:12px">Beoordelen →</a>
           </div>
         `;
       }).join('')}
@@ -114,6 +118,46 @@ function toonStudenten(lijst) {
       }).join('')}
     </div>
   `;
+}
+
+
+// ── Contracten tonen ──────────────────────────────────────
+function toonContracten(lijst) {
+  const container = document.getElementById('contract-list');
+  if (!container) return;
+
+  if (!lijst || lijst.length === 0) {
+    container.innerHTML = '<p class="empty-state">Geen contracten gevonden.</p>';
+    return;
+  }
+
+  container.innerHTML = lijst.map(c => {
+    if (c.mentor_getekend) {
+      return `<div class="student-item">
+        <div style="flex:1">
+          <p class="student-name">${c.studentnaam}</p>
+          <p class="student-meta">${c.bedrijfsnaam || '—'}</p>
+        </div>
+        <span style="font-size:13px;color:#15803D;font-weight:600;">✓ Getekend</span>
+      </div>`;
+    }
+    if (!c.student_getekend) {
+      return `<div class="student-item">
+        <div style="flex:1">
+          <p class="student-name">${c.studentnaam}</p>
+          <p class="student-meta">${c.bedrijfsnaam || '—'}</p>
+        </div>
+        <span style="font-size:13px;color:#9CA3AF;">Wacht op student</span>
+      </div>`;
+    }
+    return `<div class="student-item">
+      <div style="flex:1">
+        <p class="student-name">${c.studentnaam}</p>
+        <p class="student-meta">${c.bedrijfsnaam || '—'} · Student heeft getekend</p>
+      </div>
+      <a href="${c.teken_url}" style="background:#D1193E;color:#fff;padding:8px 14px;border-radius:6px;font-size:13px;font-weight:600;text-decoration:none;">✎ Teken</a>
+    </div>`;
+  }).join('');
 }
 
 // ── Filter stagiairs ───────────────────────────────────────
@@ -155,5 +199,5 @@ function logout() {
   localStorage.removeItem('token');
   localStorage.removeItem('rol');
   localStorage.removeItem('userId');
-  window.location.href = 'login.html';
+  window.location.href = 'index.html';
 }

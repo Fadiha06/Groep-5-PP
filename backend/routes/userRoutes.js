@@ -10,6 +10,6 @@ router.post('/', verifyToken, requireRole(['admin', 'administrator']), userContr
 router.delete('/:id', verifyToken, requireRole(['admin', 'administrator']), userController.deleteUser);
 
 // Gebruiker bewerken (rol of status)
-router.put('/:id', userController.updateUser);
+router.put('/:id', verifyToken, requireRole(['admin', 'administrator']), userController.updateUser);
 
 module.exports = router;

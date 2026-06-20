@@ -1,5 +1,6 @@
 const express = require('express');
 const cors = require('cors');
+const helmet = require('helmet');
 require('dotenv').config();
 // Auto-migratie: maak LOGBOEK tabellen aan als ze ontbreken
 const pool = require('./config/db');
@@ -44,7 +45,7 @@ async function autoMigreer() {
             evaluatie_id INT AUTO_INCREMENT PRIMARY KEY,
             stage_id INT NOT NULL,
             beoordelaar_id INT NOT NULL,
-            type ENUM('tussentijds','finaal') NOT NULL,
+            type VARCHAR(50) NOT NULL,
             datum DATE,
             feedback TEXT,
             beoordelaar_rol VARCHAR(50),
@@ -79,6 +80,68 @@ async function autoMigreer() {
                 console.log('  RUBRIEK: ' + rijen.length + ' niveaus aangemaakt');
             }
         }
+        // ── Migratie: score kolom op LOGBOEK_COMPETENTIE ──
+        const [lcCols] = await conn.query(`SHOW COLUMNS FROM LOGBOEK_COMPETENTIE LIKE 'score'`);
+        if (lcCols.length === 0) {
+            await conn.query(`ALTER TABLE LOGBOEK_COMPETENTIE ADD COLUMN score INT AFTER competentie_id`);
+            await conn.query(`ALTER TABLE LOGBOEK_COMPETENTIE ADD COLUMN commentaar TEXT AFTER score`);
+            console.log('  LOGBOEK_COMPETENTIE: score + commentaar kolommen toegevoegd');
+        }
+        // ── Migratie: nieuwe kolommen op LOGBOEK_WEEK ──
+        const [lwCols] = await conn.query(`SHOW COLUMNS FROM LOGBOEK_WEEK LIKE 'docent_feedback'`);
+        if (lwCols.length === 0) {
+            await conn.query(`ALTER TABLE LOGBOEK_WEEK ADD COLUMN docent_feedback TEXT AFTER mentor_feedback`);
+            await conn.query(`ALTER TABLE LOGBOEK_WEEK ADD COLUMN docent_goedgekeurd BOOLEAN DEFAULT FALSE AFTER docent_feedback`);
+            console.log('  LOGBOEK_WEEK: docent_feedback + docent_goedgekeurd kolommen toegevoegd');
+        }
+        // ── Migratie: EVALUATIE.type van ENUM naar VARCHAR(50) ──
+        const [evType] = await conn.query(`SHOW COLUMNS FROM EVALUATIE LIKE 'type'`);
+        if (evType.length > 0 && evType[0].Type && evType[0].Type.includes('enum')) {
+            await conn.query(`ALTER TABLE EVALUATIE MODIFY COLUMN type VARCHAR(50) NOT NULL`);
+            console.log('  EVALUATIE: type kolom aangepast van ENUM naar VARCHAR(50)');
+        }
+        // ── Migratie: fix stages zonder mentor_id/leerkracht_id ──
+        const [fixStages] = await conn.query(`
+            SELECT s.stage_id, s.bedrijf_id, b.email AS mentor_email
+            FROM STAGE s
+            JOIN BEDRIJF b ON s.bedrijf_id = b.bedrijf_id
+            WHERE s.status = 'goedgekeurd' AND s.mentor_id IS NULL
+        `);
+        if (fixStages.length > 0) {
+            console.log(`[auto-migratie] ${fixStages.length} goedgekeurde stages zonder mentor_id - bezig met fixen...`);
+            for (const stage of fixStages) {
+                if (!stage.mentor_email) continue;
+                let [bestaand] = await conn.query('SELECT id FROM GEBRUIKER WHERE email = ?', [stage.mentor_email]);
+                let mentorGebruikerId;
+                if (bestaand.length > 0) {
+                    mentorGebruikerId = bestaand[0].id;
+                } else {
+                    const crypto = require('crypto');
+                    const argon2 = require('argon2');
+                    const randomPwd = crypto.randomBytes(16).toString('hex');
+                    const hash = await argon2.hash(randomPwd);
+                    const voornaam = stage.mentor_email.split('@')[0];
+                    const [nieuw] = await conn.query(
+                        'INSERT INTO GEBRUIKER (voornaam, achternaam, email, wachtwoord, rol) VALUES (?, ?, ?, ?, ?)',
+                        [voornaam, '', stage.mentor_email, hash, 'stagementor']
+                    );
+                    mentorGebruikerId = nieuw.insertId;
+                }
+                let [mentorRecord] = await conn.query('SELECT mentor_id FROM STAGEMENTOR WHERE gebruiker_id = ?', [mentorGebruikerId]);
+                let mentorId;
+                if (mentorRecord.length > 0) {
+                    mentorId = mentorRecord[0].mentor_id;
+                } else {
+                    const [nieuweMentor] = await conn.query(
+                        'INSERT INTO STAGEMENTOR (gebruiker_id, bedrijf_id) VALUES (?, ?)',
+                        [mentorGebruikerId, stage.bedrijf_id]
+                    );
+                    mentorId = nieuweMentor.insertId;
+                }
+                await conn.query('UPDATE STAGE SET mentor_id = ? WHERE stage_id = ?', [mentorId, stage.stage_id]);
+            }
+            console.log(`[auto-migratie] ${fixStages.length} stages gefixed met mentor_id`);
+        }
         console.log('[auto-migratie] Logboek tabellen OK');
     } catch (err) {
         console.error('[auto-migratie] FOUT:', err.message);
@@ -100,6 +163,7 @@ app.use(cors({
     allowedHeaders: ['Content-Type', 'Authorization']
 }));
 app.options('*', cors());
+app.use(helmet());
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
@@ -113,6 +177,7 @@ const authRoutes       = require('./routes/authRoutes');
 const userRoutes       = require('./routes/userRoutes');
 const stageRoutes      = require('./routes/stageRoutes');
 const adminRoutes      = require('./routes/adminRoutes');
+const commissieRoutes  = require('./routes/commissieRoutes');
 const competentieRoutes = require('./routes/competentieRoutes');
 const contractRoutes   = require('./routes/contractRoutes');
 const docentRoutes     = require('./routes/docentRoutes');
@@ -125,6 +190,7 @@ app.use('/api/auth',         authRoutes);
 app.use('/api/users',        userRoutes);
 app.use('/api/stage',        stageRoutes);
 app.use('/api/admin',        adminRoutes);
+app.use('/api/commissie',    commissieRoutes);
 app.use('/api/competenties', competentieRoutes);
 app.use('/api/contracten',   contractRoutes);
 app.use('/api/docent',       docentRoutes);

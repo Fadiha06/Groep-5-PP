@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Rapporten & scores — EhB StageTool</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="src/CSS/admin_rapporten.css">
+</head>
+<body>
+<div class="root">
+
+  <nav class="sidebar">
+    <div class="sb-logo">
+      <div class="sb-logo-title">EhB StageTool</div>
+      <div class="sb-logo-sub">Toegepaste Informatica</div>
+    </div>
+    <div class="sb-nav">
+      <a class="sb-item" href="admin_dashboard.html">Dashboard</a>
+      <a class="sb-item" href="admin_overeenkomst.html">Overeenkomsten</a>
+      <a class="sb-item" href="admin_competenties.html">Competenties</a>
+      <a class="sb-item active" href="admin_rapporten.html">Rapporten</a>
+      <a class="sb-item" href="admin_panel.html">Gebruikers</a>
+    </div>
+    <div class="sb-footer">Ingelogd als Administrator</div>
+  </nav>
+
+  <div class="main">
+    <div>
+      <div class="page-title">Rapporten & scores</div>
+      <div class="page-sub">Scores zijn read-only (geaggregeerd). Exporteer naar CSV voor archivering.</div>
+    </div>
+
+    <div class="card">
+      <div class="toolbar">
+        <div class="search-wrap">
+          <span>🔍</span>
+          <input class="search" type="text" placeholder="Zoek op naam van student / bedrijf..." oninput="filterTable()">
+        </div>
+        <button class="btn-export" id="btn-export" onclick="exporteerCSV()" disabled>📥 Exporteer geselecteerde als CSV</button>
+      </div>
+
+      <table>
+        <thead>
+          <tr>
+            <th style="width:56px"><input type="checkbox" class="check" id="check-alles" onchange="toggleAlles(this)"></th>
+            <th>Student</th>
+            <th>Bedrijf</th>
+            <th class="center" id="th-c1">C1</th>
+            <th class="center" id="th-c2">C2</th>
+            <th class="center" id="th-c3">C3</th>
+            <th class="center">Totaal</th>
+          </tr>
+        </thead>
+        <tbody id="tbody">
+          <tr><td colspan="7" style="text-align:center;color:#9CA3AF;padding:24px">Laden...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<script src="src/JS/api.js"></script>
+<script src="src/JS/admin_rapporten.js"></script>
+</body>
+</html>

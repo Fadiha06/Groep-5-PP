@@ -144,7 +144,9 @@ async function laadCompetenties() {
                     scores[s.competentie_id] = { score: s.score, feedback: s.feedback || '' };
                 });
             }
-        } catch (_) { /* geen concept */ }
+        } catch (_) {
+            // Geen concept – geen probleem
+        }
 
         toonCompetenties(competenties);
         updateTotaalScore();

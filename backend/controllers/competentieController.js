@@ -2,98 +2,96 @@ const db = require('../config/db');
 
 exports.getAllCompetenties = async (req, res) => {
     try {
-        const [rows] = await db.query('SELECT * FROM COMPETENTIE ORDER BY naam ASC');
-        res.json(rows);
-    } catch (err) {
-        console.error('Error fetching competenties:', err);
-        res.status(500).json({ error: 'Server error' });
+        const [competenties] = await db.query('SELECT * FROM COMPETENTIE');
+        
+        for (let comp of competenties) {
+            const [rubrieken] = await db.query('SELECT * FROM RUBRIEK WHERE competentie_id = ? ORDER BY punten ASC', [comp.competentie_id]);
+            comp.rubrieken = rubrieken;
+        }
+
+        // ponytail: map instellingen to expected dict format in one go
+        const [instRows] = await db.query('SELECT * FROM INSTELLINGEN');
+        const instellingen = Object.fromEntries(instRows.map(r => [r.opleiding, { max_score: r.max_score, aantal_logboeken: r.aantal_logboeken, slaagdrempel: r.slaagdrempel }]));
+
+        res.json({ competenties, instellingen });
+    } catch (error) {
+        res.status(500).json({ error: 'Fout bij ophalen competenties' });
     }
 };
 
 exports.createCompetentie = async (req, res) => {
     try {
-        const { naam, omschrijving } = req.body;
-        if (!naam) {
-            return res.status(400).json({ error: 'Naam is verplicht' });
+        const { naam, omschrijving, opleiding, weging, rubrieken } = req.body;
+        
+        const connection = await db.getConnection();
+        await connection.beginTransaction();
+
+        try {
+            const [compResult] = await connection.query(
+                'INSERT INTO COMPETENTIE (naam, omschrijving, opleiding, weging) VALUES (?, ?, ?, ?)',
+                [naam, omschrijving, opleiding || 'Toegepaste Informatica', weging || 0]
+            );
+            
+            const competentieId = compResult.insertId;
+
+            if (rubrieken && rubrieken.length > 0) {
+                for (let rubriek of rubrieken) {
+                    await connection.query(
+                        'INSERT INTO RUBRIEK (competentie_id, punten, omschrijving) VALUES (?, ?, ?)',
+                        [competentieId, rubriek.punten, rubriek.omschrijving]
+                    );
+                }
+            }
+
+            await connection.commit();
+            connection.release();
+
+            res.status(201).json({ message: 'Competentie aangemaakt', id: competentieId });
+        } catch (err) {
+            await connection.rollback();
+            connection.release();
+            throw err;
         }
-        const [result] = await db.query(
-            'INSERT INTO COMPETENTIE (naam, omschrijving) VALUES (?, ?)',
-            [naam, omschrijving || null]
-        );
-        res.status(201).json({ message: 'Competentie aangemaakt', id: result.insertId });
-    } catch (err) {
-        console.error('Error creating competentie:', err);
-        res.status(500).json({ error: 'Server error' });
+    } catch (error) {
+        res.status(500).json({ error: 'Fout bij aanmaken competentie' });
     }
 };
 
 exports.updateCompetentie = async (req, res) => {
     try {
-        const { id } = req.params;
-        const { naam, omschrijving } = req.body;
-        if (!naam) {
-            return res.status(400).json({ error: 'Naam is verplicht' });
-        }
-        await db.query(
-            'UPDATE COMPETENTIE SET naam = ?, omschrijving = ? WHERE competentie_id = ?',
-            [naam, omschrijving || null, id]
-        );
-        res.json({ message: 'Competentie bijgewerkt' });
-    } catch (err) {
-        console.error('Error updating competentie:', err);
-        res.status(500).json({ error: 'Server error' });
-    }
-};
+        const competentieId = req.params.id;
+        const { naam, omschrijving, opleiding, weging, rubrieken } = req.body;
+        
+        const connection = await db.getConnection();
+        await connection.beginTransaction();
 
-exports.deleteCompetentie = async (req, res) => {
-    try {
-        const { id } = req.params;
-        await db.query('DELETE FROM COMPETENTIE WHERE competentie_id = ?', [id]);
-        res.json({ message: 'Competentie verwijderd' });
-    } catch (err) {
-        console.error('Error deleting competentie:', err);
-        res.status(500).json({ error: 'Server error' });
-    }
-};
+        try {
+            await connection.query(
+                'UPDATE COMPETENTIE SET naam = ?, omschrijving = ?, opleiding = ?, weging = ? WHERE competentie_id = ?',
+                [naam, omschrijving, opleiding || 'Toegepaste Informatica', weging || 0, competentieId]
+            );
 
-// ── Rubriek (niveaus) per competentie ───────────────────────
-exports.getRubriek = async (req, res) => {
-    try {
-        const { id } = req.params;
-        const [rows] = await db.query(
-            'SELECT rubriek_id, punten, omschrijving FROM RUBRIEK WHERE competentie_id = ? ORDER BY punten ASC',
-            [id]
-        );
-        res.json(rows);
-    } catch (err) {
-        console.error('Error fetching rubriek:', err);
-        res.status(500).json({ error: 'Server error' });
-    }
-};
+            await connection.query('DELETE FROM RUBRIEK WHERE competentie_id = ?', [competentieId]);
 
-exports.saveRubriek = async (req, res) => {
-    try {
-        const { id } = req.params;
-        const { niveaus } = req.body;
-
-        // Vervang alle niveaus van deze competentie
-        await db.query('DELETE FROM RUBRIEK WHERE competentie_id = ?', [id]);
-
-        if (Array.isArray(niveaus) && niveaus.length > 0) {
-            const values = niveaus
-                .filter(n => n.omschrijving && n.omschrijving.trim() !== '')
-                .map(n => [id, Number(n.punten) || 0, n.omschrijving.trim()]);
-            if (values.length > 0) {
-                await db.query(
-                    'INSERT INTO RUBRIEK (competentie_id, punten, omschrijving) VALUES ?',
-                    [values]
-                );
+            if (rubrieken && rubrieken.length > 0) {
+                for (let rubriek of rubrieken) {
+                    await connection.query(
+                        'INSERT INTO RUBRIEK (competentie_id, punten, omschrijving) VALUES (?, ?, ?)',
+                        [competentieId, rubriek.punten, rubriek.omschrijving]
+                    );
+                }
             }
-        }
 
-        res.json({ message: 'Rubriek opgeslagen' });
-    } catch (err) {
-        console.error('Error saving rubriek:', err);
-        res.status(500).json({ error: 'Server error' });
+            await connection.commit();
+            connection.release();
+
+            res.json({ message: 'Competentie bijgewerkt' });
+        } catch (err) {
+            await connection.rollback();
+            connection.release();
+            throw err;
+        }
+    } catch (error) {
+        res.status(500).json({ error: 'Fout bij bijwerken competentie' });
     }
 };
