@@ -10,15 +10,16 @@
 <body>
 
     <aside class="sidebar">
-        <div class="sidebar__brand">
-            <span class="sidebar__brand-name">EhB StageTool</span>
-            <span class="sidebar__brand-sub">Toegepaste Informatica</span>
+        <div class="sb-logo">
+            <div class="sb-logo-title">EhB StageTool</div>
+            <div class="sb-logo-sub">Toegepaste Informatica</div>
         </div>
-        <nav class="sidebar__nav">
-            <a href="student_dashboard.html" class="nav-item"><span class="nav-item__icon"></span> Dashboard</a>
-            <a href="logboek.html" class="nav-item active"><span class="nav-item__icon"></span> Logboek</a>
-            <a href="evaluaties.html" class="nav-item"><span class="nav-item__icon"></span> Evaluaties</a>
-        </nav>
+        <div class="sb-nav">
+            <a href="student_dashboard.html" class="sb-item">Dashboard</a>
+            <a href="contract.html" class="sb-item">Contract</a>
+            <a href="logboek.html" class="sb-item active">Logboek</a>
+            <a href="evaluaties.html" class="sb-item">Evaluaties</a>
+        </div>
         <div class="sidebar__user">
             <div class="sidebar__user-info">
                 <span class="sidebar__user-name" id="account-naam">—</span>
@@ -141,8 +142,12 @@
         const API = '/api/studenten';
         const token = localStorage.getItem('token');
 
-        // Guard: student moet ingelogd zijn
-        requireAuth('student');
+        // Guard: contract moet volledig getekend zijn
+        (async function() {
+            if (!requireAuth('student')) return;
+            const contract = await vereisContractGetekend();
+            if (!contract) return; // redirect al gedaan
+        })();
 
         let huidigeWeek = 1;
         let totaalWeken = 1;
