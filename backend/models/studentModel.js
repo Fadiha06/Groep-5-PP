@@ -256,19 +256,27 @@ class StudentModel {
              WHERE s.student_id = ?`,
             [studentId]
         );
+        const [instellingenRows] = await db.query(
+            `SELECT i.aantal_logboeken
+             FROM STUDENT st
+             JOIN INSTELLINGEN i ON i.opleiding = st.opleiding
+             WHERE st.student_id = ?`,
+            [studentId]
+        );
         return {
             totaal_weken: logboekRows[0].totaal_weken || 0,
             ingediend: logboekRows[0].ingediend || 0,
-            totaal_uren: urenRows[0].totaal_uren || 0
+            totaal_uren: urenRows[0].totaal_uren || 0,
+            aantal_logboeken_verplicht: instellingenRows[0] ? instellingenRows[0].aantal_logboeken : null
         };
     }
 
     // Stage-procesinfo voor dashboard
     static async getStageproces(studentId) {
         const [rows] = await db.query(
-            `SELECT s.stage_id, s.status, s.startdatum, s.einddatum, s.titel,
+            `SELECT s.stage_id, s.status, s.startdatum, s.einddatum, s.titel, s.goedkeuringsdatum, s.uren_per_week,
                     b.naam AS bedrijfsnaam,
-                    c.student_getekend, c.mentor_getekend, c.docent_getekend
+                    c.student_getekend, c.mentor_getekend, c.docent_getekend, c.getekend_op
              FROM STAGE s
              LEFT JOIN BEDRIJF b ON b.bedrijf_id = s.bedrijf_id
              LEFT JOIN CONTRACT c ON c.stage_id = s.stage_id
@@ -276,7 +284,17 @@ class StudentModel {
              ORDER BY s.stage_id DESC LIMIT 1`,
             [studentId]
         );
-        return rows[0] || null;
+        if (!rows[0]) return null;
+
+        const stage = rows[0];
+        const [evaluaties] = await db.query(
+            `SELECT type, datum FROM EVALUATIE WHERE stage_id = ?`,
+            [stage.stage_id]
+        );
+        stage.tussentijdse_evaluatie = evaluaties.find(e => e.type === 'tussentijds') || null;
+        stage.finale_evaluatie = evaluaties.find(e => e.type === 'finaal') || null;
+
+        return stage;
     }
 
     // Logboek van huidige week

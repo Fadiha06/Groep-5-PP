@@ -78,34 +78,6 @@ class ContractController {
         }
     }
 
-    static async tekenDocent(req, res) {
-        const { signature } = req.body;
-        if (!signature) return res.status(400).json({ error: 'Handtekening ontbreekt' });
-        try {
-            const contract = await ContractModel.getById(req.params.id);
-            if (!contract) return res.status(404).json({ error: 'Contract niet gevonden' });
-            if (contract.docent_getekend) {
-                return res.status(409).json({ error: 'Al ondertekend door de docent/administrator' });
-            }
-
-            // Docent mag alleen zijn eigen contract tekenen; admins mogen alles
-            const rol = req.user.rol;
-            if (rol === 'docent') {
-                const toegewezenGebruikerId = await ContractModel.getDocentGebruikerId(req.params.id);
-                if (!toegewezenGebruikerId || toegewezenGebruikerId !== req.user.id) {
-                    return res.status(403).json({ error: 'Dit contract is niet aan jou toegewezen' });
-                }
-            }
-
-            await ContractModel.signAsDocent(req.params.id, signature);
-            res.json({ message: 'Contract ondertekend' });
-        } catch (err) {
-            console.error('[tekenDocent] FOUT:', err.message, err.code);
-            const detail = process.env.NODE_ENV === 'development' ? err.message : undefined;
-            res.status(500).json({ error: 'Serverfout bij ondertekenen', detail });
-        }
-    }
-
     static async tekenMentor(req, res) {
         const { token, signature } = req.body;
         if (!token || !signature) return res.status(400).json({ error: 'Token en handtekening verplicht' });
