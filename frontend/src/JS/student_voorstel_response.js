@@ -16,17 +16,6 @@ const STEPPER_CONFIG = {
       null, null, null
     ],
   },
-  goedgekeurd_getekend: {
-    info_status: { text: "Goedgekeurd", kleur: "#27AE60" },
-    dots: ["done", "done", "active-green", null, null],
-    labels: ["done", "done", "active", null, null],
-    badges: [
-      { text: "Voltooid", cls: "badge-voltooid" },
-      { text: "Voltooid", cls: "badge-voltooid" },
-      { text: "Contract voltooid", cls: "badge-voltooid" },
-      null, null
-    ],
-  },
   afgekeurd: {
     info_status: { text: "Afgekeurd", kleur: "#8B2020" },
     dots: ["done", "active-red", null, null, null],
@@ -73,10 +62,8 @@ function render() {
     if (banner) banner.style.display = "none";
   });
 
-  // goedgekeurd_getekend gebruikt dezelfde HTML blokken als goedgekeurd
-  var renderStatus = (STATUS === "goedgekeurd_getekend") ? "goedgekeurd" : STATUS;
-  var block = document.getElementById("block-" + renderStatus);
-  var banner = document.getElementById("banner-" + renderStatus);
+  var block = document.getElementById("block-" + STATUS);
+  var banner = document.getElementById("banner-" + STATUS);
   if (block) block.style.display = "block";
   if (banner) banner.style.display = "inline-flex";
 
@@ -151,9 +138,8 @@ async function init() {
     vulField("gk-opdracht", s.omschrijving || "-");
     vulField("gk-datum", formatDatum(s.startdatum));
     // Docent/begeleider ophalen via apiFetch (optioneel - kan ontbreken in stage response)
-    var contractData = null;
     try {
-      contractData = await apiFetch("/contracten/mijn");
+      var contractData = await apiFetch("/contracten/mijn");
       if (contractData && contractData.docent_naam) {
         vulField("gk-docent", contractData.docent_naam);
       }
@@ -177,10 +163,6 @@ async function init() {
       }
     } else if (st === "goedgekeurd" || st === "actief") {
       STATUS = "goedgekeurd";
-      // Check of contract volledig getekend is → stepper naar stap 3
-      if (contractData && contractData.student_getekend && contractData.mentor_getekend && contractData.docent_getekend) {
-        STATUS = "goedgekeurd_getekend";
-      }
     } else {
       STATUS = "in_behandeling";
     }

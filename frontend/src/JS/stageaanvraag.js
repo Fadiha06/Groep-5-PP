@@ -74,7 +74,7 @@ document.addEventListener('DOMContentLoaded', () => {
       });
       
       alert(data.message);
-      window.location.href = 'student_voorstel_response.html';
+      window.location.href = 'student_dashboard.html';
     } catch (err) {
       console.error(err);
       alert(err.message || 'Kon de aanvraag niet versturen.');

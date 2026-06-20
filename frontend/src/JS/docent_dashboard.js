@@ -64,10 +64,8 @@ function vulMilestones(milestones) {
         let actie = '';
         if (m.docent_getekend) {
             actie = '<span style="font-size:12px;color:#15803D;font-weight:600;">&#10003; Volledig getekend</span>';
-        } else if (m.student_getekend && m.mentor_getekend && m.contract_id) {
-            actie = '<a href="docent_contract.html?id=' + m.contract_id + '" style="background:#D1193E;color:#fff;padding:5px 12px;border-radius:5px;font-size:12px;font-weight:600;text-decoration:none;">&#9998; Teken contract</a>';
         } else {
-            actie = '<span style="font-size:12px;color:#9CA3AF;">Wacht op student/mentor</span>';
+            actie = '<span style="font-size:12px;color:#9CA3AF;">Wacht op stagecommissie</span>';
         }
 
         div.innerHTML = '<div class="milestone-naam">' + m.student + '</div>' +
