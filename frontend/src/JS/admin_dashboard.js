@@ -5,7 +5,7 @@ document.addEventListener('DOMContentLoaded', () => {
   if (logoutBtn) logoutBtn.addEventListener('click', window.logout);
 
   loadStats();
-  loadActionRequired();
+  loadTeVersturen();
   loadActivity();
   loadContracts();
 });
@@ -16,15 +16,13 @@ document.addEventListener('DOMContentLoaded', () => {
 async function loadStats() {
   try {
     // Verwacht: GET /api/admin/dashboard/stats
-    // Response: {
-    //   totalStudents, pendingContracts, legalCheck, activeExtensions,
-    //   melding: "3 zaken vereisen jouw actie vandaag — 2 contracten wachten op controle, 1 juridisch probleem."
-    // }
+    // Response: { totalStudents, pendingContracts, activeExtensions, melding }
+    // "pendingContracts" = contracten die de stagecommissie klaar heeft gezet en
+    // die de admin nog moet versturen (zie ook /admin/dashboard/te-versturen).
     const stats = await apiFetch('/admin/dashboard/stats');
 
     setText('stat-total-students', stats.totalStudents);
-    setText('stat-contracts-review', stats.pendingContracts);
-    setText('stat-legal-check', stats.legalCheck);
+    setText('stat-te-versturen', stats.pendingContracts);
     setText('stat-extensions', stats.activeExtensions);
     setText('header-subtitle', stats.melding || '');
   } catch (err) {
@@ -34,49 +32,57 @@ async function loadStats() {
 }
 
 // ============================================================
-// Overeenkomsten - Actie Vereist (Inline Review)
+// Contracten klaar om te verzenden
 // ============================================================
-async function loadActionRequired() {
-  const container = document.getElementById('action-required-list');
-  const badge = document.getElementById('action-required-badge');
+async function loadTeVersturen() {
+  const container = document.getElementById('te-versturen-list');
+  const badge = document.getElementById('te-versturen-badge');
 
   try {
-    // Verwacht: GET /api/admin/dashboard/actie-vereist
-    // Response: [{
-    //   contract_id, bedrijf_naam, student_naam, opleiding, ingediend_op,
-    //   risicoanalyse_ok, mentor_getekend, student_getekend, verzekering_status
-    // }]
-    const items = await apiFetch('/admin/dashboard/actie-vereist');
+    // Verwacht: GET /api/admin/dashboard/te-versturen
+    // Response: [{ contract_id, student_naam, bedrijf_naam, getekend_op }]
+    const items = await apiFetch('/admin/dashboard/te-versturen');
 
     badge.textContent = `${items.length} Wachtend`;
 
     if (items.length === 0) {
-      container.innerHTML = `<div style="text-align:center;color:#9CA3AF;font-size:13px;padding:20px">Geen overeenkomsten die actie vereisen.</div>`;
+      container.innerHTML = `<div style="text-align:center;color:#9CA3AF;font-size:13px;padding:20px">Geen contracten klaar om te verzenden.</div>`;
       return;
     }
 
     container.innerHTML = items.map(item => `
       <div class="contract-card">
         <div class="contract-header">
-          <div class="contract-title">${item.bedrijf_naam} - Stageovereenkomst</div>
-          <div class="contract-date">Ingediend: ${formatDatum(item.ingediend_op)}</div>
+          <div class="contract-title">${item.bedrijf_naam || 'Onbekend bedrijf'} - Stageovereenkomst</div>
+          <div class="contract-date">Getekend door commissie: ${formatDatum(item.getekend_op)}</div>
         </div>
         <div class="contract-details">
-          <p><strong>Student:</strong> ${item.student_naam} (${item.opleiding})</p>
-          <p><strong>Risicoanalyse:</strong> <span class="${item.risicoanalyse_ok ? 'status-ok' : 'status-bad'}">${item.risicoanalyse_ok ? '✓ Geüpload en in orde' : '✗ Nog niet geüpload'}</span></p>
-          <p><strong>Handtekening Mentor:</strong> <span class="${item.mentor_getekend ? 'status-ok' : 'status-bad'}">${item.mentor_getekend ? '✓ Getekend' : '✗ Nog niet getekend'}</span></p>
-          <p><strong>Handtekening Student:</strong> <span class="${item.student_getekend ? 'status-ok' : 'status-bad'}">${item.student_getekend ? '✓ Getekend' : '✗ Nog niet getekend'}</span></p>
-          <p><strong>Verzekeringsdossier:</strong> ${item.verzekering_status || 'Onbekend'}</p>
+          <p><strong>Student:</strong> ${item.student_naam}</p>
         </div>
-        <button class="action-btn" onclick="window.location.href='admin_overeenkomst.html?id=${item.contract_id}'">Check contract</button>
+        <button class="action-btn" onclick="versturen(${item.contract_id}, this)">Verstuur naar student & bedrijf</button>
       </div>
     `).join('');
   } catch (err) {
-    console.error('Fout bij ophalen actie-vereist overeenkomsten:', err);
-    container.innerHTML = `<div style="text-align:center;color:#9CA3AF;font-size:13px;padding:20px">Kon overeenkomsten niet laden.</div>`;
+    console.error('Fout bij ophalen te versturen contracten:', err);
+    container.innerHTML = `<div style="text-align:center;color:#9CA3AF;font-size:13px;padding:20px">Kon contracten niet laden.</div>`;
     badge.textContent = '- Wachtend';
   }
 }
+
+async function versturen(contractId, btn) {
+  btn.disabled = true;
+  btn.textContent = 'Versturen...';
+  try {
+    await apiFetch(`/admin/contracten/${contractId}/versturen`, { method: 'POST' });
+    loadTeVersturen();
+    loadStats();
+  } catch (err) {
+    alert(err.message || 'Kon het contract niet versturen.');
+    btn.disabled = false;
+    btn.textContent = 'Verstuur naar student & bedrijf';
+  }
+}
+window.versturen = versturen;
 
 // ============================================================
 // Recente Activiteit
@@ -157,7 +163,7 @@ async function loadContracts() {
         <td>${c.bedrijf_naam || '-'}</td>
         <td><span class="badge ${aanvraag.cls}">${aanvraag.label}</span></td>
         <td><span class="badge ${contractStatus.cls}">${contractStatus.label}</span></td>
-        <td><button class="view-btn" onclick="window.location.href='admin_overeenkomst.html?id=${c.contract_id}'">${actieLabel}</button></td>
+        <td><button class="view-btn" onclick="window.location.href='commissie_overeenkomst.html?id=${c.contract_id}'">${actieLabel}</button></td>
       </tr>`;
     }).join('');
   } catch (err) {

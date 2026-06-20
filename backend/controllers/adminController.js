@@ -1,5 +1,4 @@
 const AdminDashboardModel = require('../models/adminDashboardModel');
-const ContractModel = require('../models/contractModel');
 
 exports.getOpleidingen = async (req, res) => {
     try {
@@ -108,6 +107,64 @@ exports.getDashboardStats = async (req, res) => {
     }
 };
 
+// Contracten die de stagecommissie volledig heeft afgehandeld (gecontroleerd + getekend)
+// en die de admin nog moet versturen naar student en bedrijf.
+exports.getTeVersturen = async (req, res) => {
+    try {
+        const db = require('../config/db');
+        const [rows] = await db.query(`
+            SELECT c.contract_id, c.getekend_op,
+                   CONCAT(g.voornaam, ' ', g.achternaam) AS student_naam,
+                   b.naam AS bedrijf_naam
+            FROM CONTRACT c
+            JOIN STAGE s ON s.stage_id = c.stage_id
+            JOIN STUDENT st ON s.student_id = st.student_id
+            JOIN GEBRUIKER g ON g.id = st.gebruiker_id
+            LEFT JOIN BEDRIJF b ON b.bedrijf_id = s.bedrijf_id
+            WHERE c.docent_getekend = 1 AND c.verzonden_op IS NULL
+            ORDER BY c.contract_id DESC
+        `);
+        res.json(rows);
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: 'Serverfout bij ophalen te versturen contracten' });
+    }
+};
+
+exports.verstuurContract = async (req, res) => {
+    try {
+        const db = require('../config/db');
+        const contractId = req.params.id;
+
+        const [rows] = await db.query(
+            `SELECT c.contract_id, c.docent_getekend, c.verzonden_op, s.stage_id,
+                    st.gebruiker_id, st.studentnummer
+             FROM CONTRACT c
+             JOIN STAGE s ON s.stage_id = c.stage_id
+             JOIN STUDENT st ON s.student_id = st.student_id
+             WHERE c.contract_id = ?`,
+            [contractId]
+        );
+        const contract = rows[0];
+        if (!contract) return res.status(404).json({ error: 'Contract niet gevonden' });
+        if (!contract.docent_getekend) return res.status(400).json({ error: 'Contract is nog niet getekend door de stagecommissie' });
+        if (contract.verzonden_op) return res.status(409).json({ error: 'Contract is al verstuurd' });
+
+        await db.query('UPDATE CONTRACT SET verzonden_op = NOW() WHERE contract_id = ?', [contractId]);
+        await db.query(
+            `INSERT INTO NOTIFICATIE (gebruiker_id, stage_id, titel, bericht, type)
+             VALUES (?, ?, ?, ?, ?)`,
+            [contract.gebruiker_id, contract.stage_id, 'Je stagecontract is verstuurd',
+             'Je stagecontract is goedgekeurd door de stagecommissie en verstuurd. Je kan het nu raadplegen en ondertekenen.', 'contract']
+        );
+
+        res.json({ message: 'Contract verstuurd' });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: 'Serverfout bij versturen contract' });
+    }
+};
+
 exports.getContractsList = async (req, res) => {
     try {
         const stages = await AdminDashboardModel.getAllStages();
@@ -115,16 +172,6 @@ exports.getContractsList = async (req, res) => {
     } catch (error) {
         console.error(error);
         res.status(500).json({ error: 'Fout bij het ophalen van stagecontracten' });
-    }
-};
-
-exports.getActionRequired = async (req, res) => {
-    try {
-        const items = await AdminDashboardModel.getActionRequired();
-        res.json(items);
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ error: 'Fout bij het ophalen van actie vereist items' });
     }
 };
 
@@ -148,100 +195,6 @@ exports.getContractDetails = async (req, res) => {
         res.json(contract);
     } catch (error) {
         res.status(500).json({ error: 'Fout bij het ophalen van contract details' });
-    }
-};
-
-exports.getContractControle = async (req, res) => {
-    try {
-        const contractId = req.params.id;
-        const dbContract = await AdminDashboardModel.getContractControle(contractId);
-        if (!dbContract) {
-            return res.status(404).json({ error: 'Contract niet gevonden' });
-        }
-
-        // Map DB result to frontend expected structure
-        const contract = {
-            contract_id: dbContract.contract_id,
-            bedrijf_naam: dbContract.bedrijf_naam || 'Onbekend',
-            student_naam: dbContract.student_naam || 'Onbekend',
-            opleiding: dbContract.opleiding || 'Onbekend',
-            periode_start: dbContract.periode_start,
-            periode_eind: dbContract.periode_eind,
-            status_contract: dbContract.status_contract,
-            ingediend_op: dbContract.ingediend_op,
-            handtekeningen: {
-                student: { 
-                    naam: dbContract.student_naam, 
-                    getekend_op: dbContract.student_getekend ? dbContract.getekend_op : null, 
-                    status: dbContract.student_getekend ? 'aanwezig' : 'ontbreekt' 
-                },
-                mentor: { 
-                    naam: 'Mentor Bedrijf', 
-                    getekend_op: dbContract.mentor_getekend ? dbContract.getekend_op : null, 
-                    status: dbContract.mentor_getekend ? 'aanwezig' : 'ontbreekt' 
-                },
-                instelling: { 
-                    naam: 'Administratie', 
-                    getekend_op: dbContract.docent_getekend ? dbContract.getekend_op : null, 
-                    status: dbContract.docent_getekend ? 'aanwezig' : 'ontbreekt' 
-                }
-            },
-            checklist: [
-                { item_id: 1, label: "Risicoanalyse ingevuld en geüpload", verplicht: true, afgevinkt: false },
-                { item_id: 2, label: "Werkpostfiche aanwezig en ondertekend", verplicht: true, afgevinkt: false },
-                { item_id: 3, label: "Voldoet aan minimale stage-uren", verplicht: true, afgevinkt: false },
-                { item_id: 4, label: "Verzekeringsattest doorgestuurd", verplicht: false, afgevinkt: false }
-            ],
-            opmerking: ""
-        };
-
-        res.json(contract);
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ error: 'Fout bij het ophalen van contract controle data' });
-    }
-};
-
-exports.saveContractControle = async (req, res) => {
-    try {
-        const contractId = req.params.id;
-        const { checklist, opmerking } = req.body;
-        // Mock save logic for now
-        res.json({ message: 'Opgeslagen' });
-    } catch (err) {
-        res.status(500).json({ error: 'Fout bij opslaan' });
-    }
-};
-
-exports.rejectContract = async (req, res) => {
-    try {
-        const contractId = req.params.id;
-        const { opmerking } = req.body;
-        await AdminDashboardModel.updateContractState(contractId, 'geweigerd', opmerking);
-        res.json({ message: 'Afgewezen' });
-    } catch (err) {
-        res.status(500).json({ error: 'Fout bij afwijzen' });
-    }
-};
-
-exports.approveContract = async (req, res) => {
-    try {
-        const contractId = req.params.id;
-        const { signature } = req.body;
-
-        const contract = await ContractModel.getById(contractId);
-        if (!contract) return res.status(404).json({ error: 'Contract niet gevonden' });
-
-        if (!contract.docent_getekend) {
-            if (!signature) return res.status(400).json({ error: 'Handtekening ontbreekt' });
-            await ContractModel.signAsDocent(contractId, signature);
-        }
-
-        await AdminDashboardModel.updateContractState(contractId, 'goedgekeurd', null);
-        res.json({ message: 'Goedgekeurd en getekend' });
-    } catch (err) {
-        console.error(err);
-        res.status(500).json({ error: 'Fout bij goedkeuren' });
     }
 };
 

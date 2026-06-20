@@ -15,7 +15,8 @@ async function laadContract() {
     document.getElementById('contract-periode').textContent = stage.startdatum + ' – ' + stage.einddatum;
     document.getElementById('sign-student-naam').textContent = stage.student_naam;
     document.getElementById('sign-mentor-naam').textContent = stage.mentor_naam || '—';
-    document.getElementById('sign-docent-naam').textContent = stage.docent_naam || '—';
+    // De derde handtekening is die van de stagecommissie als instelling (niet van één specifieke docent).
+    document.getElementById('sign-docent-naam').textContent = 'Stagecommissie';
 
     if (foutEl) foutEl.style.display = 'none';
 
@@ -72,7 +73,7 @@ function updateSignGrid(stage) {
       statusEls[1].textContent = 'Getekend';
       statusEls[1].style.color = '#15803D';
     } else if (stage.mentor_getekend) {
-      statusEls[1].textContent = 'Wacht op handtekening docent';
+      statusEls[1].textContent = 'Wacht op handtekening stagecommissie';
       statusEls[1].style.color = '#92400E';
     } else {
       statusEls[1].textContent = 'Wacht op handtekening mentor';
@@ -129,7 +130,7 @@ async function toonStatusPanel(stage) {
       '<div style="display:flex;gap:28px;font-size:14px;">' +
         '<div><span style="color:#64748B;font-size:12px;">Student</span><br>' + stStud + '</div>' +
         '<div><span style="color:#64748B;font-size:12px;">Mentor</span><br>' + stMent + '</div>' +
-        '<div><span style="color:#64748B;font-size:12px;">Docent</span><br>' + stAdm + '</div>' +
+        '<div><span style="color:#64748B;font-size:12px;">Stagecommissie</span><br>' + stAdm + '</div>' +
       '</div>' +
       mentorLinkHtml +
     '</div>';

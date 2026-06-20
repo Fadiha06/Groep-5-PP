@@ -21,7 +21,7 @@ body {
 .sidebar {
     width: 200px;
     min-height: 100vh;
-    background: rgba(31, 41, 55, 1);
+    background: #1F2937;
     display: flex;
     flex-direction: column;
     flex-shrink: 0;
@@ -29,67 +29,17 @@ body {
     top: 0;
     left: 0;
     bottom: 0;
+    font-family: 'Inter', system-ui, sans-serif;
 }
-
-.sidebar__brand {
-    padding: 20px 20px 14px;
-    border-bottom: 1px solid rgba(255,255,255,0.08);
-}
-
-.sidebar__app-name {
-    display: block;
-    color: #fff;
-    font-weight: 700;
-    font-size: 16px;
-}
-
-.sidebar__app-sub {
-    display: block;
-    color: rgba(107, 114, 128, 1);
-    font-size: 12px;
-    margin-top: 2px;
-}
-
-.sidebar__nav {
-    padding: 12px 0;
-}
-
-.sidebar__nav-list {
-    list-style: none;
-}
-
-.sidebar__nav-item {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 10px 16px;
-    color: rgba(156, 163, 175, 1);
-    font-size: 14px;
-    text-decoration: none;
-    transition: background 0.15s;
-}
-
-.sidebar__nav-item:hover {
-    background: rgba(255,255,255,0.05);
-    color: #fff;
-}
-
-.sidebar__nav-item--active {
-    background: rgba(209, 25, 62, 1);
-    color: #fff;
-    font-weight: 500;
-}
-
-.sidebar__badge {
-    background: rgba(239, 68, 68, 1);
-    color: #fff;
-    font-size: 10px;
-    font-weight: 700;
-    padding: 1px 5px;
-    border-radius: 20px;
-    min-width: 18px;
-    text-align: center;
-}
+.sb-logo{padding:20px 20px 16px;border-bottom:1px solid rgba(255,255,255,0.08)}
+.sb-logo-title{color:white;font-size:16px;font-weight:700;line-height:1.2}
+.sb-logo-sub{color:#6B7280;font-size:12px;margin-top:2px;line-height:1.3}
+.sb-nav{padding:12px 0;flex:1}
+.sb-item{display:flex;align-items:center;gap:10px;padding:10px 16px;font-size:14px;line-height:1.2;font-family:'Inter',system-ui,sans-serif;color:#9CA3AF;cursor:pointer;text-decoration:none;border-radius:6px;margin:0 8px;white-space:nowrap}
+.sb-item.active{background:#D1193E;color:white;font-weight:500}
+.sb-item:not(.active):hover{background:rgba(255,255,255,0.05)}
+.sb-footer{padding:14px 16px;border-top:1px solid rgba(255,255,255,0.08);font-size:12px;color:#6B7280;margin-top:auto;line-height:1.3}
+.sb-badge{background:#FEF3C7;color:#92400E;padding:2px 8px;border-radius:20px;font-size:12px;font-weight:600;margin-left:auto;flex-shrink:0;line-height:1.2}
 
 /* ── Main content ── */
 .main-content {
