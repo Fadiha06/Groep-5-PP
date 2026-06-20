@@ -12,29 +12,9 @@ async function loadDashboard() {
       return;
     }
 
-    // Redirect alleen als stage nog niet goedgekeurd of actief is
-    const toegestaneStatussen = ['goedgekeurd', 'actief'];
-    if (!toegestaneStatussen.includes(stage.status)) {
-      window.location.href = 'student_voorstel_response.html';
-      return;
-    }
-
-    // Stage is goedgekeurd of actief - verberg lege staat
-    document.getElementById('empty-hero').style.display = 'none';
-    document.getElementById('info-row').style.display = 'none';
-    document.getElementById('page-sub').textContent = 'Hier vind je de status van je lopende stage.';
-
-    const volledigGetekend = !!(stage.student_getekend && stage.mentor_getekend && stage.docent_getekend);
-    updateNav(volledigGetekend);
-
-    renderActieBanner(stage, data.logboekDezeWeek, volledigGetekend);
-    renderStatCards(stage, data.stats, data.logboekDezeWeek);
-    renderTimeline(stage);
-    renderLogboekLijst(data.logboekDezeWeek);
-
-    document.getElementById('actie-banner').style.display = '';
-    document.getElementById('stat-cards').style.display = '';
-    document.getElementById('dash-grid').style.display = '';
+    // Redirect altijd naar response page als er een stage is
+    window.location.href = 'student_voorstel_response.html';
+    return;
 
   } catch (err) {
     console.error(err);

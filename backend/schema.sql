@@ -153,6 +153,9 @@ CREATE TABLE CONTRACT (
     docent_handtekening LONGTEXT,
     docent_datum DATETIME,
     getekend_op DATETIME,
+    verzonden_op DATETIME,
+    controle_checklist JSON,
+    controle_opmerking TEXT,
     FOREIGN KEY (stage_id) REFERENCES STAGE(stage_id) ON DELETE CASCADE
 );
 

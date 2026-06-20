@@ -37,12 +37,41 @@ async function fetchAndRedirectToFirst() {
     if (items.length > 0) {
       window.location.href = `admin_overeenkomst.html?id=${items[0].contract_id}`;
     } else {
-      toonFout('Er zijn momenteel geen overeenkomsten die wachten op juridische controle.');
+      toonLijst([]);
     }
   } catch (err) {
     console.error(err);
     toonFout('Kon de lijst met overeenkomsten niet laden.');
   }
+}
+
+function toonLijst(items) {
+  const card = document.getElementById('detail-card');
+  if (items.length === 0) {
+    card.innerHTML = `
+      <div style="text-align:center;padding:40px">
+        <div style="font-size:48px;margin-bottom:16px">&#128203;</div>
+        <div style="font-size:16px;font-weight:600;color:#374151;margin-bottom:8px">Geen overeenkomsten gevonden</div>
+        <div style="font-size:14px;color:#6B7280">Er zijn momenteel geen contracten die wachten op controle. Zorg ervoor dat de stagecommissie eerst een stage goedkeurt.</div>
+      </div>`;
+    return;
+  }
+  card.innerHTML = `
+    <div style="padding:24px">
+      <div style="font-size:16px;font-weight:700;color:#111827;margin-bottom:16px">Overeenkomsten (${items.length})</div>
+      ${items.map(item => `
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:14px 16px;border:1px solid #E5E7EB;border-radius:8px;margin-bottom:8px;cursor:pointer" onclick="window.location.href='admin_overeenkomst.html?id=${item.contract_id}'">
+          <div>
+            <div style="font-size:14px;font-weight:600;color:#111827">${item.student_naam || 'Onbekend'}</div>
+            <div style="font-size:13px;color:#6B7280">${item.bedrijf_naam || 'Onbekend bedrijf'} &middot; ${item.opleiding || ''}</div>
+          </div>
+          <div style="display:flex;gap:8px;align-items:center">
+            <span style="font-size:12px;color:${item.docent_getekend ? '#15803D' : '#D97706'};font-weight:600">${item.docent_getekend ? 'Getekend' : 'Wacht op beoordeling'}</span>
+            <span style="color:#9CA3AF">&rarr;</span>
+          </div>
+        </div>
+      `).join('')}
+    </div>`;
 }
 
 async function laadWachtrij(contractId) {

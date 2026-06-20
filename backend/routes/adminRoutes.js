@@ -24,4 +24,11 @@ router.post('/docent-toewijzen', verifyToken, requireRole(['admin', 'administrat
 router.get('/stages-zonder-mentor', verifyToken, requireRole(['admin', 'administrator']), adminController.getStagesZonderMentor);
 router.get('/stages-zonder-docent', verifyToken, requireRole(['admin', 'administrator', 'docent', 'stagecommissie']), adminController.getStagesZonderDocent);
 
+// Overeenkomst controle
+router.get('/dashboard/actie-vereist', verifyToken, requireRole(['admin', 'administrator']), adminController.getActieVereist);
+router.get('/contracten/:id/controle', verifyToken, requireRole(['admin', 'administrator']), adminController.getContractControle);
+router.patch('/contracten/:id/controle', verifyToken, requireRole(['admin', 'administrator']), adminController.saveContractControle);
+router.post('/contracten/:id/afwijzen', verifyToken, requireRole(['admin', 'administrator']), adminController.afwijsContract);
+router.post('/contracten/:id/goedkeuren', verifyToken, requireRole(['admin', 'administrator']), adminController.goedkeurEnVerzend);
+
 module.exports = router;

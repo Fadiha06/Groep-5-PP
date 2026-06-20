@@ -1,7 +1,4 @@
 const db = require('../config/db');
-const argon2 = require('argon2');
-const jwt = require('jsonwebtoken');
-const { stuurWachtwoordLink } = require('../util/mail');
 
 exports.submitStage = async (req, res) => {
     try {
@@ -148,59 +145,6 @@ exports.updateStatus = async (req, res) => {
         
         await db.query('UPDATE STAGE SET status = ?, reden_weigering = ? WHERE stage_id = ?', [status, reden_weigering || null, stage_id]);
         if (status === 'goedgekeurd') {
-            // === Mentor koppelen aan stage ===
-            const [stageInfo] = await db.query(`
-                SELECT s.bedrijf_id, b.email AS mentor_email, b.naam AS bedrijfsnaam
-                FROM STAGE s
-                JOIN BEDRIJF b ON s.bedrijf_id = b.bedrijf_id
-                WHERE s.stage_id = ?
-            `, [stage_id]);
-
-            if (stageInfo.length > 0 && stageInfo[0].mentor_email) {
-                const { mentor_email, bedrijfsnaam } = stageInfo[0];
-                const bedrijf_id = stageInfo[0].bedrijf_id;
-
-                // 1. Zoek of maak GEBRUIKER voor de mentor
-                let [bestaand] = await db.query('SELECT id FROM GEBRUIKER WHERE email = ?', [mentor_email]);
-                let mentorGebruikerId;
-
-                if (bestaand.length > 0) {
-                    mentorGebruikerId = bestaand[0].id;
-                } else {
-                    const crypto = require('crypto');
-                    const argon2 = require('argon2');
-                    const randomPwd = crypto.randomBytes(16).toString('hex');
-                    const hash = await argon2.hash(randomPwd);
-                    const voornaam = mentor_email.split('@')[0];
-                    const [nieuw] = await db.query(
-                        'INSERT INTO GEBRUIKER (voornaam, achternaam, email, wachtwoord, rol) VALUES (?, ?, ?, ?, ?)',
-                        [voornaam, bedrijfsnaam || '', mentor_email, hash, 'stagementor']
-                    );
-                    mentorGebruikerId = nieuw.insertId;
-                    console.log('Mentor account aangemaakt:', mentor_email);
-                }
-
-                // 2. Zoek of maak STAGEMENTOR record
-                let [mentorRecord] = await db.query('SELECT mentor_id FROM STAGEMENTOR WHERE gebruiker_id = ?', [mentorGebruikerId]);
-                let mentorId;
-
-                if (mentorRecord.length > 0) {
-                    mentorId = mentorRecord[0].mentor_id;
-                    // Update bedrijf koppeling indien nodig
-                    await db.query('UPDATE STAGEMENTOR SET bedrijf_id = ? WHERE mentor_id = ?', [bedrijf_id, mentorId]);
-                } else {
-                    const [nieuweMentor] = await db.query(
-                        'INSERT INTO STAGEMENTOR (gebruiker_id, bedrijf_id) VALUES (?, ?)',
-                        [mentorGebruikerId, bedrijf_id]
-                    );
-                    mentorId = nieuweMentor.insertId;
-                }
-
-                // 3. Koppel mentor aan stage
-                await db.query('UPDATE STAGE SET mentor_id = ? WHERE stage_id = ?', [mentorId, stage_id]);
-                console.log('Mentor gekoppeld aan stage:', stage_id, 'mentor_id:', mentorId);
-            }
-
             // === Contract aanmaken ===
             const [insertResult] = await db.query('INSERT INTO CONTRACT (stage_id, inhoud) VALUES (?, ?)', [stage_id, 'Standaard contract opgesteld door systeem']);
             const contractId = insertResult.insertId;
@@ -217,7 +161,7 @@ exports.updateStatus = async (req, res) => {
 
             if (bedrijfRows.length > 0 && bedrijfRows[0].email) {
                 const email = bedrijfRows[0].email;
-                const token = jwt.sign({ contractId: contractId, type: 'mentor_sign' }, process.env.JWT_SECRET || 'supersecret', { expiresIn: '48h' });
+                const token = jwt.sign({ contractId: contractId, type: 'mentor_sign' }, process.env.JWT_SECRET, { expiresIn: '48h' });
                 const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
                 await stuurContractLink(email, `${frontendUrl}/mentor_contract.html?token=${token}`);
                 console.log('Contract link verzonden naar bedrijf email:', email);

@@ -96,7 +96,8 @@ exports.getContracten = async (req, res) => {
     try {
         const gebruikerId = req.user.id;
         const jwt = require('jsonwebtoken');
-        const SECRET = process.env.JWT_SECRET || 'supersecret';
+        const SECRET = process.env.JWT_SECRET;
+        if (!SECRET) { console.error('FOUT: JWT_SECRET is niet ingesteld in .env'); }
         const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
 
         const [rows] = await db.query(`

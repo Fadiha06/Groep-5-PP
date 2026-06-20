@@ -163,7 +163,7 @@ async function loadContracts() {
         <td>${c.bedrijf_naam || '-'}</td>
         <td><span class="badge ${aanvraag.cls}">${aanvraag.label}</span></td>
         <td><span class="badge ${contractStatus.cls}">${contractStatus.label}</span></td>
-        <td><button class="view-btn" onclick="window.location.href='commissie_overeenkomst.html?id=${c.contract_id}'">${actieLabel}</button></td>
+        <td><button class="view-btn" onclick="window.location.href='admin_overeenkomst.html?id=${c.contract_id}'">${actieLabel}</button></td>
       </tr>`;
     }).join('');
   } catch (err) {
