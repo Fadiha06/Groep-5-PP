@@ -8,14 +8,10 @@ router.get('/competenties', verifyToken, requireRole(['admin', 'administrator'])
 router.post('/competenties', verifyToken, requireRole(['admin', 'administrator']), adminController.saveCompetenties);
 
 router.get('/dashboard/stats', verifyToken, requireRole(['admin', 'administrator']), adminController.getDashboardStats);
-router.get('/dashboard/actie-vereist', verifyToken, requireRole(['admin', 'administrator']), adminController.getActionRequired);
 router.get('/dashboard/activiteit', verifyToken, requireRole(['admin', 'administrator']), adminController.getActivity);
 router.get('/dashboard/contracts', verifyToken, requireRole(['admin', 'administrator']), adminController.getContractsList);
-
-router.get('/contracten/:id/controle', verifyToken, requireRole(['admin', 'administrator']), adminController.getContractControle);
-router.patch('/contracten/:id/controle', verifyToken, requireRole(['admin', 'administrator']), adminController.saveContractControle);
-router.post('/contracten/:id/afwijzen', verifyToken, requireRole(['admin', 'administrator']), adminController.rejectContract);
-router.post('/contracten/:id/goedkeuren', verifyToken, requireRole(['admin', 'administrator']), adminController.approveContract);
+router.get('/dashboard/te-versturen', verifyToken, requireRole(['admin', 'administrator']), adminController.getTeVersturen);
+router.post('/contracten/:id/versturen', verifyToken, requireRole(['admin', 'administrator']), adminController.verstuurContract);
 
 router.get('/contracts/:id', verifyToken, requireRole(['admin', 'administrator']), adminController.getContractDetails);
 router.put('/contracts/:id/review', verifyToken, requireRole(['admin', 'administrator']), adminController.reviewContract);

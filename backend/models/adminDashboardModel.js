@@ -3,24 +3,20 @@ const db = require('../config/db');
 class AdminDashboardModel {
     static async getStats() {
         const [studenten] = await db.query("SELECT COUNT(*) AS total_students FROM GEBRUIKER WHERE rol = 'student'");
-        const [aanvragen] = await db.query(`
-            SELECT COUNT(*) AS pending_contracts
+        // Contracten die de stagecommissie al gecontroleerd + getekend heeft, en die de
+        // admin nog moet versturen naar student en bedrijf (zie ook getTeVersturen()).
+        const [teVersturen] = await db.query(`
+            SELECT COUNT(*) AS te_versturen
             FROM CONTRACT c
-            JOIN STAGE s ON s.stage_id = c.stage_id
-            JOIN STUDENT st ON s.student_id = st.student_id
-            JOIN GEBRUIKER g ON st.gebruiker_id = g.id
-            WHERE g.rol = 'student'
-              AND (c.docent_getekend = 0 OR c.docent_getekend IS NULL)
+            WHERE c.docent_getekend = 1 AND c.verzonden_op IS NULL
         `);
         const totalStudents = studenten[0].total_students;
-        const pendingContracts = aanvragen[0].pending_contracts;
-        // Voorlopig zelfde telling als pendingContracts: er is nog geen apart
-        // "juridisch probleem"-veld zolang de checklist (saveContractControle) niet wordt opgeslagen.
-        const legalCheck = pendingContracts;
+        const pendingContracts = teVersturen[0].te_versturen;
+        const legalCheck = 0; // Juridische controle gebeurt nu bij de stagecommissie, niet bij admin.
         const activeExtensions = 0; // Geen tabel voor verlengingen momenteel
         const melding = pendingContracts === 1
-            ? '1 contract vereist jouw actie vandaag.'
-            : `${pendingContracts} contracten vereisen jouw actie vandaag.`;
+            ? '1 contract is klaar om verstuurd te worden.'
+            : `${pendingContracts} contracten zijn klaar om verstuurd te worden.`;
 
         return {
             totalStudents,
