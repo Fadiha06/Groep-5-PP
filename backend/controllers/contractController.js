@@ -170,7 +170,7 @@ class ContractController {
 
             // Verstuur wachtwoord-aanmaak email naar de mentor
             const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
-            const pwToken = jwt.sign({ id: mentorGebruikerId, type: 'set_password' }, SECRET, { expiresIn: '48h' });
+            const pwToken = jwt.sign({ id: mentorGebruikerId, email: mentorEmail, type: 'set_password' }, SECRET, { expiresIn: '48h' });
             await stuurWachtwoordLink(mentorEmail, `${frontendUrl}/set_password.html?token=${pwToken}`);
             console.log('Wachtwoord link verzonden naar mentor:', mentorEmail);
 

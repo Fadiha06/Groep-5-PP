@@ -39,9 +39,9 @@ exports.createAccount = async (req, res) => {
 
         // Genereer reset token voor het nieuwe account
         const token = jwt.sign(
-            { id: gebruiker_id, type: 'set_password' },
+            { id: gebruiker_id, email: email, type: 'set_password' },
             process.env.JWT_SECRET,
-            { expiresIn: '10m' }
+            { expiresIn: '48h' }
         );
 
         // Link bouwen voor de frontend

@@ -225,7 +225,7 @@ exports.createMentor = async (req, res) => {
 
         await db.query('UPDATE STAGE SET mentor_id = ? WHERE stage_id = ?', [mentor_id, stage_id]);
 
-        const token = jwt.sign({ id: mentor_gebruiker_id, type: 'set_password' }, process.env.JWT_SECRET, { expiresIn: '48h' });
+        const token = jwt.sign({ id: mentor_gebruiker_id, email: email, type: 'set_password' }, process.env.JWT_SECRET, { expiresIn: '48h' });
         const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
         const link = `${frontendUrl}/set_password.html?token=${token}`;
         

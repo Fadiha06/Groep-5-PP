@@ -61,6 +61,7 @@ exports.getAllLogboeken = async (req, res) => {
         const [logboeken] = await db.query(`
             SELECT s.stage_id as logboek_id, s.stage_id,
                    CONCAT(g.voornaam, ' ', g.achternaam) as studentnaam, b.naam as bedrijfsnaam,
+                   st.opleiding,
                    (SELECT MAX(weeknummer) FROM LOGBOEK_WEEK WHERE stage_id = s.stage_id) as week_nr,
                    (SELECT status FROM LOGBOEK_WEEK WHERE stage_id = s.stage_id ORDER BY weeknummer DESC LIMIT 1) as status,
                    (SELECT mentor_feedback FROM LOGBOEK_WEEK WHERE stage_id = s.stage_id ORDER BY weeknummer DESC LIMIT 1) as mentor_feedback,

@@ -136,6 +136,7 @@ CREATE TABLE LOGBOEK_DAG (
     taken_beschrijving TEXT,
     reflectie TEXT,
     leerpunten TEXT,
+    status VARCHAR(50) DEFAULT 'open',
     FOREIGN KEY (week_id) REFERENCES LOGBOEK_WEEK(week_id) ON DELETE CASCADE,
     FOREIGN KEY (stage_id) REFERENCES STAGE(stage_id) ON DELETE CASCADE
 );
@@ -199,3 +200,6 @@ CREATE TABLE INSTELLINGEN (
     aantal_logboeken INT NOT NULL DEFAULT 12,
     slaagdrempel INT NOT NULL DEFAULT 50
 );
+
+-- Migratie: voeg status kolom toe aan LOGBOEK_DAG (voor bestaande databases)
+ALTER TABLE LOGBOEK_DAG ADD COLUMN status VARCHAR(50) DEFAULT 'open';
