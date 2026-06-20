@@ -25,13 +25,27 @@
         <div class="sb-footer">Ingelogd als Docent</div>
     </aside>
 
-    <main class="main">
-        <div class="header">
-            <div>
-                <h1 id="groet">Welkom</h1>
-                <p>Bekijk hier de voortgang en score-aggregatie van jouw studenten.</p>
-            </div>
-            <button class="logout-btn" onclick="logout()">Uitloggen</button>
+      <!-- Evaluatie paneel -->
+      <div style="display:flex;flex-direction:column;gap:14px">
+
+        <div>
+          <div class="eval-header-title" id="eval-titel">Samengebrachte score</div>
+          <div class="eval-header-sub">Plan de evaluatiemomenten en breng student- en mentorscore samen.</div>
+        </div>
+
+        <!-- Planning -->
+        <div class="planning-card">
+          <div class="planning-title">📅 Evaluatiemomenten</div>
+          <div class="planning-sub" id="planning-sub">Selecteer een student om de planning te bekijken.</div>
+          <div class="planning-row">
+            <label class="planning-field">Tussentijdse evaluatie vanaf
+              <input type="date" id="plan-tussentijds">
+            </label>
+            <label class="planning-field">Eindevaluatie vanaf
+              <input type="date" id="plan-finaal">
+            </label>
+            <button class="btn-plan" onclick="opslaanPlanning()">Planning opslaan</button>
+          </div>
         </div>
 
         <div class="grid">

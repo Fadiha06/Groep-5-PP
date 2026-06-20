@@ -193,11 +193,11 @@ app.use('/api/admin',        adminRoutes);
 app.use('/api/commissie',    commissieRoutes);
 app.use('/api/competenties', competentieRoutes);
 app.use('/api/contracten',   contractRoutes);
-app.use('/api/docenten',     docentRoutes);
-app.use('/api/evaluaties',   evaluatieRoutes);
-app.use('/api/logboeken',    logboekRoutes);
-app.use('/api/mentors',      mentorRoutes);
-app.use('/api/studenten',    studentRoutes);
+app.use('/api/docent',       docentRoutes);
+app.use('/api/evaluatie',    evaluatieRoutes);
+app.use('/api/logboek',      logboekRoutes);
+app.use('/api/mentor',       mentorRoutes);
+app.use('/api/student',      studentRoutes);
 
 // Start Server
 autoMigreer();
