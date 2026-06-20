@@ -18,7 +18,6 @@
     </div>
     <div class="sb-nav">
       <a class="sb-item active" href="admin_dashboard.html">Dashboard</a>
-      <a class="sb-item" href="admin_overeenkomst.html">Overeenkomsten</a>
       <a class="sb-item" href="admin_competenties.html">Competenties</a>
       <a class="sb-item" href="admin_rapporten.html">Rapporten</a>
       <a class="sb-item" href="admin_panel.html">Gebruikers</a>
@@ -44,14 +43,10 @@
         <div class="stat-label">Totale Studenten</div>
         <div class="stat-value" id="stat-total-students">-</div>
       </a>
-      <a class="stat-card warn" href="admin_overeenkomst.html" title="Ga naar overeenkomsten die actie vereisen">
-        <div class="stat-label">Contracten te reviewen</div>
-        <div class="stat-value value-amber" id="stat-contracts-review">-</div>
-      </a>
-      <a class="stat-card warn" href="admin_overeenkomst.html" title="Ga naar de juridische controle">
-        <div class="stat-label">Juridisch te controleren</div>
-        <div class="stat-value value-red" id="stat-legal-check">-</div>
-      </a>
+      <div class="stat-card warn" title="Contracten die de stagecommissie heeft afgehandeld en die klaar staan om verstuurd te worden">
+        <div class="stat-label">Klaar om te verzenden</div>
+        <div class="stat-value value-amber" id="stat-te-versturen">-</div>
+      </div>
       <a class="stat-card" href="admin_rapporten.html" title="Bekijk rapporten & lopende verlengingen">
         <div class="stat-label">Verlengingen actief</div>
         <div class="stat-value value-blue" id="stat-extensions">-</div>
@@ -59,13 +54,13 @@
     </div>
 
     <div class="content-row">
-      <!-- Actie Vereist -->
+      <!-- Klaar om te verzenden -->
       <div class="card">
         <div class="card-header">
-          <div class="card-title">Overeenkomsten - Actie Vereist (Inline Review)</div>
-          <span class="section-badge" id="action-required-badge">0 Wachtend</span>
+          <div class="card-title">Contracten klaar om te verzenden</div>
+          <span class="section-badge" id="te-versturen-badge">0 Wachtend</span>
         </div>
-        <div id="action-required-list">
+        <div id="te-versturen-list">
           <div style="text-align:center;color:#9CA3AF;font-size:13px;padding:20px">Laden...</div>
         </div>
       </div>
