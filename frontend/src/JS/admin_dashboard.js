@@ -147,7 +147,7 @@ async function loadContracts() {
     const contracts = await apiFetch('/admin/dashboard/contracts');
 
     if (contracts.length === 0) {
-      tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;color:#9CA3AF;padding:24px">Geen contracten gevonden.</td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;color:#9CA3AF;padding:24px">Geen overeenkomsten gevonden. Alle overeenkomsten zijn voltooid.</td></tr>`;
       return;
     }
 
@@ -168,7 +168,7 @@ async function loadContracts() {
     }).join('');
   } catch (err) {
     console.error('Fout bij ophalen contracten:', err);
-    tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;color:#9CA3AF;padding:24px">Kon contracten niet laden.</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;color:#9CA3AF;padding:24px">Kon overeenkomsten niet laden.</td></tr>`;
   }
 }
 

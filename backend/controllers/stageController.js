@@ -5,10 +5,10 @@ exports.submitStage = async (req, res) => {
         // We get the user id from the JWT token (set by authMiddleware)
         const gebruiker_id = req.user.id;
         
-        const { studentnummer, bedrijfsnaam, mentorNaam, mentorEmail, telefoon, adres, sector, afdeling, titel, omschrijving, leerdoelen, uren_per_week, startdatum, einddatum } = req.body;
+        const { studentnummer, bedrijfsnaam, mentorNaam, mentorEmail, telefoon, adres, sector, afdeling, titel, omschrijving, leerdoelen, uren_per_week, startdatum, einddatum, opleiding } = req.body;
 
-        if (!bedrijfsnaam || !titel || !omschrijving) {
-            return res.status(400).json({ error: 'Bedrijfsnaam, titel en omschrijving zijn verplicht.' });
+        if (!bedrijfsnaam || !titel || !omschrijving || !opleiding) {
+            return res.status(400).json({ error: 'Bedrijfsnaam, titel, omschrijving en opleiding zijn verplicht.' });
         }
 
         const start = startdatum ? startdatum : null;
@@ -46,8 +46,13 @@ exports.submitStage = async (req, res) => {
             
             // 3. Student ID already retrieved above
 
-            if (studentnummer) {
-                await connection.query('UPDATE STUDENT SET studentnummer = ? WHERE student_id = ?', [studentnummer, student_id]);
+            if (studentnummer || opleiding) {
+                const updates = [];
+                const params = [];
+                if (studentnummer) { updates.push('studentnummer = ?'); params.push(studentnummer); }
+                if (opleiding) { updates.push('opleiding = ?'); params.push(opleiding); }
+                params.push(student_id);
+                await connection.query(`UPDATE STUDENT SET ${updates.join(', ')} WHERE student_id = ?`, params);
             }
 
             // 4. Insert Stage with mentor_id = NULL
@@ -119,7 +124,7 @@ exports.getMyStage = async (req, res) => {
             SELECT s.stage_id, s.titel, s.status, s.startdatum, s.einddatum,
                    s.omschrijving, s.leerdoelen, s.uren_per_week, s.reden_weigering,
                    b.naam as bedrijfsnaam, b.adres as bedrijf_adres, b.sector as bedrijf_sector,
-                   st.studentnummer,
+                   st.studentnummer, st.opleiding,
                    CONCAT(m_u.voornaam, ' ', m_u.achternaam) as mentorNaam,
                    m_u.email as mentorEmail,
                    sm.telefoonnummer as mentorTelefoon,

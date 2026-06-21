@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>EhB StageTool GÇö Aanmelden</title>
+  <title>EhB StageTool Gï¿½ï¿½ Aanmelden</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="src/CSS/Login.css">
 </head>
@@ -20,12 +20,7 @@
   <div class="card">
     <div class="card__header">
       <span class="card__header-title">Aanmelden</span>
-      <span class="card__header-desc">Log in met je EhB-account of externe credentials.</span>
-    </div>
-
-    <div class="tabs">
-      <button class="tab tab--active" onclick="switchTab(this, 'ehb')">EhB-account</button>
-      <button class="tab" onclick="switchTab(this, 'extern')">Extern</button>
+      <span class="card__header-desc">Log in met je EhB-account.</span>
     </div>
 
     <div class="form" id="tab-ehb">
@@ -40,24 +35,7 @@
       <a href="Wachtwoordvergeten.html" class="form__forgot">Wachtwoord vergeten?</a>
       <button class="btn-submit" type="button">Inloggen</button>
       <div class="info">
-        <p>Studenten en medewerkers loggen in met hun <span class="highlight">EhB-account</span></p>
-        <p>Stagementoren gebruiken het tabblad <span class="accent">Extern</span>.</p>
-      </div>
-    </div>
-
-    <div class="form" id="tab-extern" style="display:none;">
-      <div class="form__group">
-        <label class="form__label" for="ext-email">E-mailadres</label>
-        <input class="form__input" type="email" id="ext-email" placeholder="jouw@bedrijf.be" />
-      </div>
-      <div class="form__group">
-        <label class="form__label" for="ext-password">Wachtwoord</label>
-        <input class="form__input" type="password" id="ext-password" placeholder="Je wachtwoord" />
-      </div>
-      <a href="Wachtwoordvergeten.html" class="form__forgot">Wachtwoord vergeten?</a>
-      <button class="btn-submit" type="button">Inloggen</button>
-      <div class="info">
-        <p>Stagementoren en externe partijen loggen in met hun <span class="highlight">extern account</span>.</p>
+        <p>Studenten en medewerkers loggen in met hun <span class="highlight">EhB-account</span>.</p>
       </div>
     </div>
   </div>

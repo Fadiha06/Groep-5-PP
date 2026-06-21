@@ -12,9 +12,10 @@ const NIVEAUS = [
     { score: 1, label: 'Onvoldoende', beschrijving: 'Haal het niveau nog niet.' },
     { score: 2, label: 'Voldoende',   beschrijving: 'Haal het minimale niveau.' },
     { score: 3, label: 'Goed',        beschrijving: 'Presteer boven het minimum.' },
-    { score: 4, label: 'Uitstekend',  beschrijving: 'Overtref de verwachtingen.' }
+    { score: 4, label: 'Zeer goed',   beschrijving: 'Overtref de verwachtingen.' },
+    { score: 5, label: 'Uitstekend',  beschrijving: 'Buitengewoon presteren, coacht anderen.' }
 ];
-const MAX_PER_COMP = 4;
+const MAX_PER_COMP = 5;
 
 document.addEventListener('DOMContentLoaded', () => {
     if (typeof requireAuth === 'function') {

@@ -30,6 +30,12 @@ async function autoMigreer() {
             FOREIGN KEY (week_id) REFERENCES LOGBOEK_WEEK(week_id) ON DELETE CASCADE,
             FOREIGN KEY (stage_id) REFERENCES STAGE(stage_id) ON DELETE CASCADE
         )`);
+        // ── Migratie: status kolom op LOGBOEK_DAG ──
+        const [ldCols] = await conn.query(`SHOW COLUMNS FROM LOGBOEK_DAG LIKE 'status'`);
+        if (ldCols.length === 0) {
+            await conn.query(`ALTER TABLE LOGBOEK_DAG ADD COLUMN status VARCHAR(50) DEFAULT 'open'`);
+            console.log('  LOGBOEK_DAG: status kolom toegevoegd');
+        }
         await conn.query(`CREATE TABLE IF NOT EXISTS LOGBOEK_COMPETENTIE (
             id INT AUTO_INCREMENT PRIMARY KEY,
             dag_id INT NOT NULL,
@@ -61,24 +67,58 @@ async function autoMigreer() {
             FOREIGN KEY (evaluatie_id) REFERENCES EVALUATIE(evaluatie_id) ON DELETE CASCADE,
             FOREIGN KEY (competentie_id) REFERENCES COMPETENTIE(competentie_id) ON DELETE CASCADE
         )`);
-        // Seed RUBRIEK als leeg
-        const [[{ n }]] = await conn.query('SELECT COUNT(*) AS n FROM RUBRIEK');
-        if (n === 0) {
-            const [comps] = await conn.query('SELECT competentie_id FROM COMPETENTIE');
-            if (comps.length > 0) {
-                const rijen = [];
-                for (const c of comps) {
-                    rijen.push(
-                        [c.competentie_id, 1, 'De student toont dit zelden of nauwelijks aan.'],
-                        [c.competentie_id, 2, 'De student toont dit met begeleiding aan.'],
-                        [c.competentie_id, 3, 'De student toont dit zelfstandig aan.'],
-                        [c.competentie_id, 4, 'De student toont dit uitstekend en proactief aan.'],
-                        [c.competentie_id, 5, 'De student overtreft de verwachtingen en coacht anderen.']
-                    );
-                }
-                await conn.query('INSERT INTO RUBRIEK (competentie_id, punten, omschrijving) VALUES ?', [rijen]);
-                console.log('  RUBRIEK: ' + rijen.length + ' niveaus aangemaakt');
+        // ── Seed COMPETENTIES per opleiding ──
+        const opleidingCompetenties = {
+            'IT': [
+                { naam: 'Software Development', omschrijving: 'Ontwikkelen, testen en onderhouden van softwaretoepassingen.', weging: 30 },
+                { naam: 'Netwerkbeheer', omschrijving: 'Installeren, configureren en beheren van netwerkinfrastructuur.', weging: 30 },
+                { naam: 'Databasebeheer', omschrijving: 'Ontwerpen, beheren en optimaliseren van databasesystemen.', weging: 40 }
+            ],
+            'Sport': [
+                { naam: 'Sportbegeleiding', omschrijving: 'Begeleiden van sporters of sportgroepen bij trainingen en wedstrijden.', weging: 35 },
+                { naam: 'Trainingssessies', omschrijving: 'Opstellen en uitvoeren van gestructureerde trainingssessies.', weging: 35 },
+                { naam: 'Sportevenementen', omschrijving: 'Organiseren en coördineren van sportevenementen en toernooien.', weging: 30 }
+            ],
+            'Economie': [
+                { naam: 'Financieel Beheer', omschrijving: 'Verwerken van financiële transacties, boekhouding en rapportage.', weging: 35 },
+                { naam: 'Marketing & Verkoop', omschrijving: 'Ontwikkelen en uitvoeren van marketingstrategieën en verkoopsprocessen.', weging: 30 },
+                { naam: 'Administratie', omschrijving: 'Beheren van administratieve processen en dossiers.', weging: 35 }
+            ],
+            'Verzorging': [
+                { naam: 'Zorgverlening', omschrijving: 'Verlenen van persoonlijke zorg en ondersteuning aan patiënten of cliënten.', weging: 40 },
+                { naam: 'Patiëntbegeleiding', omschrijving: 'Begeleiden en adviseren van patiënten bij hun zorgtraject.', weging: 30 },
+                { naam: 'Hygiëne & Veiligheid', omschrijving: 'Toepassen van hygiëne- en veiligheidsnormen in de zorgomgeving.', weging: 30 }
+            ]
+        };
+
+        for (const [opleiding, comps] of Object.entries(opleidingCompetenties)) {
+            const [[{ cnt }]] = await conn.query('SELECT COUNT(*) AS cnt FROM COMPETENTIE WHERE opleiding = ?', [opleiding]);
+            if (cnt === 0) {
+                const waarden = comps.map(c => [c.naam, c.omschrijving, opleiding, c.weging]);
+                await conn.query('INSERT INTO COMPETENTIE (naam, omschrijving, opleiding, weging) VALUES ?', [waarden]);
+                console.log(`  COMPETENTIE: ${comps.length} competities aangemaakt voor opleiding "${opleiding}"`);
             }
+        }
+
+        // ── Seed RUBRIEK voor alle competities zonder rubrieken ──
+        const [compsZonderRubriek] = await conn.query(`
+            SELECT c.competentie_id FROM COMPETENTIE c
+            LEFT JOIN RUBRIEK r ON c.competentie_id = r.competentie_id
+            WHERE r.rubriek_id IS NULL
+        `);
+        if (compsZonderRubriek.length > 0) {
+            const rijen = [];
+            for (const c of compsZonderRubriek) {
+                rijen.push(
+                    [c.competentie_id, 1, 'De student toont dit zelden of nauwelijks aan.'],
+                    [c.competentie_id, 2, 'De student toont dit met begeleiding aan.'],
+                    [c.competentie_id, 3, 'De student toont dit zelfstandig aan.'],
+                    [c.competentie_id, 4, 'De student toont dit uitstekend en proactief aan.'],
+                    [c.competentie_id, 5, 'De student overtreft de verwachtingen en coacht anderen.']
+                );
+            }
+            await conn.query('INSERT INTO RUBRIEK (competentie_id, punten, omschrijving) VALUES ?', [rijen]);
+            console.log('  RUBRIEK: ' + rijen.length + ' niveaus aangemaakt voor nieuwe competities');
         }
         // ── Migratie: score kolom op LOGBOEK_COMPETENTIE ──
         const [lcCols] = await conn.query(`SHOW COLUMNS FROM LOGBOEK_COMPETENTIE LIKE 'score'`);
@@ -99,6 +139,12 @@ async function autoMigreer() {
         if (evType.length > 0 && evType[0].Type && evType[0].Type.includes('enum')) {
             await conn.query(`ALTER TABLE EVALUATIE MODIFY COLUMN type VARCHAR(50) NOT NULL`);
             console.log('  EVALUATIE: type kolom aangepast van ENUM naar VARCHAR(50)');
+        }
+        // ── Migratie: definitief kolom op EVALUATIE ──
+        const [evDef] = await conn.query(`SHOW COLUMNS FROM EVALUATIE LIKE 'definitief'`);
+        if (evDef.length === 0) {
+            await conn.query(`ALTER TABLE EVALUATIE ADD COLUMN definitief BOOLEAN DEFAULT FALSE AFTER feedback`);
+            console.log('  EVALUATIE: definitief kolom toegevoegd');
         }
         // ── Migratie: fix stages zonder mentor_id/leerkracht_id ──
         const [fixStages] = await conn.query(`
@@ -142,6 +188,14 @@ async function autoMigreer() {
             }
             console.log(`[auto-migratie] ${fixStages.length} stages gefixed met mentor_id`);
         }
+        // ── Migratie: eval_getoond kolommen op STAGE ──
+        const [stageGetoondCols] = await conn.query(`SHOW COLUMNS FROM STAGE LIKE 'eval_getoond_tussentijds'`);
+        if (stageGetoondCols.length === 0) {
+            await conn.query(`ALTER TABLE STAGE ADD COLUMN eval_getoond_tussentijds BOOLEAN DEFAULT FALSE`);
+            await conn.query(`ALTER TABLE STAGE ADD COLUMN eval_getoond_finaal BOOLEAN DEFAULT FALSE`);
+            console.log('  STAGE: eval_getoond_tussentijds + eval_getoond_finaal kolommen toegevoegd');
+        }
+
         console.log('[auto-migratie] Logboek tabellen OK');
     } catch (err) {
         console.error('[auto-migratie] FOUT:', err.message);

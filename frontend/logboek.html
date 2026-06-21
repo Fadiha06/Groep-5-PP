@@ -9,26 +9,26 @@
     <link rel="stylesheet" href="src/CSS/logboek.css" />
 </head>
 <body>
-
-    <aside class="sidebar">
+<div class="root">
+    <nav class="sidebar">
         <div class="sb-logo">
             <div class="sb-logo-title">EhB StageTool</div>
             <div class="sb-logo-sub">Toegepaste Informatica</div>
         </div>
         <div class="sb-nav">
             <a href="student_dashboard.html" class="sb-item">Dashboard</a>
-            <a href="contract.html" class="sb-item">Contract</a>
+            <a href="student_voorstel_response.html" class="sb-item">Mijn stage</a>
             <a href="logboek.html" class="sb-item active">Logboek</a>
+            <a href="contract.html" class="sb-item">Contract</a>
             <a href="evaluaties.html" class="sb-item">Evaluaties</a>
         </div>
-        <div class="sidebar__user">
-            <div class="sidebar__user-info">
-                <span class="sidebar__user-name" id="account-naam">—</span>
-                <span class="sidebar__user-mail" id="account-mail"></span>
+        <div class="sb-footer">
+            <div class="sb-footer-row">
+                <span>Ingelogd als Student</span>
+                <button class="sb-logout" onclick="logout()">Uitloggen</button>
             </div>
-            <button class="sidebar__logout" onclick="uitloggen()">Uitloggen</button>
         </div>
-    </aside>
+    </nav>
 
     <main class="main">
 
@@ -131,6 +131,7 @@
 
         </div>
     </main>
+</div>
 
     <script src="src/JS/api.js"></script>
     <script>
@@ -148,6 +149,7 @@
         let totaalWeken = 1;
         let huidigeDagId = null;
         let huidigeDagStatus = 'open';
+        let studentOpleiding = '';
 
         function labelVoorPunten(p) {
             if (p <= 1) return 'Onvoldoende';
@@ -162,24 +164,6 @@
             return Math.floor((d - s) / (1000 * 60 * 60 * 24 * 7)) + 1;
         }
 
-        async function laadProfiel() {
-            if (!token) return;
-            try {
-                const res = await fetch(`${API}/profiel`, { headers: { 'Authorization': 'Bearer ' + token } });
-                if (!res.ok) return;
-                const u = await res.json();
-                document.getElementById('account-naam').textContent = u.naam || '—';
-                document.getElementById('account-mail').textContent = u.email || '';
-            } catch (err) {
-                console.error(err);
-            }
-        }
-
-        function uitloggen() {
-            localStorage.removeItem('token');
-            window.location.href = 'index.html';
-        }
-
         async function laadStageHeader() {
             if (!token) return;
             try {
@@ -190,7 +174,8 @@
                 document.getElementById('stage-titel').textContent = `Stage bij ${stage.bedrijf_naam || '—'}`;
                 document.getElementById('stage-periode').textContent =
                     `${new Date(stage.startdatum).toLocaleDateString('nl-BE', opt)} – ${new Date(stage.einddatum).toLocaleDateString('nl-BE', opt)}`;
-                document.getElementById('stage-mentor').textContent = '—';
+                document.getElementById('stage-mentor').textContent = stage.mentor_naam || '—';
+                studentOpleiding = stage.opleiding || '';
 
                 const start = new Date(stage.startdatum);
                 const eind = new Date(stage.einddatum);
@@ -215,9 +200,10 @@
         async function laadCompetenties() {
             if (!token) return;
             try {
-                const res = await fetch(`${API}/competenties`, { headers: { 'Authorization': 'Bearer ' + token } });
+                const res = await fetch(`${API}/competenties${studentOpleiding ? '?opleiding=' + encodeURIComponent(studentOpleiding) : ''}`, { headers: { 'Authorization': 'Bearer ' + token } });
                 if (!res.ok) return;
-                const lijst = await res.json();
+                const data = await res.json();
+                const lijst = (data.competenties || data).map(c => ({ ...c, niveaus: c.rubrieken || c.niveaus || [] }));
                 const box = document.getElementById('competenties-lijst');
                 box.innerHTML = lijst.map(c => `
                     <div class="comp-kaart" data-comp="${c.competentie_id}">
@@ -558,14 +544,13 @@
             }
         }
 
-        laadProfiel();
         laadStageHeader();
         laadLaatste();
         laadCompetenties();
 
         document.getElementById('datum').addEventListener('change', (e) => laadDagVoorDatum(e.target.value));
     </script>
-
+</div>
 </body>
 </html>
 

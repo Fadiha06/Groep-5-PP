@@ -1,10 +1,3 @@
-function switchTab(el, tabId) {
-  document.querySelectorAll('.tab').forEach(t => t.classList.remove('tab--active'));
-  el.classList.add('tab--active');
-  document.getElementById('tab-ehb').style.display = tabId === 'ehb' ? 'block' : 'none';
-  document.getElementById('tab-extern').style.display = tabId === 'extern' ? 'block' : 'none';
-}
-
 // Loginknop koppelen aan de backend
 document.addEventListener('DOMContentLoaded', () => {
   const handleLogin = async (emailId, passwordId) => {
@@ -31,13 +24,6 @@ document.addEventListener('DOMContentLoaded', () => {
   if (ehbSubmit) {
     ehbSubmit.addEventListener('click', () => {
       handleLogin('email', 'password');
-    });
-  }
-
-  const externSubmit = document.querySelector('#tab-extern .btn-submit');
-  if (externSubmit) {
-    externSubmit.addEventListener('click', () => {
-      handleLogin('ext-email', 'ext-password');
     });
   }
 });

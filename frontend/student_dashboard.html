@@ -6,6 +6,7 @@
 <title>Dashboard — EhB StageTool</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="src/CSS/lege_staat_student_stijl.css">
+<link rel="stylesheet" href="src/CSS/shared_sidebar.css">
 </head>
 <body>
 <div class="root">
@@ -22,7 +23,12 @@
       <a class="sb-item" href="evaluaties.html">Evaluaties</a>
       
     </div>
-    <div class="sb-footer">Ingelogd als Student</div>
+    <div class="sb-footer">
+      <div class="sb-footer-row">
+        <span>Ingelogd als Student</span>
+        <button class="sb-logout" onclick="window.logout()">Uitloggen</button>
+      </div>
+    </div>
   </nav>
   <div class="main">
     <div>

@@ -40,6 +40,7 @@ const STEPPER_CONFIG = {
 };
 
 var STATUS = "in_behandeling";
+var STEPPER_STEP = 1;
 
 function formatDatum(d) {
   if (!d) return "-";
@@ -52,6 +53,37 @@ function formatDatum(d) {
 function vulField(id, waarde) {
   var el = document.getElementById(id);
   if (el) el.textContent = waarde || "-";
+}
+
+function getStepperConfig() {
+  if (STATUS !== "goedgekeurd") {
+    return STEPPER_CONFIG[STATUS];
+  }
+
+  var config = {
+    info_status: { text: "Goedgekeurd", kleur: "#27AE60" },
+    dots: [],
+    labels: [],
+    badges: [],
+  };
+
+  for (var i = 1; i <= 5; i++) {
+    if (i < STEPPER_STEP) {
+      config.dots.push("done");
+      config.labels.push("done");
+      config.badges.push({ text: "Voltooid", cls: "badge-voltooid" });
+    } else if (i === STEPPER_STEP) {
+      config.dots.push("active-blue");
+      config.labels.push("active");
+      config.badges.push({ text: "In proces", cls: "badge-in-proces" });
+    } else {
+      config.dots.push(null);
+      config.labels.push(null);
+      config.badges.push(null);
+    }
+  }
+
+  return config;
 }
 
 function render() {
@@ -67,7 +99,7 @@ function render() {
   if (block) block.style.display = "block";
   if (banner) banner.style.display = "inline-flex";
 
-  var cfg = STEPPER_CONFIG[STATUS];
+  var cfg = getStepperConfig();
   var infoStatus = document.getElementById("info-status");
   if (infoStatus) {
     infoStatus.textContent = cfg.info_status.text;
@@ -163,11 +195,52 @@ async function init() {
       }
     } else if (st === "goedgekeurd" || st === "actief") {
       STATUS = "goedgekeurd";
+
+      // Bepaal STEPPER_STEP op basis van contract- en evaluatiestatus
+      STEPPER_STEP = 3;
+
+      try {
+        var contractInfo = await apiFetch("/contracten/mijn");
+        var alleGetekend = contractInfo && contractInfo.student_getekend && contractInfo.mentor_getekend && contractInfo.docent_getekend;
+
+        if (!alleGetekend) {
+          STEPPER_STEP = 3;
+        } else {
+          STEPPER_STEP = 4;
+          try {
+            var evalTussentijds = await apiFetch("/evaluatie/concept?stage_id=" + s.stage_id + "&type=tussentijds");
+            if (evalTussentijds && evalTussentijds.evaluatie && evalTussentijds.evaluatie.definitief) {
+              STEPPER_STEP = 5;
+              try {
+                var evalFinaal = await apiFetch("/evaluatie/concept?stage_id=" + s.stage_id + "&type=finaal");
+                if (evalFinaal && evalFinaal.evaluatie && evalFinaal.evaluatie.definitief) {
+                  STEPPER_STEP = 5;
+                }
+              } catch (e2) {}
+            }
+          } catch (e) {}
+        }
+      } catch (e) {
+        STEPPER_STEP = 3;
+      }
     } else {
       STATUS = "in_behandeling";
     }
 
     render();
+
+    // Volgende stap-balk tonen op basis van STEPPER_STEP
+    var nextContract = document.getElementById("gk-next-contract");
+    var nextEvaluatie = document.getElementById("gk-next-evaluatie");
+    if (nextContract && nextEvaluatie) {
+      if (STATUS === "goedgekeurd" && STEPPER_STEP >= 4) {
+        nextContract.style.display = "none";
+        nextEvaluatie.style.display = "flex";
+      } else if (STATUS === "goedgekeurd") {
+        nextContract.style.display = "flex";
+        nextEvaluatie.style.display = "none";
+      }
+    }
   } catch (error) {
     console.error(error);
     render();

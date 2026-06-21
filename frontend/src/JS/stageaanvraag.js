@@ -6,7 +6,22 @@ async function laadStudentGegevens() {
     document.getElementById('inp-email').value = gebruiker.email || '';
 
     const urlParams = new URLSearchParams(window.location.search);
-    if (urlParams.get('edit') === 'true') {
+    const isEdit = urlParams.get('edit') === 'true';
+
+    if (!isEdit) {
+      try {
+        const myStage = await apiFetch(`/stage/my-stage?_t=${Date.now()}`);
+        if (!myStage || !myStage.stage) {
+          document.querySelector('.sb-nav .sb-item[href="student_dashboard.html"]')?.classList.add('sb-hidden');
+          document.querySelector('.sb-nav .sb-item[href="student_voorstel_response.html"]')?.classList.add('sb-hidden');
+        }
+      } catch (_) {
+        document.querySelector('.sb-nav .sb-item[href="student_dashboard.html"]')?.classList.add('sb-hidden');
+        document.querySelector('.sb-nav .sb-item[href="student_voorstel_response.html"]')?.classList.add('sb-hidden');
+      }
+    }
+
+    if (isEdit) {
       const data = await apiFetch(`/stage/my-stage?_t=${Date.now()}`);
       if (data && data.stage) {
         const s = data.stage;
@@ -24,6 +39,7 @@ async function laadStudentGegevens() {
         document.getElementById('inp-titel').value = s.titel || '';
         document.getElementById('inp-omschrijving').value = s.omschrijving || '';
         document.getElementById('inp-leerdoelen').value = s.leerdoelen || '';
+        document.getElementById('inp-opleiding').value = s.opleiding || '';
         
         if (s.status === 'conditie' && s.reden_weigering) {
           const alertDiv = document.getElementById('conditie-alert');
@@ -54,7 +70,8 @@ document.addEventListener('DOMContentLoaded', () => {
       uren_per_week: document.getElementById('inp-uren')?.value,
       titel: document.getElementById('inp-titel').value,
       omschrijving: document.getElementById('inp-omschrijving').value,
-      leerdoelen: document.getElementById('inp-leerdoelen')?.value
+      leerdoelen: document.getElementById('inp-leerdoelen')?.value,
+      opleiding: document.getElementById('inp-opleiding').value
     };
 
     // Validatie: check of alle velden zijn ingevuld

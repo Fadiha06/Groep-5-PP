@@ -84,9 +84,8 @@ const getDossiers = async (docentId) => {
         JOIN STUDENT s ON s.student_id = st.student_id
         JOIN GEBRUIKER g ON g.id = s.gebruiker_id
         LEFT JOIN BEDRIJF b ON b.bedrijf_id = st.bedrijf_id
-           LEFT JOIN GEBRUIKER mg ON mg.id = st.mentor_id
         LEFT JOIN STAGEMENTOR m ON m.mentor_id = st.mentor_id
-        LEFT JOIN GEBRUIKER m_g ON m_g.id = m.gebruiker_id
+        LEFT JOIN GEBRUIKER mg ON mg.id = m.gebruiker_id
         WHERE st.leerkracht_id = ?`,
         [docentId]
     );
@@ -125,7 +124,8 @@ const getLogboeken = async (docentId) => {
         JOIN STUDENT s ON s.student_id = st.student_id
         JOIN GEBRUIKER g ON g.id = s.gebruiker_id
         LEFT JOIN BEDRIJF b ON b.bedrijf_id = st.bedrijf_id
-        LEFT JOIN GEBRUIKER mg ON mg.id = st.mentor_id
+        LEFT JOIN STAGEMENTOR m ON m.mentor_id = st.mentor_id
+        LEFT JOIN GEBRUIKER mg ON mg.id = m.gebruiker_id
         WHERE st.leerkracht_id = ?
         ORDER BY lw.ingediend_op DESC`,
         [docentId]
@@ -156,7 +156,7 @@ const goedkeurLogboek = async (weekId) => {
 // Sla feedback op voor logboek week
 const slaFeedbackOp = async (weekId, feedback) => {
     await pool.query(
-        `UPDATE LOGBOEK_WEEK SET mentor_feedback = ?, status = 'feedback' WHERE week_id = ?`,
+        `UPDATE LOGBOEK_WEEK SET docent_feedback = ? WHERE week_id = ?`,
         [feedback, weekId]
     );
 };
@@ -170,7 +170,9 @@ const getEvaluatieStudenten = async (docentId) => {
             s.opleiding AS klas,
             'normaal' AS status,
             (CURDATE() >= DATE_ADD(st.startdatum, INTERVAL DATEDIFF(st.einddatum, st.startdatum)/2 DAY)) AS mag_tussentijds,
-            (CURDATE() >= st.einddatum) AS mag_finaal
+            (CURDATE() >= st.einddatum) AS mag_finaal,
+            st.eval_getoond_tussentijds,
+            st.eval_getoond_finaal
         FROM STAGE st
         JOIN STUDENT s ON s.student_id = st.student_id
         JOIN GEBRUIKER g ON g.id = s.gebruiker_id
@@ -260,11 +262,28 @@ const getAggregatie = async (docentId) => {
 };
 
 const getEvaluatieVergelijking = async (stageId, type) => {
-    const [competenties] = await pool.query(
-        'SELECT competentie_id, naam, omschrijving FROM COMPETENTIE ORDER BY naam ASC'
+    const [stage] = await pool.query(
+        `SELECT s.opleiding FROM STAGE st JOIN STUDENT s ON s.student_id = st.student_id WHERE st.stage_id = ?`,
+        [stageId]
     );
+    const opleiding = stage[0]?.opleiding || null;
+
+    let competenties;
+    if (opleiding) {
+        [competenties] = await pool.query(
+            'SELECT competentie_id, naam, omschrijving FROM COMPETENTIE WHERE opleiding = ? ORDER BY naam ASC',
+            [opleiding]
+        );
+    } else {
+        [competenties] = await pool.query(
+            'SELECT competentie_id, naam, omschrijving FROM COMPETENTIE ORDER BY naam ASC'
+        );
+    }
+    const compIds = competenties.map(c => c.competentie_id);
+
     const [rubriek] = await pool.query(
-        'SELECT competentie_id, punten, omschrijving FROM RUBRIEK ORDER BY punten ASC'
+        'SELECT competentie_id, punten, omschrijving FROM RUBRIEK WHERE competentie_id IN (?) ORDER BY punten ASC',
+        [compIds.length ? compIds : [0]]
     );
     const [scores] = await pool.query(
         `SELECT e.beoordelaar_rol, ec.competentie_id, ec.score, ec.commentaar
@@ -317,6 +336,14 @@ const setEvaluatiePlanning = async (stageId, tussentijds, finaal) => {
         [tussentijds || null, finaal || null, stageId]
     );
 };
+
+const isEigenStage = async (stageId, gebruikerId) => {
+    const [docent] = await pool.query('SELECT docent_id FROM DOCENT WHERE gebruiker_id = ?', [gebruikerId]);
+    if (docent.length === 0) return false;
+    const [stage] = await pool.query('SELECT stage_id FROM STAGE WHERE stage_id = ? AND leerkracht_id = ?', [stageId, docent[0].docent_id]);
+    return stage.length > 0;
+};
+
 module.exports = { getEvaluatieVergelijking, getEvaluatiePlanning, setEvaluatiePlanning,
     createProfile,
     getDocent,
@@ -334,7 +361,8 @@ module.exports = { getEvaluatieVergelijking, getEvaluatiePlanning, setEvaluatieP
     getEvaluaties,
     slaEvaluatieOp,
     getCompetentiesVoorDag,
-    getAggregatie
+    getAggregatie,
+    isEigenStage
 };
 
 

@@ -18,6 +18,8 @@ async function laadContract() {
     // De derde handtekening is die van de stagecommissie als instelling (niet van één specifieke docent).
     document.getElementById('sign-docent-naam').textContent = 'Administrator';
 
+    document.querySelectorAll('.sign-placeholder').forEach(function(el) { el.style.display = 'none'; });
+
     if (foutEl) foutEl.style.display = 'none';
 
     // Update de status-teksten van mentor en docent in de sign-grid
@@ -50,6 +52,7 @@ async function laadContract() {
       var el = document.getElementById(id);
       if (el) el.textContent = 'Niet beschikbaar';
     });
+    document.querySelectorAll('.sign-placeholder').forEach(function(el) { el.style.display = 'flex'; });
     document.getElementById('btn-bevestig').disabled = true;
   }
 }

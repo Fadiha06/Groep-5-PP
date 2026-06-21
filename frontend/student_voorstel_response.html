@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Mijn Stage — EhB StageTool</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="src/CSS/shared_sidebar.css">
 <link rel="stylesheet" href="src/CSS/student_voorstel_response.css">
 </head>
 <body>
@@ -22,7 +23,12 @@
       <a class="sb-item" href="contract.html">Contract</a>
       <a class="sb-item" href="evaluaties.html">Evaluaties</a>
     </div>
-    <div class="sb-footer" id="sb-naam">Ingelogd als Student</div>
+    <div class="sb-footer">
+      <div class="sb-footer-row">
+        <span id="sb-naam">Ingelogd als Student</span>
+        <button class="sb-logout" onclick="logout()">Uitloggen</button>
+      </div>
+    </div>
   </nav>
 
   <div class="main">
@@ -129,12 +135,19 @@
           <div class="detail-item"><div class="detail-label">Status</div><div class="detail-value" style="color:#15803D">&#10004; Goedgekeurd</div></div>
         </div>
       </div>
-      <div class="next-bar" style="margin-top:14px">
+      <div class="next-bar" id="gk-next-contract" style="margin-top:14px">
         <div>
-          <div class="next-bar-text-title">&#128196; Stap 2 — Contract aanmaken</div>
+          <div class="next-bar-text-title">&#128196; Stap 3 — Contract aanmaken</div>
           <div class="next-bar-text-sub">Je voorstel is goedgekeurd. Ga naar de contractpagina om verder te gaan.</div>
         </div>
         <button class="btn-primary btn-blauw" onclick="window.location.href='contract.html'">Naar contract &rarr;</button>
+      </div>
+      <div class="next-bar" id="gk-next-evaluatie" style="margin-top:14px;display:none">
+        <div>
+          <div class="next-bar-text-title">&#9998; Stap 4 — Tussentijdse evaluatie</div>
+          <div class="next-bar-text-sub">Contract is volledig getekend. Je kan nu je tussentijdse evaluatie invullen.</div>
+        </div>
+        <button class="btn-primary btn-blauw" onclick="window.location.href='evaluaties.html'">Naar evaluaties &rarr;</button>
       </div>
     </div>
 

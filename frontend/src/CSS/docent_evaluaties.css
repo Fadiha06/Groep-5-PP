@@ -77,7 +77,27 @@ body{font-family:'Inter',system-ui,sans-serif;background:#F9FAFB;min-height:100v
 .feedback-tekst{font-size:12px;color:#374151;line-height:1.5}
 
 /* Save button */
-.save-row{display:flex;justify-content:flex-end}
+.save-row{display:flex;justify-content:flex-end;gap:10px;align-items:center}
 .btn-opslaan{padding:10px 26px;border-radius:6px;border:none;background:#111827;color:white;font-size:13px;font-weight:500;cursor:pointer}
 .btn-opslaan:hover{background:#374151}
 .btn-opslaan:disabled{background:#9CA3AF;cursor:not-allowed}
+.btn-toon{padding:10px 20px;border-radius:6px;border:1px solid #D1D5DB;background:white;color:#374151;font-size:13px;font-weight:500;cursor:pointer}
+.btn-toon:hover{background:#F3F4F6}
+.btn-toon.actief{background:#10B981;color:white;border-color:#10B981}
+.btn-toon.actief:hover{background:#059669}
+
+/* Week tabs */
+.week-selector{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+.week-knop{padding:5px 14px;border-radius:6px;border:0.8px solid #E5E7EB;background:white;font-size:12px;color:#6B7280;cursor:pointer;font-family:inherit;font-weight:500}
+.week-knop.active{background:#D1193E;border-color:#D1193E;color:white}
+.week-knop:not(.active):hover{background:#F3F4F6}
+
+/* Mentor feedback per week */
+.mentor-feedback-card{background:white;border-radius:12px;border:0.8px solid #E5E7EB;padding:16px 20px;margin-top:12px}
+.mentor-feedback-title{font-size:13px;font-weight:700;color:#111827;margin-bottom:10px}
+.mentor-feedback-tekst{font-size:13px;color:#374151;line-height:1.6}
+.mentor-feedback-lege{color:#9CA3AF;font-style:italic}
+.logboek-competentie-rij{display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid #F3F4F6}
+.logboek-competentie-rij:last-child{border-bottom:none}
+.logboek-comp-naam{font-size:13px;font-weight:500;color:#111827}
+.logboek-comp-score{font-size:14px;font-weight:700;color:#D1193E}

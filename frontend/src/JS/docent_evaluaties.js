@@ -14,6 +14,7 @@ const TYPES = [{id: 'tussentijds', label: 'Tussentijdse Evaluatie'}, {id: 'finaa
 // Houdt lokale wijzigingen bij voordat ze opgeslagen worden:
 // { [competentie_id]: nieuweScore }
 let lokaleWijzigingen = {};
+let lokaleCommentaren = {};
 let laatsteEvaluatieData = [];
 
 function updateSaveButton() {
@@ -31,7 +32,7 @@ async function laadStudenten() {
   try {
     // Verwacht: GET /api/docent/evaluatie-studenten
     // Response: [{ stage_id, naam, klas, status: 'normaal' | 'te-laat', statustekst }]
-    studentenData = await apiFetch('/docenten/evaluatie-studenten');
+    studentenData = await apiFetch('/docent/evaluatie-studenten');
     renderStudentList();
 
     if (studentenData.length > 0) {
@@ -62,15 +63,22 @@ function selectStudent(stageId) {
   actieveStageId = stageId;
   actieveType = 'tussentijds';
   lokaleWijzigingen = {};
+  lokaleCommentaren = {};
+  beschikbareWeken = [];
+  actieveWeek = null;
   renderStudentList();
   renderTypeTabs();
+  updateToonButton();
+
+  const ws = document.getElementById('week-selector');
+  if (ws) ws.style.display = '';
 
   const s = studentenData.find(x => x.stage_id === stageId);
   if (s) {
-    document.getElementById('eval-titel').textContent = `Samengebrachte score — ${(s.student_naam || s.naam || 'Onbekend')}`;
+    document.getElementById('eval-titel').textContent = `Evaluatie — ${(s.student_naam || s.naam || 'Onbekend')}`;
   }
 
-  laadEvaluatie();
+  laadBeschikbareWeken();
 }
 
 function renderTypeTabs() {
@@ -94,8 +102,138 @@ function renderTypeTabs() {
 function selectType(type) {
   actieveType = type;
   lokaleWijzigingen = {};
+  lokaleCommentaren = {};
   renderTypeTabs();
-  laadEvaluatie();
+  if (type === 'tussentijds') {
+    document.getElementById('week-selector').style.display = '';
+    laadBeschikbareWeken();
+  } else {
+    document.getElementById('week-selector').style.display = 'none';
+    laadEvaluatie();
+  }
+  updateToonButton();
+}
+
+function updateToonButton() {
+  const s = studentenData.find(x => x.stage_id === actieveStageId);
+  const btn = document.getElementById('btn-toon-student');
+  if (!btn || !s) { if (btn) btn.style.display = 'none'; return; }
+
+  btn.style.display = '';
+  const isGetoond = actieveType === 'tussentijds' ? s.eval_getoond_tussentijds : s.eval_getoond_finaal;
+  btn.className = 'btn-toon' + (isGetoond ? ' actief' : '');
+  btn.textContent = isGetoond ? '✓ Getoond aan student' : 'Toon aan student';
+}
+
+async function toggleToonStudent() {
+  const s = studentenData.find(x => x.stage_id === actieveStageId);
+  if (!s) return;
+
+  try {
+    const res = await apiFetch('/docent/evaluatie/toon', {
+      method: 'POST',
+      body: JSON.stringify({ stage_id: actieveStageId, type: actieveType })
+    });
+
+    if (actieveType === 'tussentijds') {
+      s.eval_getoond_tussentijds = res.getoond ? 1 : 0;
+    } else {
+      s.eval_getoond_finaal = res.getoond ? 1 : 0;
+    }
+    updateToonButton();
+  } catch (err) {
+    alert(err.message || 'Kon zichtbaarheid niet wijzigen.');
+  }
+}
+
+let beschikbareWeken = [];
+let actieveWeek = null;
+
+async function laadBeschikbareWeken() {
+  if (!actieveStageId) return;
+  try {
+    const data = await apiFetch(`/docent/evaluatie/logboek-per-week?stage_id=${actieveStageId}`);
+    beschikbareWeken = data.weken || [];
+    actieveWeek = beschikbareWeken.length > 0 ? beschikbareWeken[0] : null;
+    renderWeekTabs();
+    if (actieveWeek) laadEvaluatiePerWeek();
+  } catch (err) {
+    beschikbareWeken = [];
+    actieveWeek = null;
+    renderWeekTabs();
+  }
+}
+
+function renderWeekTabs() {
+  const container = document.getElementById('week-selector');
+  if (!container) return;
+  if (beschikbareWeken.length === 0) {
+    container.innerHTML = '<span style="font-size:12px;color:#9CA3AF">Geen weken beschikbaar</span>';
+    return;
+  }
+  container.innerHTML = beschikbareWeken.map(w =>
+    `<button class="week-knop ${w === actieveWeek ? 'active' : ''}" onclick="selecteerWeek(${w})">Week ${w}</button>`
+  ).join('');
+}
+
+function selecteerWeek(week) {
+  actieveWeek = week;
+  lokaleWijzigingen = {};
+  lokaleCommentaren = {};
+  renderWeekTabs();
+  laadEvaluatiePerWeek();
+}
+
+async function laadMentorFeedback() {
+  const container = document.getElementById('mentor-feedback-container');
+  if (!container || !actieveStageId || !actieveWeek) return;
+
+  container.innerHTML = '<div style="padding:16px;color:#9CA3AF;font-size:13px">Laden...</div>';
+
+  try {
+    const data = await apiFetch(`/docent/evaluatie/logboek-per-week?stage_id=${actieveStageId}&week=${actieveWeek}`);
+    renderMentorFeedback(data);
+  } catch (err) {
+    container.innerHTML = '<div style="padding:16px;color:#EF4444;font-size:13px">Kon mentor feedback niet laden.</div>';
+  }
+}
+
+function renderMentorFeedback(data) {
+  const container = document.getElementById('mentor-feedback-container');
+  if (!container) return;
+
+  const { competenties, scores, mentor_feedback } = data;
+  let html = '';
+
+  if (competenties && competenties.length > 0 && scores) {
+    html += '<div class="mentor-feedback-card"><div class="mentor-feedback-title">Logboek scores — Week ' + actieveWeek + '</div>';
+    competenties.forEach(c => {
+      const score = scores[c.id] !== undefined ? scores[c.id] : null;
+      html += `<div class="logboek-competentie-rij">
+        <span class="logboek-comp-naam">${c.naam}</span>
+        <span class="logboek-comp-score">${score !== null ? score + ' ptn' : '—'}</span>
+      </div>`;
+    });
+    html += '</div>';
+  }
+
+  if (mentor_feedback) {
+    html += `<div class="mentor-feedback-card">
+      <div class="mentor-feedback-title">Mentor feedback — Week ${actieveWeek}</div>
+      <div class="mentor-feedback-tekst">${mentor_feedback}</div>
+    </div>`;
+  } else {
+    html += `<div class="mentor-feedback-card">
+      <div class="mentor-feedback-title">Mentor feedback — Week ${actieveWeek}</div>
+      <div class="mentor-feedback-tekst mentor-feedback-lege">Nog geen mentor feedback voor deze week.</div>
+    </div>`;
+  }
+
+  if (!html) {
+    html = '<div style="padding:20px;text-align:center;color:#9CA3AF;font-size:13px">Geen logboekgegevens voor deze week.</div>';
+  }
+
+  container.innerHTML = html;
 }
 
 async function laadEvaluatie() {
@@ -103,18 +241,27 @@ async function laadEvaluatie() {
   container.innerHTML = `<div style="padding:30px;text-align:center;color:#9CA3AF;font-size:13px">Laden...</div>`;
 
   try {
-    // Verwacht: GET /api/docent/evaluatie?stage_id=X&type=Y
-    // Response: [{
-    //   competentie_id, naam, domeinen,
-    //   opties: [{ score, label, beschrijving }],
-    //   score_student, score_mentor, score_docent,
-    //   feedback_mentor, feedback_student
-    // }]
-    const data = await apiFetch(`/docenten/evaluatie?stage_id=${actieveStageId}&type=${actieveType}`);
+    const data = await apiFetch(`/docent/evaluatie?stage_id=${actieveStageId}&type=${actieveType}`);
     laatsteEvaluatieData = data;
     renderCompetenties(data);
   } catch (err) {
     console.error('Kon evaluatie niet laden:', err);
+    container.innerHTML = `<div style="padding:30px;text-align:center;color:#9CA3AF;font-size:13px">Kon evaluatie niet laden.</div>`;
+  }
+}
+
+async function laadEvaluatiePerWeek() {
+  if (!actieveStageId || !actieveWeek) return;
+  const container = document.getElementById('competenties-container');
+  container.innerHTML = `<div style="padding:30px;text-align:center;color:#9CA3AF;font-size:13px">Laden...</div>`;
+
+  try {
+    const weekType = `week${actieveWeek}`;
+    const data = await apiFetch(`/docent/evaluatie?stage_id=${actieveStageId}&type=${weekType}`);
+    laatsteEvaluatieData = data;
+    renderCompetenties(data);
+  } catch (err) {
+    console.error('Kon week-evaluatie niet laden:', err);
     container.innerHTML = `<div style="padding:30px;text-align:center;color:#9CA3AF;font-size:13px">Kon evaluatie niet laden.</div>`;
   }
 }
@@ -162,6 +309,12 @@ function renderCompetenties(data) {
             <div class="competentie-totaal-value">${huidigeScore !== null ? huidigeScore : '-'}</div>
           </div>
         </div>
+        <div style="padding:8px 14px 12px">
+          <textarea class="comp-comment-input" placeholder="Commentaar over deze competentie..."
+                    oninput="updateCommentaar(${c.competentie_id}, this.value)"
+                    style="width:100%;border:1px solid #D0D8E8;border-radius:6px;padding:8px 10px;font-size:12px;font-family:inherit;resize:vertical;min-height:36px;background:#F8FAFC"
+          >${c.commentaar_docent || lokaleCommentaren[c.competentie_id] || ''}</textarea>
+        </div>
         ${(c.feedback_mentor || c.feedback_student) ? `
         <div class="feedback-row">
           <div>
@@ -185,6 +338,10 @@ function kiesScore(competentieId, score) {
   renderCompetenties(laatsteEvaluatieData);
 }
 
+function updateCommentaar(competentieId, tekst) {
+  lokaleCommentaren[competentieId] = tekst;
+}
+
 function updateTotaal(data) {
   let totaalScore = 0;
   let totaalMax = 0;
@@ -203,8 +360,8 @@ function updateTotaal(data) {
 }
 
 async function opslaanScore() {
-  if (Object.keys(lokaleWijzigingen).length === 0) {
-    alert('Er zijn geen wijzigingen om op te slaan.');
+  if (!laatsteEvaluatieData || laatsteEvaluatieData.length === 0) {
+    alert('Geen competenties geladen.');
     return;
   }
 
@@ -212,24 +369,34 @@ async function opslaanScore() {
   btn.disabled = true;
   btn.textContent = 'Opslaan...';
 
-  try {
-    // Verwacht: POST /api/docent/evaluatie/opslaan
-    // Body: { stage_id, type, scores: [{ competentie_id, score }] }
-    const scores = Object.entries(lokaleWijzigingen).map(([competentie_id, score]) => ({
-      competentie_id: Number(competentie_id),
-      score
-    }));
+  const saveType = actieveType === 'tussentijds' && actieveWeek ? `week${actieveWeek}` : actieveType;
 
-    await apiFetch('/docenten/evaluatie/opslaan', {
+  try {
+    const scores = laatsteEvaluatieData.map(c => {
+      const score = lokaleWijzigingen.hasOwnProperty(c.competentie_id)
+        ? lokaleWijzigingen[c.competentie_id]
+        : calculateBaseScore(c);
+      const commentaar = lokaleCommentaren.hasOwnProperty(c.competentie_id)
+        ? lokaleCommentaren[c.competentie_id]
+        : (c.commentaar_docent || null);
+      return { competentie_id: c.competentie_id, score, commentaar };
+    });
+
+    await apiFetch('/docent/evaluatie/opslaan', {
       method: 'POST',
-      body: JSON.stringify({ stage_id: actieveStageId, type: actieveType, scores })
+      body: JSON.stringify({ stage_id: actieveStageId, type: saveType, scores })
     });
 
     lokaleWijzigingen = {};
+    lokaleCommentaren = {};
     btn.textContent = 'Opgeslagen ✓';
     setTimeout(() => { btn.textContent = 'Opslaan score'; btn.disabled = false; }, 1500);
 
-    laadEvaluatie();
+    if (actieveType === 'tussentijds') {
+      laadEvaluatiePerWeek();
+    } else {
+      laadEvaluatie();
+    }
   } catch (err) {
     alert(err.message || 'Kon de scores niet opslaan.');
     btn.disabled = false;
