@@ -19,6 +19,22 @@ exports.submitStage = async (req, res) => {
         await connection.beginTransaction();
 
         try {
+            // 0. Check if student already has an active stage
+            const [studentRows] = await connection.query('SELECT student_id FROM STUDENT WHERE gebruiker_id = ?', [gebruiker_id]);
+            if (studentRows.length === 0) {
+                throw new Error('Geen student profiel gevonden voor deze gebruiker');
+            }
+            const student_id = studentRows[0].student_id;
+
+            const [existingStages] = await connection.query(
+                "SELECT stage_id FROM STAGE WHERE student_id = ? AND status IN ('in_aanvraag', 'goedgekeurd', 'contract_getekend')",
+                [student_id]
+            );
+            
+            if (existingStages.length > 0) {
+                throw new Error('Je hebt al een actieve stage aanvraag. Je kan geen nieuwe indienen totdat deze is afgekeurd of afgelopen.');
+            }
+
             // 1. Insert Bedrijf
             const [bedrijfResult] = await connection.query(
                 'INSERT INTO BEDRIJF (naam, adres, telefoon, email, sector) VALUES (?, ?, ?, ?, ?)',
@@ -28,12 +44,7 @@ exports.submitStage = async (req, res) => {
 
             // 2. We do NOT create Mentor Gebruiker Account anymore!
             
-            // 3. Get Student ID
-            const [studentRows] = await connection.query('SELECT student_id FROM STUDENT WHERE gebruiker_id = ?', [gebruiker_id]);
-            if (studentRows.length === 0) {
-                throw new Error('Geen student profiel gevonden voor deze gebruiker');
-            }
-            const student_id = studentRows[0].student_id;
+            // 3. Student ID already retrieved above
 
             if (studentnummer) {
                 await connection.query('UPDATE STUDENT SET studentnummer = ? WHERE student_id = ?', [studentnummer, student_id]);
@@ -173,3 +184,4 @@ exports.updateStatus = async (req, res) => {
         res.status(500).json({ error: 'Fout bij het updaten van de status' });
     }
 };
+
