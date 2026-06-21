@@ -4,21 +4,24 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Stageaanvraag indienen — EhB StageTool</title>
+<link rel="stylesheet" href="src/CSS/shared_sidebar.css" />
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="src/CSS/stageaanvraag_indienen_stijl.css">
 </head>
 <body>
 
-<nav class="sidebar">
-  <div class="sb-logo">
-    <div class="sb-logo-title">EhB StageTool</div>
-    <div class="sb-logo-sub">Toegepaste Informatica</div>
-  </div>
-  <div class="sb-nav">
-    <a class="sb-item active" href="stageaanvraag.html">Mijn stage</a>
-  </div>
-  <div class="sb-footer">Ingelogd als Student</div>
-</nav>
+    <nav class="sidebar">
+        <div class="sb-logo">
+            <div class="sb-logo-title">EhB StageTool</div>
+            <div class="sb-logo-sub">Toegepaste Informatica</div>
+        </div>
+        <div class="sb-nav">
+            <a class="sb-item" href="student_dashboard.html">Dashboard</a>
+            <a class="sb-item" href="student_voorstel_response.html">Mijn stage</a>
+            <a class="sb-item active" href="stageaanvraag.html">Aanvraag indienen</a>
+        </div>
+        <div class="sb-footer">Ingelogd als Student</div>
+    </nav>
 
 <div class="main">
   <div>
@@ -130,7 +133,7 @@
 
   <div class="footer-btns">
     <button class="btn-primary" id="btn-submit">Stageaanvraag indienen</button>
-    <a href="student_dashboard.html" class="btn-secondary">Annuleren</a>
+    <a href="lege_staat_student.html" class="btn-secondary">Annuleren</a>
   </div>
 </div>
 
@@ -139,3 +142,4 @@
 
 </body>
 </html>
+

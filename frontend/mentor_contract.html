@@ -58,6 +58,10 @@
                 <label for="mentor-email" style="font-size:14px;font-weight:600;display:block;margin-bottom:6px">Emailadres mentor *</label>
                 <input type="email" id="mentor-email" required placeholder="mentor@bedrijf.be" style="width:100%;padding:10px 12px;border:1.5px solid #CBD5E1;border-radius:6px;font-size:14px;font-family:inherit;box-sizing:border-box">
             </div>
+            <div style="margin-top:10px; margin-bottom: 10px;">
+                <label for="mentor-naam" style="font-size:14px;font-weight:600;display:block;margin-bottom:6px">Naam & Bedrijf (bijv. Jan Peeters - KBC) *</label>
+                <input type="text" id="mentor-naam" required placeholder="Je naam en bedrijfsnaam" style="width:100%;padding:10px 12px;border:1.5px solid #CBD5E1;border-radius:6px;font-size:14px;font-family:inherit;box-sizing:border-box">
+            </div>
         </div>
 
         <div class="label">✎ Teken hieronder</div>
@@ -123,9 +127,12 @@
 
         let drawing = false, hasSig = false;
         function getPos(e) {
-            const r = canvas.getBoundingClientRect();
-            const s = e.touches ? e.touches[0] : e;
-            return { x: s.clientX - r.left, y: s.clientY - r.top };
+            if (e.touches && e.touches.length > 0) {
+                const r = canvas.getBoundingClientRect();
+                const s = e.touches[0];
+                return { x: s.clientX - r.left, y: s.clientY - r.top };
+            }
+            return { x: e.offsetX, y: e.offsetY };
         }
         canvas.addEventListener('mousedown', e => { drawing = true; const p = getPos(e); ctx.beginPath(); ctx.moveTo(p.x, p.y); });
         canvas.addEventListener('mousemove', e => { if (!drawing) return; const p = getPos(e); ctx.lineTo(p.x, p.y); ctx.stroke(); hasSig = true; });
@@ -143,13 +150,15 @@
             if (!mentorToken) { toonFout('Ongeldige link (geen token).'); return; }
             if (!hasSig) { toonFout('Teken eerst je handtekening.'); return; }
             const mentorEmail = document.getElementById('mentor-email').value.trim();
+            const mentorNaam = document.getElementById('mentor-naam').value.trim();
             if (!mentorEmail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(mentorEmail)) { toonFout('Vul een geldig emailadres in voor de mentor.'); return; }
+            if (!mentorNaam) { toonFout('Vul je naam in.'); return; }
             const signatureBase64 = canvas.toDataURL('image/png');
             try {
                 const res = await fetch(`${API}/contracten/mentor-tekenen`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ token: mentorToken, signature: signatureBase64, mentorEmail })
+                    body: JSON.stringify({ token: mentorToken, signature: signatureBase64, mentorEmail, mentorNaam })
                 });
                 const data = await res.json();
                 if (res.ok) {
