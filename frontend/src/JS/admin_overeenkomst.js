@@ -257,9 +257,12 @@ function initSignaturePad() {
   resizeCanvas();
 
   function getPos(e) {
-    const r = canvas.getBoundingClientRect();
-    const s = e.touches ? e.touches[0] : e;
-    return { x: s.clientX - r.left, y: s.clientY - r.top };
+    if (e.touches && e.touches.length > 0) {
+      const r = canvas.getBoundingClientRect();
+      const s = e.touches[0];
+      return { x: s.clientX - r.left, y: s.clientY - r.top };
+    }
+    return { x: e.offsetX, y: e.offsetY };
   }
   canvas.addEventListener('mousedown', e => { sigDrawing = true; const p = getPos(e); sigCtx.beginPath(); sigCtx.moveTo(p.x, p.y); });
   canvas.addEventListener('mousemove', e => { if (!sigDrawing) return; const p = getPos(e); sigCtx.lineTo(p.x, p.y); sigCtx.stroke(); heeftHandtekening = true; });

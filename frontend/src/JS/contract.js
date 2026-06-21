@@ -6,7 +6,7 @@ async function laadContract() {
 
     window.currentContractId = stage.contract_id;
 
-    document.getElementById('contract-student').textContent = stage.student_naam + ' — ' + stage.opleiding;
+    document.getElementById('contract-student').textContent = stage.student_naam + (stage.opleiding ? ' — ' + stage.opleiding : '');
     document.getElementById('contract-studentnummer').textContent = stage.studentnummer;
     document.getElementById('contract-bedrijf').textContent = stage.bedrijf_naam;
     document.getElementById('contract-mentor').textContent = (stage.mentor_naam || '—') + ' — ' + (stage.mentor_email || '—');

@@ -22,8 +22,8 @@ async function loadStats() {
     const stats = await apiFetch('/admin/dashboard/stats');
 
     setText('stat-total-students', stats.totalStudents);
-    setText('stat-te-versturen', stats.pendingContracts);
-    setText('stat-extensions', stats.activeExtensions);
+    setText('stat-contracts-review', stats.pendingContracts);
+    setText('stat-legal-check', stats.legalCheck);
     setText('header-subtitle', stats.melding || '');
   } catch (err) {
     console.error('Fout bij ophalen statistieken:', err);
@@ -147,7 +147,7 @@ async function loadContracts() {
     const contracts = await apiFetch('/admin/dashboard/contracts');
 
     if (contracts.length === 0) {
-      tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;color:#9CA3AF;padding:24px">Geen contracten gevonden.</td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;color:#9CA3AF;padding:24px">Geen contracten gevonden.</td></tr>`;
       return;
     }
 
@@ -163,12 +163,12 @@ async function loadContracts() {
         <td>${c.bedrijf_naam || '-'}</td>
         <td><span class="badge ${aanvraag.cls}">${aanvraag.label}</span></td>
         <td><span class="badge ${contractStatus.cls}">${contractStatus.label}</span></td>
-        <td><button class="view-btn" onclick="window.location.href='admin_overeenkomst.html?id=${c.contract_id}'">${actieLabel}</button></td>
+        
       </tr>`;
     }).join('');
   } catch (err) {
     console.error('Fout bij ophalen contracten:', err);
-    tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;color:#9CA3AF;padding:24px">Kon contracten niet laden.</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;color:#9CA3AF;padding:24px">Kon contracten niet laden.</td></tr>`;
   }
 }
 
@@ -194,3 +194,5 @@ function formatDatum(datumStr) {
   const yyyy = d.getFullYear();
   return `${dd}-${mm}-${yyyy}`;
 }
+
+

@@ -38,7 +38,7 @@ function renderTable(data) {
       <div class="td td-name">${g.naam}</div>
       <div class="td td-email">${g.email}</div>
       <div class="td">
-        <select class="role-select" onchange="wijzigRol(${idx}, this.value)" ${isMe ? 'disabled title="Je kan je eigen rol niet wijzigen"' : ''}>${rolOpties}</select>
+        <select class="role-select" onchange="wijzigRol(${g.id}, this.value)" ${isMe ? 'disabled title="Je kan je eigen rol niet wijzigen"' : ''}>${rolOpties}</select>
       </div>
       <div class="td">
         <span class="status-badge">
@@ -46,9 +46,8 @@ function renderTable(data) {
           <span class="${actief ? 'text-actief' : 'text-inactief'}">${g.status}</span>
         </span>
       </div>
-      <div class="td">
+      <div class="td actions-td">
         <div class="actions">
-          <button class="btn-bekijk">Bekijk</button>
           ${!isMe ? `<button class="btn-deactiveer" onclick="confirmDelete(${g.id}, '${g.naam.replace(/'/g, "\\'")}')">Verwijder</button>` : ''}
         </div>
       </div>
@@ -94,8 +93,8 @@ async function executeDelete() {
   }
 }
 
-async function wijzigRol(idx, nieuweRol) {
-  const user = gebruikers[idx];
+async function wijzigRol(userId, nieuweRol) {
+  const user = gebruikers.find(u => u.id === userId);
   try {
     await apiFetch(`/users/${user.id}`, {
       method: 'PUT',

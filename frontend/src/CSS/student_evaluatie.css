@@ -77,103 +77,51 @@ body {
     margin-bottom: 20px;
 }
 
-.hidden {
-    display: none !important;
-}
-
 .placeholder {
-    padding: 32px;
-    color: #5A6A7E;
+    padding: 30px;
+    text-align: center;
+    color: #9CA3AF;
     font-size: 13px;
 }
 
-/* Tabs */
-.tabs {
+.type-tabs {
     display: flex;
-    gap: 24px;
-    border-bottom: 1px solid #E5EAF2;
+    gap: 8px;
     margin-bottom: 20px;
 }
 
-.tab {
-    padding: 10px 2px;
+.type-tab {
+    padding: 8px 16px;
+    border: 1px solid #D5DEEC;
+    background: #fff;
+    border-radius: 8px;
     cursor: pointer;
-    font-size: 14px;
-    color: #5A6A7E;
-    border-bottom: 2px solid transparent;
+    font-size: 13px;
 }
 
-.tab.active {
-    color: #1A3C6E;
-    font-weight: 600;
-    border-bottom-color: #1A3C6E;
+.type-tab.active {
+    background: #1A3C6E;
+    color: #fff;
+    border-color: #1A3C6E;
 }
 
-/* Zelfevaluatie-kaart */
-.self-card {
+.comp-card {
     background: #fff;
     border: 1px solid #E5EAF2;
     border-radius: 12px;
     padding: 18px;
-    margin-bottom: 22px;
-}
-
-.self-head {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
-.self-title {
-    font-weight: 700;
-    font-size: 15px;
-}
-
-.self-sub {
-    font-size: 12px;
-    color: #5A6A7E;
-    margin-top: 2px;
-}
-
-.self-toggle {
-    background: #1A3C6E;
-    color: #fff;
-    border: none;
-    border-radius: 8px;
-    padding: 9px 16px;
-    font-size: 13px;
-    font-weight: 600;
-    cursor: pointer;
-}
-
-.self-toggle:disabled {
-    background: #C7D0DE;
-    cursor: not-allowed;
-}
-
-.self-form {
-    margin-top: 18px;
-    border-top: 1px solid #E5EAF2;
-    padding-top: 18px;
-}
-
-.comp-card {
-    background: #F7F9FC;
-    border: 1px solid #E5EAF2;
-    border-radius: 10px;
-    padding: 14px;
-    margin-bottom: 12px;
+    margin-bottom: 14px;
 }
 
 .comp-naam {
     font-weight: 600;
-    font-size: 14px;
+    font-size: 15px;
 }
 
 .comp-desc {
     font-size: 12px;
     color: #5A6A7E;
-    margin-bottom: 10px;
+    margin-bottom: 12px;
 }
 
 .opties {
@@ -184,13 +132,13 @@ body {
 
 .optie {
     flex: 1;
-    min-width: 100px;
+    min-width: 110px;
     border: 1px solid #D5DEEC;
     border-radius: 8px;
-    padding: 8px;
+    padding: 10px;
     cursor: pointer;
     text-align: center;
-    background: #fff;
+    transition: .1s;
 }
 
 .optie:hover {
@@ -205,45 +153,45 @@ body {
 
 .optie-ptn {
     font-weight: 700;
+    font-size: 14px;
+}
+
+.optie-label {
+    font-size: 12px;
+    font-weight: 600;
 }
 
 .optie-desc {
-    font-size: 11px;
-    opacity: .85;
+    font-size: 10px;
+    opacity: .8;
     margin-top: 2px;
 }
 
 .feedback {
     width: 100%;
-    margin-top: 10px;
+    margin-top: 12px;
     border: 1px solid #D5DEEC;
     border-radius: 8px;
     padding: 8px;
     font-size: 13px;
-    min-height: 40px;
+    min-height: 44px;
     font-family: inherit;
 }
 
-.self-actions {
+.save-row {
     display: flex;
-    align-items: center;
     gap: 12px;
-    margin-top: 16px;
-}
-
-.self-totaal {
-    margin-right: auto;
-    font-weight: 600;
-    font-size: 14px;
+    align-items: center;
+    margin-top: 20px;
 }
 
 .btn {
+    padding: 10px 20px;
     border: none;
     border-radius: 8px;
-    padding: 10px 18px;
-    font-weight: 600;
-    font-size: 14px;
     cursor: pointer;
+    font-size: 14px;
+    font-weight: 600;
 }
 
 .btn-concept {
@@ -256,133 +204,8 @@ body {
     color: #fff;
 }
 
-/* Ontvangen evaluaties */
-.metrics {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 16px;
-    margin-bottom: 18px;
-}
-
-.metric-card {
-    background: #fff;
-    border: 1px solid #E5EAF2;
-    border-radius: 12px;
-    padding: 16px;
-}
-
-.metric-label {
-    font-size: 12px;
-    color: #5A6A7E;
-    text-transform: uppercase;
-    letter-spacing: .3px;
-}
-
-.metric-value {
-    font-size: 26px;
-    font-weight: 700;
-    margin-top: 4px;
-}
-
-.eval-card {
-    background: #fff;
-    border: 1px solid #E5EAF2;
-    border-radius: 12px;
-    margin-bottom: 16px;
-    overflow: hidden;
-}
-
-.eval-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 16px;
-    border-bottom: 1px solid #F0F3F8;
-}
-
-.eval-avatar {
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: 700;
-    color: #fff;
-}
-
-.avatar-blauw { background: #1A3C6E; }
-.avatar-groen { background: #16a34a; }
-.avatar-grijs { background: #6B7280; }
-
-.eval-naam {
+.totaal {
+    margin-left: auto;
     font-weight: 600;
+    font-size: 14px;
 }
-
-.eval-rol {
-    font-size: 12px;
-    color: #5A6A7E;
-}
-
-.badge-ontvangen {
-    background: #DCFCE7;
-    color: #16a34a;
-    font-size: 12px;
-    font-weight: 600;
-    padding: 4px 10px;
-    border-radius: 20px;
-}
-
-.eval-body {
-    padding: 16px;
-}
-
-.feedback-quote {
-    background: #F7F9FC;
-    border-left: 3px solid #1A3C6E;
-    padding: 10px 14px;
-    border-radius: 6px;
-    font-size: 13px;
-    color: #374151;
-    margin-bottom: 14px;
-}
-
-.competenties-label {
-    font-size: 12px;
-    font-weight: 600;
-    color: #5A6A7E;
-    text-transform: uppercase;
-    letter-spacing: .3px;
-    margin-bottom: 10px;
-}
-
-.competentie-rij {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 10px 0;
-    border-top: 1px solid #F0F3F8;
-}
-
-.comp-comment {
-    font-size: 12px;
-    color: #5A6A7E;
-    font-style: italic;
-}
-
-.comp-score-wrap {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-}
-
-.comp-score {
-    font-weight: 700;
-    font-size: 16px;
-    min-width: 22px;
-    text-align: right;
-}
-
-.score-1 { color: #ef4444; }
-.score-2 { color: #2563eb; }
-.score-5 { color: #16a34a; }

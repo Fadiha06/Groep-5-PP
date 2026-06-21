@@ -104,7 +104,7 @@ async function laadMeldingen(gebruikerId) {
     const c = document.getElementById('meldingen');
     c.innerHTML = '<div class="placeholder">Laden...</div>';
     try {
-        const data = await apiFetch(`/docenten/student/${gebruikerId}/meldingen`);
+        const data = await apiFetch(`/docent/student/${gebruikerId}/meldingen`);
         if (data.meldingen.length === 0) {
             c.innerHTML = '<div class="placeholder">Geen meldingen.</div>';
             return;
