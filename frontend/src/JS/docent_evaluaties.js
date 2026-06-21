@@ -1,22 +1,36 @@
+function calculateBaseScore(c) {
+    if (c.score_docent !== null) return c.score_docent;
+    if (c.score_student !== null && c.score_mentor !== null) return Math.round((c.score_student + c.score_mentor) / 2);
+    if (c.score_mentor !== null) return c.score_mentor;
+    if (c.score_student !== null) return c.score_student;
+    return null;
+}
+
 let studentenData = [];
 let actieveStageId = null;
-let actieveWeek = 1;
-let beschikbareWeken = [1];
+let actieveType = 'tussentijds';
+const TYPES = [{id: 'tussentijds', label: 'Tussentijdse Evaluatie'}, {id: 'finaal', label: 'Finale Evaluatie'}];
 
 // Houdt lokale wijzigingen bij voordat ze opgeslagen worden:
 // { [competentie_id]: nieuweScore }
 let lokaleWijzigingen = {};
 let laatsteEvaluatieData = [];
 
-function berekenAantalWeken(startdatum, einddatum) {
-  const start = new Date(startdatum);
-  const eind = new Date(einddatum);
-  const verschilInDagen = Math.floor((eind - start) / (1000 * 60 * 60 * 24));
-  return Math.max(1, Math.ceil(verschilInDagen / 7));
+function updateSaveButton() {
+  const s = studentenData.find(x => x.stage_id === actieveStageId);
+  const isDisabled = (actieveType === 'tussentijds' && s && s.mag_tussentijds === 0) || (actieveType === 'finaal' && s && s.mag_finaal === 0);
+  document.getElementById('btn-opslaan').disabled = isDisabled;
+  if (isDisabled) {
+    document.getElementById('btn-opslaan').title = "Je kunt deze evaluatie nog niet invullen.";
+  } else {
+    document.getElementById('btn-opslaan').title = "";
+  }
 }
 
 async function laadStudenten() {
   try {
+    // Verwacht: GET /api/docent/evaluatie-studenten
+    // Response: [{ stage_id, naam, klas, status: 'normaal' | 'te-laat', statustekst }]
     studentenData = await apiFetch('/docenten/evaluatie-studenten');
     renderStudentList();
 
@@ -35,9 +49,9 @@ function renderStudentList() {
     const isTeLaat = s.status === 'te-laat';
     return `
     <div class="student-item ${isActief ? 'active' : ''}" onclick="selectStudent(${s.stage_id})">
-      <div class="avatar ${isActief ? 'active' : (isTeLaat ? 'te-laat' : '')}">${s.naam.charAt(0)}</div>
+      <div class="avatar ${isActief ? 'active' : (isTeLaat ? 'te-laat' : '')}">${(s.student_naam || s.naam || '?').charAt(0)}</div>
       <div>
-        <div class="student-naam">${s.naam}</div>
+        <div class="student-naam">${(s.student_naam || s.naam || 'Onbekend')}</div>
         <div class="student-meta ${isTeLaat ? 'te-laat' : ''}">${isTeLaat ? (s.statustekst || 'Te laat') : (s.klas || '')}</div>
       </div>
     </div>`;
@@ -46,38 +60,41 @@ function renderStudentList() {
 
 function selectStudent(stageId) {
   actieveStageId = stageId;
-  actieveWeek = 1;
+  actieveType = 'tussentijds';
   lokaleWijzigingen = {};
+  renderStudentList();
+  renderTypeTabs();
 
   const s = studentenData.find(x => x.stage_id === stageId);
-  if (s && s.startdatum && s.einddatum) {
-    const aantalWeken = berekenAantalWeken(s.startdatum, s.einddatum);
-    beschikbareWeken = Array.from({ length: aantalWeken }, (_, i) => i + 1);
-  } else {
-    beschikbareWeken = [1];
-  }
-
-  renderStudentList();
-  renderWeekTabs();
-
   if (s) {
-    document.getElementById('eval-titel').textContent = `Samengebrachte score — ${s.naam}`;
+    document.getElementById('eval-titel').textContent = `Samengebrachte score — ${(s.student_naam || s.naam || 'Onbekend')}`;
   }
 
   laadEvaluatie();
 }
 
-function renderWeekTabs() {
+function renderTypeTabs() {
   const container = document.getElementById('week-tabs');
-  container.innerHTML = beschikbareWeken.map(w => `
-    <button class="week-tab ${w === actieveWeek ? 'active' : ''}" onclick="selectWeek(${w})">Week ${w}</button>
-  `).join('');
+  const s = studentenData.find(x => x.stage_id === actieveStageId);
+  const isTussentijdsDisabled = s && s.mag_tussentijds === 0 ? 'disabled title="Kan pas halverwege de stage worden ingevuld"' : '';
+  const isFinaalDisabled = s && s.mag_finaal === 0 ? 'disabled title="Kan pas aan het einde van de stage worden ingevuld"' : '';
+
+  container.innerHTML = TYPES.map(t => {
+    let disabledAttr = '';
+    if (t.id === 'tussentijds') disabledAttr = isTussentijdsDisabled;
+    if (t.id === 'finaal') disabledAttr = isFinaalDisabled;
+
+    return `
+      <button class="week-tab ${t.id === actieveType ? 'active' : ''}" 
+        onclick="if(!this.disabled) selectType('${t.id}')" ${disabledAttr}>${t.label}</button>
+    `;
+    }).join('');
 }
 
-function selectWeek(week) {
-  actieveWeek = week;
+function selectType(type) {
+  actieveType = type;
   lokaleWijzigingen = {};
-  renderWeekTabs();
+  renderTypeTabs();
   laadEvaluatie();
 }
 
@@ -86,15 +103,16 @@ async function laadEvaluatie() {
   container.innerHTML = `<div style="padding:30px;text-align:center;color:#9CA3AF;font-size:13px">Laden...</div>`;
 
   try {
-    const data = await apiFetch(`/docenten/evaluatie?stage_id=${actieveStageId}&week=${actieveWeek}`);
-    const competentiData = Array.isArray(data) ? data : (data.competenties || []);
-    laatsteEvaluatieData = competentiData;
-
-    // Sla mentor tussentijdse/finaale evaluaties op voor weergave
-    window._mentorTussentijds = data.mentor_tussentijds || null;
-    window._mentorFinaal = data.mentor_finaal || null;
-
-    renderCompetenties(competentiData);
+    // Verwacht: GET /api/docent/evaluatie?stage_id=X&type=Y
+    // Response: [{
+    //   competentie_id, naam, domeinen,
+    //   opties: [{ score, label, beschrijving }],
+    //   score_student, score_mentor, score_docent,
+    //   feedback_mentor, feedback_student
+    // }]
+    const data = await apiFetch(`/docenten/evaluatie?stage_id=${actieveStageId}&type=${actieveType}`);
+    laatsteEvaluatieData = data;
+    renderCompetenties(data);
   } catch (err) {
     console.error('Kon evaluatie niet laden:', err);
     container.innerHTML = `<div style="padding:30px;text-align:center;color:#9CA3AF;font-size:13px">Kon evaluatie niet laden.</div>`;
@@ -111,9 +129,10 @@ function renderCompetenties(data) {
   }
 
   container.innerHTML = data.map(c => {
+    const baseScore = calculateBaseScore(c);
     const huidigeScore = lokaleWijzigingen.hasOwnProperty(c.competentie_id)
       ? lokaleWijzigingen[c.competentie_id]
-      : c.score_mentor;
+      : baseScore;
 
     const optiesHtml = c.opties.map(optie => {
       const isSelected = optie.score === huidigeScore;
@@ -140,7 +159,7 @@ function renderCompetenties(data) {
           </div>
           <div class="score-options">${optiesHtml}</div>
           <div class="competentie-totaal">
-            <div class="competentie-totaal-value">${huidigeScore}</div>
+            <div class="competentie-totaal-value">${huidigeScore !== null ? huidigeScore : '-'}</div>
           </div>
         </div>
         ${(c.feedback_mentor || c.feedback_student) ? `
@@ -158,37 +177,6 @@ function renderCompetenties(data) {
     `;
   }).join('');
 
-  // Toon mentor tussentijdse/finaale evaluaties indien beschikbaar
-  let mentorExtraHtml = '';
-  if (window._mentorTussentijds) {
-    const scores = (window._mentorTussentijds.scores || []).map(s =>
-      `<div style="display:flex;justify-content:space-between;padding:4px 0;font-size:13px;border-bottom:1px solid #F1F5F9">
-        <span>${s.competentie_id}</span><span style="font-weight:600">${s.score}/5</span>
-      </div>`
-    ).join('');
-    mentorExtraHtml += `
-      <div style="background:#EFF6FF;border:1px solid #BFDBFE;border-radius:8px;padding:16px;margin-top:16px">
-        <div style="font-size:14px;font-weight:700;color:#1D4ED8;margin-bottom:8px">Tussentijdse evaluatie van mentor</div>
-        ${scores}
-        ${window._mentorTussentijds.feedback ? `<div style="margin-top:8px;font-size:13px;color:#1E40AF">${window._mentorTussentijds.feedback}</div>` : ''}
-      </div>`;
-  }
-  if (window._mentorFinaal) {
-    const scores = (window._mentorFinaal.scores || []).map(s =>
-      `<div style="display:flex;justify-content:space-between;padding:4px 0;font-size:13px;border-bottom:1px solid #F1F5F9">
-        <span>${s.competentie_id}</span><span style="font-weight:600">${s.score}/5</span>
-      </div>`
-    ).join('');
-    mentorExtraHtml += `
-      <div style="background:#F0FDF4;border:1px solid #BBF7D0;border-radius:8px;padding:16px;margin-top:16px">
-        <div style="font-size:14px;font-weight:700;color:#166534;margin-bottom:8px">Finale evaluatie van mentor</div>
-        ${scores}
-        ${window._mentorFinaal.feedback ? `<div style="margin-top:8px;font-size:13px;color:#166534">${window._mentorFinaal.feedback}</div>` : ''}
-      </div>`;
-  }
-
-  container.innerHTML += mentorExtraHtml;
-
   updateTotaal(data);
 }
 
@@ -202,9 +190,10 @@ function updateTotaal(data) {
   let totaalMax = 0;
 
   data.forEach(c => {
+    const baseScore = calculateBaseScore(c);
     const huidigeScore = lokaleWijzigingen.hasOwnProperty(c.competentie_id)
       ? lokaleWijzigingen[c.competentie_id]
-      : c.score_mentor;
+      : baseScore;
     totaalScore += huidigeScore;
     const maxOptie = Math.max(...c.opties.map(o => o.score));
     totaalMax += maxOptie;
@@ -224,6 +213,8 @@ async function opslaanScore() {
   btn.textContent = 'Opslaan...';
 
   try {
+    // Verwacht: POST /api/docent/evaluatie/opslaan
+    // Body: { stage_id, type, scores: [{ competentie_id, score }] }
     const scores = Object.entries(lokaleWijzigingen).map(([competentie_id, score]) => ({
       competentie_id: Number(competentie_id),
       score
@@ -231,7 +222,7 @@ async function opslaanScore() {
 
     await apiFetch('/docenten/evaluatie/opslaan', {
       method: 'POST',
-      body: JSON.stringify({ stage_id: actieveStageId, week: actieveWeek, scores })
+      body: JSON.stringify({ stage_id: actieveStageId, type: actieveType, scores })
     });
 
     lokaleWijzigingen = {};
@@ -256,3 +247,11 @@ function filterStudents() {
 
 if (typeof requireAuth === 'function' && !requireAuth('docent')) throw new Error();
 laadStudenten();
+
+
+
+
+
+
+
+

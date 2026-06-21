@@ -25,10 +25,10 @@ function renderStudentList() {
   const container = document.getElementById('student-items');
   container.innerHTML = studentenData.map(s => `
     <div class="student-item ${s.stage_id === actieveStudentId ? 'active' : ''}" onclick="selectStudent(${s.stage_id})">
-      <div class="avatar ${s.stage_id === actieveStudentId ? 'av-blauw' : 'av-grijs'}">${s.naam.charAt(0)}</div>
+      <div class="avatar ${s.stage_id === actieveStudentId ? 'av-blauw' : 'av-grijs'}">${(s.student_naam || s.naam || 'Onbekend').charAt(0)}</div>
       <div>
-        <div class="student-naam">${s.naam}</div>
-        <div class="student-meta">${s.opleiding} • ${s.bedrijf}</div>
+        <div class="student-naam">${(s.student_naam || s.naam || 'Onbekend')}</div>
+        <div class="student-meta">${(s.opleiding || 'Geen opleiding')} • ${(s.bedrijf_naam || s.bedrijf || 'Onbekend')}</div>
       </div>
     </div>
   `).join('');
@@ -46,9 +46,9 @@ function renderDetail(s) {
   const container = document.getElementById('detail-container');
 
   // Info
-  document.getElementById('info-naam').textContent = `${s.naam} (${s.opleiding})`;
+  document.getElementById('info-naam').textContent = `${(s.student_naam || s.naam || 'Onbekend')} (${(s.opleiding || 'Geen opleiding')})`;
   document.getElementById('info-contact').innerHTML = `${s.email}<br>${s.telefoon || '—'}`;
-  document.getElementById('info-bedrijf').textContent = s.bedrijf;
+  document.getElementById('info-bedrijf').textContent = (s.bedrijf_naam || s.bedrijf || 'Onbekend');
   document.getElementById('info-adres').textContent = s.bedrijf_adres || '—';
   document.getElementById('info-mentor').textContent = s.mentor_naam || '—';
   document.getElementById('info-mentor-email').textContent = s.mentor_email || '—';
@@ -58,7 +58,7 @@ function renderDetail(s) {
   renderTimeline(s);
 
   // Meldingen
-  document.getElementById('meldingen-titel').textContent = `Actuele Meldingen & Rapporten (${s.naam.split(' ')[0]})`;
+  document.getElementById('meldingen-titel').textContent = `Actuele Meldingen & Rapporten (${(s.student_naam || s.naam || 'Onbekend').split(' ')[0]})`;
   huidigeMeldingen = s.meldingen || [];
   actieveMeldingFilter = 'alles';
   document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
@@ -142,3 +142,5 @@ function filterStudents() {
 }
 
 laadStudenten();
+
+

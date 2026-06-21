@@ -4,24 +4,25 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>EhB StageTool — Docent Dashboard</title>
+    <link rel="stylesheet" href="src/CSS/shared_sidebar.css" />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="src/CSS/docent_dashboard.css" />
 </head>
 <body>
 
-    <aside class="sidebar">
+        <nav class="sidebar">
         <div class="sb-logo">
             <div class="sb-logo-title">EhB StageTool</div>
             <div class="sb-logo-sub">Toegepaste Informatica</div>
         </div>
         <div class="sb-nav">
-            <a href="#" class="sb-item active">Docent Dashboard</a>
-            <a href="docent_studentendossiers.html" class="sb-item">Overzicht Studenten</a>
-            <a href="docent_logboeken.html" class="sb-item">Logboeken</a>
-            <a href="docent_evaluaties.html" class="sb-item">Evaluaties</a>
+            <a class="sb-item active" href="docent_dashboard.html">Docent Dashboard</a>
+            <a class="sb-item" href="overzicht_studenten.html">Overzicht Studenten</a>
+            <a class="sb-item" href="docent_logboeken.html">Logboeken</a>
+            <a class="sb-item" href="docent_evaluaties.html">Evaluaties</a>
         </div>
         <div class="sb-footer">Ingelogd als Docent</div>
-    </aside>
+    </nav>
 
     <main class="main">
         <div class="header">
@@ -62,8 +63,9 @@
         </div>
     </main>
 
-    <script src="/src/JS/api.js"></script>
-    <script src="/src/JS/docent_dashboard.js"></script>
+    <script src="src/JS/api.js"></script>
+    <script src="src/JS/docent_dashboard.js"></script>
 
 </body>
 </html>
+

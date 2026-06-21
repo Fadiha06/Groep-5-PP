@@ -15,18 +15,16 @@ const getDocent = async (gebruikerId) => {
 // Alle studenten van deze docent + hun logboekstatus + opgetelde uren voor een week
 const getStudentenMetLogboekStatus = async (docentId, weeknummer) => {
     const [rows] = await pool.query(
-        `SELECT
-            st.stage_id,
+        `SELECT 
+            st.stage_id, 
             CONCAT(g.voornaam, ' ', g.achternaam) AS student_naam,
             b.naam AS bedrijf_naam,
             lw.status AS logboek_status,
-            (SELECT COALESCE(SUM(ld.uren), 0)
-                FROM LOGBOEK_DAG ld
-                WHERE ld.week_id = lw.week_id) AS totaal_uren
+            (SELECT SUM(uren) FROM LOGBOEK_DAG ld WHERE ld.week_id = lw.week_id) AS totaal_uren
         FROM STAGE st
         JOIN STUDENT s ON s.student_id = st.student_id
         JOIN GEBRUIKER g ON g.id = s.gebruiker_id
-        LEFT JOIN BEDRIJF b ON b.bedrijf_id = st.bedrijf_id
+        LEFT JOIN BEDRIJF b ON st.bedrijf_id = b.bedrijf_id
         LEFT JOIN LOGBOEK_WEEK lw ON lw.stage_id = st.stage_id AND lw.weeknummer = ?
         WHERE st.leerkracht_id = ?`,
         [weeknummer, docentId]
@@ -34,44 +32,38 @@ const getStudentenMetLogboekStatus = async (docentId, weeknummer) => {
     return rows;
 };
 
-// Stage-info: student (gebruiker_id) + leerkracht — voor de reminder
+// Stage-info: student (gebruiker_id) + leerkracht - voor de reminder
 const getStageInfo = async (stageId) => {
     const [rows] = await pool.query(
-        `SELECT st.stage_id, st.leerkracht_id, s.gebruiker_id AS student_gebruiker_id, CONCAT(g.voornaam, ' ', g.achternaam) AS student_naam
+        `SELECT s.gebruiker_id AS student_gebruiker_id, st.leerkracht_id
         FROM STAGE st
         JOIN STUDENT s ON s.student_id = st.student_id
-        JOIN GEBRUIKER g ON g.id = s.gebruiker_id
         WHERE st.stage_id = ?`,
         [stageId]
     );
-    return rows[0];
+    return rows;
 };
 
-// Maak een notificatie aan voor een gebruiker
+// Maak een notificatie voor een student
 const maakNotificatie = async (gebruikerId, stageId, titel, bericht, type) => {
-    const [result] = await pool.query(
-        `INSERT INTO NOTIFICATIE (gebruiker_id, stage_id, titel, bericht, type)
-        VALUES (?, ?, ?, ?, ?)`,
+    await pool.query(
+        `INSERT INTO NOTIFICATIE (gebruiker_id, stage_id, titel, bericht, type, gelezen) VALUES (?, ?, ?, ?, ?, FALSE)`,
         [gebruikerId, stageId, titel, bericht, type]
     );
-    return result.insertId;
 };
 
-// Contract-status per student van deze docent
+// Milestones voor studenten op basis van logboeken
 const getMilestones = async (docentId) => {
     const [rows] = await pool.query(
-        `SELECT
-            st.stage_id,
+        `SELECT 
             CONCAT(g.voornaam, ' ', g.achternaam) AS student_naam,
-            c.contract_id,
-            c.student_getekend,
-            c.mentor_getekend,
-            c.docent_getekend
+            st.stage_id, c.contract_id, c.student_getekend, c.mentor_getekend, c.docent_getekend
         FROM STAGE st
+        LEFT JOIN CONTRACT c ON c.stage_id = st.stage_id
         JOIN STUDENT s ON s.student_id = st.student_id
         JOIN GEBRUIKER g ON g.id = s.gebruiker_id
-        LEFT JOIN CONTRACT c ON c.stage_id = st.stage_id
-        WHERE st.leerkracht_id = ?`,
+        WHERE st.leerkracht_id = ? 
+        `,
         [docentId]
     );
     return rows;
@@ -80,26 +72,21 @@ const getMilestones = async (docentId) => {
 // Volledige dossiers van de studenten van deze docent
 const getDossiers = async (docentId) => {
     const [rows] = await pool.query(
-        `SELECT
+        `SELECT 
             st.stage_id,
             s.gebruiker_id,
-            CONCAT(g.voornaam, ' ', g.achternaam) AS student_naam,
-            s.studentnummer,
-            s.opleiding,
-            g.email,
-            s.telefoonnummer AS student_telefoon,
-            b.naam AS bedrijf_naam,
-            b.adres AS bedrijf_adres,
-            b.stad AS bedrijf_stad,
-            st.startdatum,
-            st.einddatum,
-            CONCAT(m_u.voornaam, ' ', m_u.achternaam) AS stagementor_naam
+            CONCAT(g.voornaam, ' ', g.achternaam) AS student_naam, s.opleiding, b.naam AS bedrijf_naam,
+            st.status,
+            st.startdatum, st.einddatum, CONCAT(st.startdatum, ' - ', st.einddatum) AS periode,
+            m_g.email AS mentor_email,
+            b.adres AS stageplaats_adres, g.email AS email, s.telefoonnummer, CONCAT(mg.voornaam, ' ', mg.achternaam) AS mentor_naam
         FROM STAGE st
         JOIN STUDENT s ON s.student_id = st.student_id
         JOIN GEBRUIKER g ON g.id = s.gebruiker_id
         LEFT JOIN BEDRIJF b ON b.bedrijf_id = st.bedrijf_id
-        LEFT JOIN STAGEMENTOR sm ON st.mentor_id = sm.mentor_id
-        LEFT JOIN GEBRUIKER m_u ON sm.gebruiker_id = m_u.id
+           LEFT JOIN GEBRUIKER mg ON mg.id = st.mentor_id
+        LEFT JOIN STAGEMENTOR m ON m.mentor_id = st.mentor_id
+        LEFT JOIN GEBRUIKER m_g ON m_g.id = m.gebruiker_id
         WHERE st.leerkracht_id = ?`,
         [docentId]
     );
@@ -131,15 +118,14 @@ const getLogboeken = async (docentId) => {
             lw.mentor_feedback,
             lw.docent_feedback,
             lw.docent_goedgekeurd,
-            CONCAT(g.voornaam, ' ', g.achternaam) AS naam,
-            s.opleiding,
-            b.naam AS bedrijf,
+            CONCAT(g.voornaam, ' ', g.achternaam) AS student_naam, s.opleiding, b.naam AS bedrijf_naam,
             CONCAT(st.startdatum, ' - ', st.einddatum) AS periode
         FROM LOGBOEK_WEEK lw
         JOIN STAGE st ON st.stage_id = lw.stage_id
         JOIN STUDENT s ON s.student_id = st.student_id
         JOIN GEBRUIKER g ON g.id = s.gebruiker_id
         LEFT JOIN BEDRIJF b ON b.bedrijf_id = st.bedrijf_id
+        LEFT JOIN GEBRUIKER mg ON mg.id = st.mentor_id
         WHERE st.leerkracht_id = ?
         ORDER BY lw.ingediend_op DESC`,
         [docentId]
@@ -150,7 +136,7 @@ const getLogboeken = async (docentId) => {
 // Dagentries voor een specifieke logboekweek
 const getDagenVoorWeek = async (weekId) => {
     const [rows] = await pool.query(
-        `SELECT ld.dag_id, ld.datum, ld.uren, ld.taken_beschrijving AS taken, ld.leerpunten AS problemen, ld.status
+        `SELECT ld.*, ld.taken_beschrijving AS taken, ld.leerpunten AS problemen
         FROM LOGBOEK_DAG ld
         WHERE ld.week_id = ?
         ORDER BY ld.datum`,
@@ -162,15 +148,15 @@ const getDagenVoorWeek = async (weekId) => {
 // Goedkeur logboek week
 const goedkeurLogboek = async (weekId) => {
     await pool.query(
-        `UPDATE LOGBOEK_WEEK SET docent_goedgekeurd = TRUE, status = 'goedgekeurd' WHERE week_id = ?`,
+        `UPDATE LOGBOEK_WEEK SET status = 'goedgekeurd' WHERE week_id = ?`,
         [weekId]
     );
 };
 
-// Sla feedback op voor logboek week (docent feedback)
+// Sla feedback op voor logboek week
 const slaFeedbackOp = async (weekId, feedback) => {
     await pool.query(
-        `UPDATE LOGBOEK_WEEK SET docent_feedback = ?, status = 'feedback' WHERE week_id = ?`,
+        `UPDATE LOGBOEK_WEEK SET mentor_feedback = ?, status = 'feedback' WHERE week_id = ?`,
         [feedback, weekId]
     );
 };
@@ -180,11 +166,11 @@ const getEvaluatieStudenten = async (docentId) => {
     const [rows] = await pool.query(
         `SELECT
             st.stage_id,
-            CONCAT(g.voornaam, ' ', g.achternaam) AS naam,
+            CONCAT(g.voornaam, ' ', g.achternaam) AS student_naam,
             s.opleiding AS klas,
             'normaal' AS status,
-            st.startdatum,
-            st.einddatum
+            (CURDATE() >= DATE_ADD(st.startdatum, INTERVAL DATEDIFF(st.einddatum, st.startdatum)/2 DAY)) AS mag_tussentijds,
+            (CURDATE() >= st.einddatum) AS mag_finaal
         FROM STAGE st
         JOIN STUDENT s ON s.student_id = st.student_id
         JOIN GEBRUIKER g ON g.id = s.gebruiker_id
@@ -194,162 +180,18 @@ const getEvaluatieStudenten = async (docentId) => {
     return rows;
 };
 
-// Haal evaluaties op voor stage + week — gestructureerd per competentie
+// Haal evaluaties op voor stage + week
 const getEvaluaties = async (stageId, weeknummer) => {
-    const type = `week${weeknummer}`;
-
-    // 1. Haal de opleiding van de student op
-    const [stageRows] = await pool.query(
-        `SELECT s.opleiding FROM STAGE st
-         JOIN STUDENT s ON s.student_id = st.student_id
-         WHERE st.stage_id = ?`,
-        [stageId]
+    const [rows] = await pool.query(
+        `SELECT e.evaluatie_id, e.type, e.feedback,
+                ec.competentie_id, c.naam AS competentie_naam, ec.score
+        FROM EVALUATIE e
+        JOIN EVALUATIE_COMPETENTIE ec ON ec.evaluatie_id = e.evaluatie_id
+        JOIN COMPETENTIE c ON c.competentie_id = ec.competentie_id
+        WHERE e.stage_id = ? AND e.type = ?`,
+        [stageId, `week${weeknummer}`]
     );
-    if (stageRows.length === 0) return [];
-    const opleiding = stageRows[0].opleiding;
-
-    // 2. Haal alle competenties voor deze opleiding
-    const [competenties] = await pool.query(
-        `SELECT competentie_id, naam, omschrijving FROM COMPETENTIE WHERE opleiding = ?`,
-        [opleiding]
-    );
-    if (competenties.length === 0) return [];
-
-    const competentieIds = competenties.map(c => c.competentie_id);
-
-    // 3. Haal alle rubriek-opties op voor deze competenties
-    const [rubrieken] = await pool.query(
-        `SELECT competentie_id, punten, omschrijving FROM RUBRIEK
-         WHERE competentie_id IN (?) ORDER BY competentie_id, punten`,
-        [competentieIds]
-    );
-
-    // Groepeer opties per competentie
-    const optiesPerCompetentie = {};
-    rubrieken.forEach(r => {
-        if (!optiesPerCompetentie[r.competentie_id]) optiesPerCompetentie[r.competentie_id] = [];
-        optiesPerCompetentie[r.competentie_id].push({
-            score: r.punten,
-            label: `${r.punten} ptn`,
-            beschrijving: r.omschrijving || ''
-        });
-    });
-
-    // 4. Haal student zelfbeoordeling op (geagereerd per competentie over alle dagen van de week)
-    const [logboekWeken] = await pool.query(
-        `SELECT week_id FROM LOGBOEK_WEEK WHERE stage_id = ? AND weeknummer = ?`,
-        [stageId, weeknummer]
-    );
-
-    let studentScores = {};
-    let feedbackStudent = '';
-    if (logboekWeken.length > 0) {
-        const weekId = logboekWeken[0].week_id;
-        const [dagIds] = await pool.query(
-            `SELECT dag_id FROM LOGBOEK_DAG WHERE week_id = ?`,
-            [weekId]
-        );
-        if (dagIds.length > 0) {
-            const ids = dagIds.map(d => d.dag_id);
-            const [studentScoresRows] = await pool.query(
-                `SELECT competentie_id, AVG(score) AS gem_score
-                 FROM LOGBOEK_COMPETENTIE
-                 WHERE dag_id IN (?)
-                 GROUP BY competentie_id`,
-                [ids]
-            );
-            studentScoresRows.forEach(s => {
-                studentScores[s.competentie_id] = Math.round(s.gem_score * 10) / 10;
-            });
-        }
-
-        // Haal mentor feedback op uit LOGBOEK_WEEK
-        const [weekData] = await pool.query(
-            `SELECT mentor_feedback FROM LOGBOEK_WEEK WHERE week_id = ?`,
-            [weekId]
-        );
-        if (weekData.length > 0) feedbackStudent = weekData[0].mentor_feedback || '';
-    }
-
-    // 5. Haal mentor evaluatie op (week-based)
-    let mentorScores = {};
-    let feedbackMentor = '';
-    const [mentorEval] = await pool.query(
-        `SELECT ec.competentie_id, ec.score, e.feedback
-         FROM EVALUATIE e
-         JOIN EVALUATIE_COMPETENTIE ec ON ec.evaluatie_id = e.evaluatie_id
-         WHERE e.stage_id = ? AND e.type = ? AND e.beoordelaar_rol = 'mentor'`,
-        [stageId, type]
-    );
-    mentorEval.forEach(m => {
-        mentorScores[m.competentie_id] = m.score;
-        if (m.feedback) feedbackMentor = m.feedback;
-    });
-
-    // 6. Haal ook tussentijdse/finaale mentor evaluaties op
-    let mentorTussentijds = null;
-    let mentorFinaal = null;
-    const [tussentijdsEval] = await pool.query(
-        `SELECT e.feedback,
-                JSON_ARRAYAGG(JSON_OBJECT('competentie_id', ec.competentie_id, 'score', ec.score)) AS scores
-         FROM EVALUATIE e
-         JOIN EVALUATIE_COMPETENTIE ec ON ec.evaluatie_id = e.evaluatie_id
-         WHERE e.stage_id = ? AND e.type = 'tussentijds' AND e.beoordelaar_rol = 'mentor'
-         GROUP BY e.evaluatie_id`,
-        [stageId]
-    );
-    if (tussentijdsEval.length > 0) {
-        mentorTussentijds = {
-            feedback: tussentijdsEval[0].feedback,
-            scores: JSON.parse(tussentijdsEval[0].scores || '[]')
-        };
-    }
-
-    const [finaalEval] = await pool.query(
-        `SELECT e.feedback,
-                JSON_ARRAYAGG(JSON_OBJECT('competentie_id', ec.competentie_id, 'score', ec.score)) AS scores
-         FROM EVALUATIE e
-         JOIN EVALUATIE_COMPETENTIE ec ON ec.evaluatie_id = e.evaluatie_id
-         WHERE e.stage_id = ? AND e.type = 'finaal' AND e.beoordelaar_rol = 'mentor'
-         GROUP BY e.evaluatie_id`,
-        [stageId]
-    );
-    if (finaalEval.length > 0) {
-        mentorFinaal = {
-            feedback: finaalEval[0].feedback,
-            scores: JSON.parse(finaalEval[0].scores || '[]')
-        };
-    }
-
-    // 7. Haal docent evaluatie op
-    let docentScores = {};
-    const [docentEval] = await pool.query(
-        `SELECT ec.competentie_id, ec.score
-         FROM EVALUATIE e
-         JOIN EVALUATIE_COMPETENTIE ec ON ec.evaluatie_id = e.evaluatie_id
-         WHERE e.stage_id = ? AND e.type = ? AND e.beoordelaar_rol = 'docent'`,
-        [stageId, type]
-    );
-    docentEval.forEach(d => {
-        docentScores[d.competentie_id] = d.score;
-    });
-
-    // 8. Bouw de gestructureerde response op
-    return {
-        competenties: competenties.map(c => ({
-            competentie_id: c.competentie_id,
-            naam: c.naam,
-            domeinen: c.omschrijving || '',
-            opties: optiesPerCompetentie[c.competentie_id] || [],
-            score_student: studentScores[c.competentie_id] ?? null,
-            score_mentor: mentorScores[c.competentie_id] ?? null,
-            score_docent: docentScores[c.competentie_id] ?? null,
-            feedback_mentor: feedbackMentor,
-            feedback_student: feedbackStudent
-        })),
-        mentor_tussentijds: mentorTussentijds,
-        mentor_finaal: mentorFinaal
-    };
+    return rows;
 };
 
 // Sla evaluatiescores op
@@ -380,6 +222,15 @@ const slaEvaluatieOp = async (stageId, weeknummer, beoordelaarId, scores) => {
     return evaluatieId;
 };
 
+// Maak docent profiel aan
+const createProfile = async (gebruikerId) => {
+    const [result] = await pool.query(
+        'INSERT INTO DOCENT (gebruiker_id) VALUES (?)',
+        [gebruikerId]
+    );
+    return result.insertId;
+};
+
 // Haal competentie-scores van een dag op (zelfbeoordeling student)
 const getCompetentiesVoorDag = async (dagId) => {
     const [rows] = await pool.query(
@@ -392,15 +243,21 @@ const getCompetentiesVoorDag = async (dagId) => {
     return rows;
 };
 
-// Maak docent profiel aan
-const createProfile = async (gebruikerId) => {
-    const [result] = await pool.query(
-        'INSERT INTO DOCENT (gebruiker_id) VALUES (?)',
-        [gebruikerId]
+// Aggregatie van tussentijdse scores voor de docent
+const getAggregatie = async (docentId) => {
+    const [rows] = await pool.query(
+        `SELECT c.naam AS competentie, AVG(ec.score) AS gemiddelde
+         FROM EVALUATIE e
+         JOIN STAGE st ON st.stage_id = e.stage_id
+         JOIN EVALUATIE_COMPETENTIE ec ON ec.evaluatie_id = e.evaluatie_id
+         JOIN COMPETENTIE c ON c.competentie_id = ec.competentie_id
+         WHERE st.leerkracht_id = ? AND e.type = 'tussentijds' AND e.beoordelaar_rol = 'docent'
+         GROUP BY c.naam
+         ORDER BY gemiddelde DESC`,
+        [docentId]
     );
-    return result.insertId;
+    return rows;
 };
-
 
 module.exports = {
     createProfile,
@@ -418,5 +275,19 @@ module.exports = {
     getEvaluatieStudenten,
     getEvaluaties,
     slaEvaluatieOp,
-    getCompetentiesVoorDag
+    getCompetentiesVoorDag,
+    getAggregatie
 };
+
+
+
+
+
+
+
+
+
+
+
+
+
