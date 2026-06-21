@@ -1,12 +1,31 @@
+function calculateBaseScore(c) {
+    if (c.score_docent !== null) return c.score_docent;
+    if (c.score_student !== null && c.score_mentor !== null) return Math.round((c.score_student + c.score_mentor) / 2);
+    if (c.score_mentor !== null) return c.score_mentor;
+    if (c.score_student !== null) return c.score_student;
+    return null;
+}
+
 let studentenData = [];
 let actieveStageId = null;
-let actieveWeek = 1;
-const WEKEN = [1, 2, 3, 4];
+let actieveType = 'tussentijds';
+const TYPES = [{id: 'tussentijds', label: 'Tussentijdse Evaluatie'}, {id: 'finaal', label: 'Finale Evaluatie'}];
 
 // Houdt lokale wijzigingen bij voordat ze opgeslagen worden:
 // { [competentie_id]: nieuweScore }
 let lokaleWijzigingen = {};
 let laatsteEvaluatieData = [];
+
+function updateSaveButton() {
+  const s = studentenData.find(x => x.stage_id === actieveStageId);
+  const isDisabled = (actieveType === 'tussentijds' && s && s.mag_tussentijds === 0) || (actieveType === 'finaal' && s && s.mag_finaal === 0);
+  document.getElementById('btn-opslaan').disabled = isDisabled;
+  if (isDisabled) {
+    document.getElementById('btn-opslaan').title = "Je kunt deze evaluatie nog niet invullen.";
+  } else {
+    document.getElementById('btn-opslaan').title = "";
+  }
+}
 
 async function laadStudenten() {
   try {
@@ -30,9 +49,9 @@ function renderStudentList() {
     const isTeLaat = s.status === 'te-laat';
     return `
     <div class="student-item ${isActief ? 'active' : ''}" onclick="selectStudent(${s.stage_id})">
-      <div class="avatar ${isActief ? 'active' : (isTeLaat ? 'te-laat' : '')}">${s.naam.charAt(0)}</div>
+      <div class="avatar ${isActief ? 'active' : (isTeLaat ? 'te-laat' : '')}">${(s.student_naam || s.naam || '?').charAt(0)}</div>
       <div>
-        <div class="student-naam">${s.naam}</div>
+        <div class="student-naam">${(s.student_naam || s.naam || 'Onbekend')}</div>
         <div class="student-meta ${isTeLaat ? 'te-laat' : ''}">${isTeLaat ? (s.statustekst || 'Te laat') : (s.klas || '')}</div>
       </div>
     </div>`;
@@ -41,30 +60,41 @@ function renderStudentList() {
 
 function selectStudent(stageId) {
   actieveStageId = stageId;
-  actieveWeek = 1;
+  actieveType = 'tussentijds';
   lokaleWijzigingen = {};
   renderStudentList();
-  renderWeekTabs();
+  renderTypeTabs();
 
   const s = studentenData.find(x => x.stage_id === stageId);
   if (s) {
-    document.getElementById('eval-titel').textContent = `Samengebrachte score — ${s.naam}`;
+    document.getElementById('eval-titel').textContent = `Samengebrachte score — ${(s.student_naam || s.naam || 'Onbekend')}`;
   }
 
   laadEvaluatie();
 }
 
-function renderWeekTabs() {
+function renderTypeTabs() {
   const container = document.getElementById('week-tabs');
-  container.innerHTML = WEKEN.map(w => `
-    <button class="week-tab ${w === actieveWeek ? 'active' : ''}" onclick="selectWeek(${w})">Week ${w}</button>
-  `).join('');
+  const s = studentenData.find(x => x.stage_id === actieveStageId);
+  const isTussentijdsDisabled = s && s.mag_tussentijds === 0 ? 'disabled title="Kan pas halverwege de stage worden ingevuld"' : '';
+  const isFinaalDisabled = s && s.mag_finaal === 0 ? 'disabled title="Kan pas aan het einde van de stage worden ingevuld"' : '';
+
+  container.innerHTML = TYPES.map(t => {
+    let disabledAttr = '';
+    if (t.id === 'tussentijds') disabledAttr = isTussentijdsDisabled;
+    if (t.id === 'finaal') disabledAttr = isFinaalDisabled;
+
+    return `
+      <button class="week-tab ${t.id === actieveType ? 'active' : ''}" 
+        onclick="if(!this.disabled) selectType('${t.id}')" ${disabledAttr}>${t.label}</button>
+    `;
+    }).join('');
 }
 
-function selectWeek(week) {
-  actieveWeek = week;
+function selectType(type) {
+  actieveType = type;
   lokaleWijzigingen = {};
-  renderWeekTabs();
+  renderTypeTabs();
   laadEvaluatie();
 }
 
@@ -73,14 +103,14 @@ async function laadEvaluatie() {
   container.innerHTML = `<div style="padding:30px;text-align:center;color:#9CA3AF;font-size:13px">Laden...</div>`;
 
   try {
-    // Verwacht: GET /api/docent/evaluatie?stage_id=X&week=Y
+    // Verwacht: GET /api/docent/evaluatie?stage_id=X&type=Y
     // Response: [{
     //   competentie_id, naam, domeinen,
-    //   opties: [{ score, label, beschrijving }],  // bv. [{score:0,...},{score:3,...},{score:5,...}]
-    //   score_student, score_mentor,
+    //   opties: [{ score, label, beschrijving }],
+    //   score_student, score_mentor, score_docent,
     //   feedback_mentor, feedback_student
     // }]
-    const data = await apiFetch(`/docenten/evaluatie?stage_id=${actieveStageId}&week=${actieveWeek}`);
+    const data = await apiFetch(`/docenten/evaluatie?stage_id=${actieveStageId}&type=${actieveType}`);
     laatsteEvaluatieData = data;
     renderCompetenties(data);
   } catch (err) {
@@ -99,9 +129,10 @@ function renderCompetenties(data) {
   }
 
   container.innerHTML = data.map(c => {
+    const baseScore = calculateBaseScore(c);
     const huidigeScore = lokaleWijzigingen.hasOwnProperty(c.competentie_id)
       ? lokaleWijzigingen[c.competentie_id]
-      : c.score_mentor;
+      : baseScore;
 
     const optiesHtml = c.opties.map(optie => {
       const isSelected = optie.score === huidigeScore;
@@ -128,7 +159,7 @@ function renderCompetenties(data) {
           </div>
           <div class="score-options">${optiesHtml}</div>
           <div class="competentie-totaal">
-            <div class="competentie-totaal-value">${huidigeScore}</div>
+            <div class="competentie-totaal-value">${huidigeScore !== null ? huidigeScore : '-'}</div>
           </div>
         </div>
         ${(c.feedback_mentor || c.feedback_student) ? `
@@ -159,9 +190,10 @@ function updateTotaal(data) {
   let totaalMax = 0;
 
   data.forEach(c => {
+    const baseScore = calculateBaseScore(c);
     const huidigeScore = lokaleWijzigingen.hasOwnProperty(c.competentie_id)
       ? lokaleWijzigingen[c.competentie_id]
-      : c.score_mentor;
+      : baseScore;
     totaalScore += huidigeScore;
     const maxOptie = Math.max(...c.opties.map(o => o.score));
     totaalMax += maxOptie;
@@ -182,7 +214,7 @@ async function opslaanScore() {
 
   try {
     // Verwacht: POST /api/docent/evaluatie/opslaan
-    // Body: { stage_id, week, scores: [{ competentie_id, score }] }
+    // Body: { stage_id, type, scores: [{ competentie_id, score }] }
     const scores = Object.entries(lokaleWijzigingen).map(([competentie_id, score]) => ({
       competentie_id: Number(competentie_id),
       score
@@ -190,7 +222,7 @@ async function opslaanScore() {
 
     await apiFetch('/docenten/evaluatie/opslaan', {
       method: 'POST',
-      body: JSON.stringify({ stage_id: actieveStageId, week: actieveWeek, scores })
+      body: JSON.stringify({ stage_id: actieveStageId, type: actieveType, scores })
     });
 
     lokaleWijzigingen = {};
@@ -215,3 +247,11 @@ function filterStudents() {
 
 if (typeof requireAuth === 'function' && !requireAuth('docent')) throw new Error();
 laadStudenten();
+
+
+
+
+
+
+
+

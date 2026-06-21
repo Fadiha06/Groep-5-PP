@@ -37,7 +37,7 @@ function renderTable(data) {
 
     return `
     <tr class="summary-row" data-index="${i}">
-      <td><div class="td-name">${l.naam}</div><div class="td-opleiding">${l.opleiding}</div></td>
+      <td><div class="td-name">${(l.student_naam || l.naam || 'Onbekend')}</div><div class="td-opleiding">${l.opleiding}</div></td>
       <td><span class="badge badge-week">Week ${l.week}</span></td>
       <td style="color:#6B7280">${l.datum || '—'}</td>
       <td><span class="badge ${badgeClass}">${statusLabel}</span>${docentCheck}${mentorCheck}</td>
@@ -232,9 +232,10 @@ async function goedkeuren(index) {
 
 function filterTable() {
   const q = document.querySelector('.search').value.toLowerCase();
-  const gefilterd = logboekenData.filter(l => l.naam.toLowerCase().includes(q));
+  const gefilterd = logboekenData.filter(l => (l.student_naam || l.naam || 'Onbekend').toLowerCase().includes(q));
   renderTable(gefilterd);
 }
 
 if (typeof requireAuth === 'function' && !requireAuth('docent')) throw new Error();
 laadLogboeken();
+
