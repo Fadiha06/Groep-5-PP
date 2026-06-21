@@ -4,7 +4,7 @@ async function laadDashboard() {
     if (!requireAuth('docent')) return;
 
     try {
-        const data = await apiFetch(`/docenten/studenten?week=${WEEK}`);
+        const data = await apiFetch(`/docent/studenten?week=${WEEK}`);
         const groet = document.getElementById('groet');
         if (groet) groet.textContent = `Welkom, ${data.docent}`;
         const weekLabel = document.getElementById('week-label');
@@ -16,14 +16,14 @@ async function laadDashboard() {
     }
 
     try {
-        const data = await apiFetch('/docenten/milestones');
+        const data = await apiFetch('/docent/milestones');
         vulMilestones(data.milestones || []);
     } catch (err) {
         console.error('Milestones fout:', err);
     }
 
     try {
-        const aggr = await apiFetch('/docenten/aggregatie');
+        const aggr = await apiFetch('/docent/aggregatie');
         vulAggregatie(aggr);
     } catch (err) {
         console.error('Aggregatie fout:', err);
@@ -84,7 +84,7 @@ function vulMilestones(milestones) {
 
 async function stuurReminder(stageId) {
     try {
-        const data = await apiFetch('/docenten/reminder', {
+        const data = await apiFetch('/docent/reminder', {
             method: 'POST',
             body: JSON.stringify({ stage_id: stageId, weeknummer: WEEK })
         });

@@ -227,13 +227,15 @@ class StudentModel {
         let competenties;
         if (opleiding) {
             [competenties] = await db.query(
-                `SELECT c.naam AS competentie_naam,
+                `SELECT c.competentie_id AS competentie_id,
+                        c.naam AS competentie_naam,
                         c.omschrijving AS competentie_omschrijving,
                         ROUND(AVG(wk.score), 1) AS score,
-                        COUNT(DISTINCT wk.wk_type) AS aantalWeken
+                        COUNT(DISTINCT wk.wk_type) AS aantalWeken,
+                        GROUP_CONCAT(DISTINCT CASE WHEN wk.commentaar IS NOT NULL AND wk.commentaar <> '' THEN CONCAT(wk.wk_type, ': ', wk.commentaar) END ORDER BY CAST(SUBSTRING(wk.wk_type, 5) AS UNSIGNED) SEPARATOR ' | ') AS docent_commentaar
                  FROM COMPETENTIE c
                  LEFT JOIN (
-                     SELECT ec.competentie_id, ec.score, e.type AS wk_type
+                     SELECT ec.competentie_id, ec.score, ec.commentaar, e.type AS wk_type
                      FROM EVALUATIE e
                      JOIN EVALUATIE_COMPETENTIE ec ON ec.evaluatie_id = e.evaluatie_id
                      WHERE e.stage_id = ? AND e.type LIKE 'week%'
@@ -246,13 +248,15 @@ class StudentModel {
             );
         } else {
             [competenties] = await db.query(
-                `SELECT c.naam AS competentie_naam,
+                `SELECT c.competentie_id AS competentie_id,
+                        c.naam AS competentie_naam,
                         c.omschrijving AS competentie_omschrijving,
                         ROUND(AVG(wk.score), 1) AS score,
-                        COUNT(DISTINCT wk.wk_type) AS aantalWeken
+                        COUNT(DISTINCT wk.wk_type) AS aantalWeken,
+                        GROUP_CONCAT(DISTINCT CASE WHEN wk.commentaar IS NOT NULL AND wk.commentaar <> '' THEN CONCAT(wk.wk_type, ': ', wk.commentaar) END ORDER BY CAST(SUBSTRING(wk.wk_type, 5) AS UNSIGNED) SEPARATOR ' | ') AS docent_commentaar
                  FROM COMPETENTIE c
                  LEFT JOIN (
-                     SELECT ec.competentie_id, ec.score, e.type AS wk_type
+                     SELECT ec.competentie_id, ec.score, ec.commentaar, e.type AS wk_type
                      FROM EVALUATIE e
                      JOIN EVALUATIE_COMPETENTIE ec ON ec.evaluatie_id = e.evaluatie_id
                      WHERE e.stage_id = ? AND e.type LIKE 'week%'
@@ -312,34 +316,46 @@ class StudentModel {
             [competenties] = await db.query(
                 `SELECT c.naam AS competentie_naam,
                         c.omschrijving AS competentie_omschrijving,
-                        ec.score,
-                        ec.commentaar
+                        d.score AS score, d.score AS docent_score, d.commentaar AS docent_commentaar,
+                        m.score AS mentor_score, m.commentaar AS mentor_commentaar
                  FROM COMPETENTIE c
                  LEFT JOIN (
-                     SELECT ev2.stage_id, ec2.competentie_id, ec2.score, ec2.commentaar
+                     SELECT ec2.competentie_id, ec2.score, ec2.commentaar
                      FROM EVALUATIE ev2
                      JOIN EVALUATIE_COMPETENTIE ec2 ON ec2.evaluatie_id = ev2.evaluatie_id
-                     WHERE ev2.stage_id = ? AND ev2.type = 'finaal'
-                 ) ec ON ec.competentie_id = c.competentie_id AND ec.stage_id = ${stage_id}
+                     WHERE ev2.stage_id = ? AND ev2.type = 'finaal' AND ev2.beoordelaar_rol = 'docent'
+                 ) d ON d.competentie_id = c.competentie_id
+                 LEFT JOIN (
+                     SELECT ec2.competentie_id, ec2.score, ec2.commentaar
+                     FROM EVALUATIE ev2
+                     JOIN EVALUATIE_COMPETENTIE ec2 ON ec2.evaluatie_id = ev2.evaluatie_id
+                     WHERE ev2.stage_id = ? AND ev2.type = 'finaal' AND ev2.beoordelaar_rol = 'mentor'
+                 ) m ON m.competentie_id = c.competentie_id
                  WHERE c.opleiding = ?
                  ORDER BY c.naam ASC`,
-                [stage_id, opleiding]
+                [stage_id, stage_id, opleiding]
             );
         } else {
             [competenties] = await db.query(
                 `SELECT c.naam AS competentie_naam,
                         c.omschrijving AS competentie_omschrijving,
-                        ec.score,
-                        ec.commentaar
+                        d.score AS score, d.score AS docent_score, d.commentaar AS docent_commentaar,
+                        m.score AS mentor_score, m.commentaar AS mentor_commentaar
                  FROM COMPETENTIE c
                  LEFT JOIN (
-                     SELECT ev2.stage_id, ec2.competentie_id, ec2.score, ec2.commentaar
+                     SELECT ec2.competentie_id, ec2.score, ec2.commentaar
                      FROM EVALUATIE ev2
                      JOIN EVALUATIE_COMPETENTIE ec2 ON ec2.evaluatie_id = ev2.evaluatie_id
-                     WHERE ev2.stage_id = ? AND ev2.type = 'finaal'
-                 ) ec ON ec.competentie_id = c.competentie_id AND ec.stage_id = ${stage_id}
+                     WHERE ev2.stage_id = ? AND ev2.type = 'finaal' AND ev2.beoordelaar_rol = 'docent'
+                 ) d ON d.competentie_id = c.competentie_id
+                 LEFT JOIN (
+                     SELECT ec2.competentie_id, ec2.score, ec2.commentaar
+                     FROM EVALUATIE ev2
+                     JOIN EVALUATIE_COMPETENTIE ec2 ON ec2.evaluatie_id = ev2.evaluatie_id
+                     WHERE ev2.stage_id = ? AND ev2.type = 'finaal' AND ev2.beoordelaar_rol = 'mentor'
+                 ) m ON m.competentie_id = c.competentie_id
                  ORDER BY c.naam ASC`,
-                [stage_id]
+                [stage_id, stage_id]
             );
         }
 

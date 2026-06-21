@@ -78,7 +78,7 @@ const getDossiers = async (docentId) => {
             CONCAT(g.voornaam, ' ', g.achternaam) AS student_naam, s.opleiding, b.naam AS bedrijf_naam,
             st.status,
             st.startdatum, st.einddatum, CONCAT(st.startdatum, ' - ', st.einddatum) AS periode,
-            m_g.email AS mentor_email,
+            mg.email AS mentor_email,
             b.adres AS stageplaats_adres, g.email AS email, s.telefoonnummer, CONCAT(mg.voornaam, ' ', mg.achternaam) AS mentor_naam
         FROM STAGE st
         JOIN STUDENT s ON s.student_id = st.student_id

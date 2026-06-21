@@ -35,30 +35,19 @@
 <body>
   <div class="app-container">
 
-    <aside class="sidebar">
-      <div class="sidebar__header">
-        <span class="sidebar__title">EhB StageTool</span>
-        <span class="sidebar__subtitle">Stagecommissie</span>
+    <nav class="sidebar">
+      <div class="sb-logo">
+        <div class="sb-logo-title">EhB StageTool</div>
+        <div class="sb-logo-sub">Stagecommissie</div>
       </div>
-      <nav class="sidebar__menu">
-
-        <a href="commissie_dashboard.html" class="sidebar__item sidebar__item--active">
-          <span class="sidebar__label">Dashboard</span>
-        </a>
-
-        <a href="commissie_aanvraag.html" class="sidebar__item sidebar__item--badge">
-          <span class="sidebar__label">Aanvragen (Voorstellen)</span>
-          <div class="sidebar__badge">
-            <span id="badge-pending">0</span>
-          </div>
-        </a>
-
-        <a href="commissie_dossiers.html" class="sidebar__item">
-          <span class="sidebar__label">Alle dossiers</span>
-        </a>
-
-      </nav>
-    </aside>
+      <div class="sb-nav">
+        <a class="sb-item active" href="commissie_dashboard.html">Dashboard</a>
+        <a class="sb-item" href="commissie_aanvraag.html">Aanvragen (Voorstellen) <span class="sb-badge" id="badge-pending">0</span></a>
+        <a class="sb-item" href="commissie_dossiers.html">Alle dossiers</a>
+        <a class="sb-item" href="commissie_overeenkomst.html">Overeenkomsten</a>
+      </div>
+      <div class="sb-footer">Ingelogd als Stagecommissie</div>
+    </nav>
 
     <main class="main-content">
       <header class="content-header">

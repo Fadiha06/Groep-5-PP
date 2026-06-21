@@ -3,7 +3,7 @@ let openenIndex = null;
 
 async function laadLogboeken() {
   try {
-    logboekenData = await apiFetch('/docenten/logboeken');
+    logboekenData = await apiFetch('/docent/logboeken');
     renderTable(logboekenData);
   } catch (err) {
     console.error('Kon logboeken niet laden:', err);
@@ -75,7 +75,7 @@ async function laadExpandContent(index) {
   // Laad evaluaties
   let evals = [];
   try {
-    evals = await apiFetch(`/docenten/logboek/evaluatie?stage_id=${l.stage_id}&week=${l.week}`);
+    evals = await apiFetch(`/docent/logboek/evaluatie?stage_id=${l.stage_id}&week=${l.week}`);
     evals = Array.isArray(evals) ? evals : [];
   } catch (err) { evals = []; }
   l._evaluaties = evals;
@@ -207,7 +207,7 @@ async function verstuurFeedback(index) {
     return;
   }
   try {
-    await apiFetch('/docenten/logboek/feedback', {
+    await apiFetch('/docent/logboek/feedback', {
       method: 'POST',
       body: JSON.stringify({ stage_id: l.stage_id, week: l.week, feedback: tekst })
     });
@@ -220,7 +220,7 @@ async function verstuurFeedback(index) {
 async function goedkeuren(index) {
   const l = logboekenData[index];
   try {
-    await apiFetch('/docenten/logboek/goedkeuren', {
+    await apiFetch('/docent/logboek/goedkeuren', {
       method: 'POST',
       body: JSON.stringify({ stage_id: l.stage_id, week: l.week })
     });

@@ -144,6 +144,7 @@ function renderSamenvatting(data, typeLabel) {
   const uniqueNames = [...new Set(alleComps.map(c => c.competentie_naam))];
   const rubrieken = data.rubrieken || [];
 
+  const docentEval = (data.evaluaties || []).find(e => e.beoordelaar_rol === 'docent');
   const mentorEvals = (data.evaluaties || []).find(e => e.beoordelaar_rol === 'mentor' || e.beoordelaar_rol === 'stagementor');
 
   let totaalScore = 0;
@@ -151,7 +152,8 @@ function renderSamenvatting(data, typeLabel) {
   const rijen = uniqueNames.map(naam => {
     const comp = alleComps.find(c => c.competentie_naam === naam);
     const score = comp ? parseFloat(comp.score) : null;
-    const commentaar = comp ? comp.commentaar : null;
+    const docentCommentaar = comp ? comp.docent_commentaar : null;
+    const mentorCommentaar = comp ? comp.mentor_commentaar : null;
     if (score !== null && !isNaN(score)) totaalScore += score;
     const pct = score !== null ? (score / 5) * 100 : 0;
     const kleur = score >= 4 ? '#27AE60' : score >= 2 ? '#3B82F6' : '#EF4444';
@@ -169,11 +171,13 @@ function renderSamenvatting(data, typeLabel) {
           <div class="comp-eval-score" style="color:${kleur}">${score !== null ? score : '—'}<span class="comp-eval-max"> / 5</span></div>
         </div>
         ${niveauLabel ? `<div class="comp-eval-niveau" style="color:${kleur}">${niveauLabel}</div>` : ''}
-        ${commentaar ? `<div class="comp-eval-comment">${commentaar}</div>` : ''}
+        ${docentCommentaar ? `<div class="comp-eval-comment"><strong>Docent:</strong> ${docentCommentaar}</div>` : ''}
+        ${mentorCommentaar ? `<div class="comp-eval-comment"><strong>Stagementor:</strong> ${mentorCommentaar}</div>` : ''}
       </div>`;
   }).join('');
 
-  const feedbackTekst = mentorEvals && mentorEvals.feedback ? mentorEvals.feedback : null;
+  const docentFeedbackTekst = docentEval && docentEval.feedback ? docentEval.feedback : null;
+  const mentorFeedbackTekst = mentorEvals && mentorEvals.feedback ? mentorEvals.feedback : null;
   const weken = data.aantalWeken || 0;
   const subTekst = weken > 0
     ? `Gemiddelde over ${weken} week${weken !== 1 ? 'en' : ''}`
@@ -194,10 +198,15 @@ function renderSamenvatting(data, typeLabel) {
           <span>Totaal</span>
           <span class="comp-eval-totaal-score">${Math.round(totaalScore * 10) / 10} <span class="comp-eval-max">/ 20</span></span>
         </div>
-        ${feedbackTekst ? `
+        ${docentFeedbackTekst ? `
         <div class="feedback-sectie">
-          <div class="feedback-sectie-titel">Algemene feedback</div>
-          <div class="feedback-sectie-tekst">${feedbackTekst}</div>
+          <div class="feedback-sectie-titel">Algemene feedback — Docent</div>
+          <div class="feedback-sectie-tekst">${docentFeedbackTekst}</div>
+        </div>` : ''}
+        ${mentorFeedbackTekst ? `
+        <div class="feedback-sectie">
+          <div class="feedback-sectie-titel">Algemene feedback — Stagementor</div>
+          <div class="feedback-sectie-tekst">${mentorFeedbackTekst}</div>
         </div>` : ''}
       </div>
     </div>`;
@@ -243,7 +252,7 @@ async function laadEvaluaties() {
   if (!token) { window.location.href = 'index.html'; return; }
 
   try {
-    const res = await fetch(`/api/studenten/evaluaties`, {
+    const res = await fetch(`/api/student/evaluaties`, {
       headers: { 'Authorization': `Bearer ${token}` }
     });
     if (res.status === 401 || res.status === 403) { uitloggen(); return; }

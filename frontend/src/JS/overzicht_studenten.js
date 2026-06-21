@@ -9,7 +9,7 @@ async function laadStudenten() {
     // Response: [{ stage_id, naam, opleiding, bedrijf, email, telefoon,
     //              bedrijf_adres, mentor_naam, mentor_email,
     //              startdatum, einddatum, huidige_fase, meldingen: [...] }]
-    const resp = await apiFetch('/docenten/dossiers');
+    const resp = await apiFetch('/docent/dossiers');
     studentenData = Array.isArray(resp) ? resp : (resp.studenten || []);
 
     renderStudentList();
@@ -18,6 +18,8 @@ async function laadStudenten() {
     }
   } catch (err) {
     console.error('Kon studenten niet laden:', err);
+    document.getElementById('student-items').innerHTML =
+      `<div style="padding:20px;font-size:13px;color:#EF4444">Kon studenten niet laden: ${err.message}</div>`;
   }
 }
 
@@ -34,12 +36,34 @@ function renderStudentList() {
   `).join('');
 }
 
-function selectStudent(stageId) {
+async function selectStudent(stageId) {
   actieveStudentId = stageId;
   renderStudentList();
   const s = studentenData.find(x => x.stage_id === stageId);
   if (!s) return;
   renderDetail(s);
+  await laadMeldingen(s);
+}
+
+async function laadMeldingen(s) {
+  if (!s.gebruiker_id) return;
+  try {
+    const resp = await apiFetch(`/docent/student/${s.gebruiker_id}/meldingen`);
+    huidigeMeldingen = (resp.meldingen || []).map(m => ({
+      type: m.type,
+      titel: m.titel,
+      tekst: m.bericht,
+      bron: 'Systeem',
+      tijd: ''
+    }));
+  } catch (err) {
+    console.error('Kon meldingen niet laden:', err);
+    huidigeMeldingen = [];
+  }
+  actieveMeldingFilter = 'alles';
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('filter-alles-count')?.classList.add('active');
+  renderMeldingen(huidigeMeldingen);
 }
 
 function renderDetail(s) {
@@ -47,9 +71,9 @@ function renderDetail(s) {
 
   // Info
   document.getElementById('info-naam').textContent = `${(s.student_naam || s.naam || 'Onbekend')} (${(s.opleiding || 'Geen opleiding')})`;
-  document.getElementById('info-contact').innerHTML = `${s.email}<br>${s.telefoon || '—'}`;
+  document.getElementById('info-contact').innerHTML = `${s.email}<br>${s.telefoonnummer || '—'}`;
   document.getElementById('info-bedrijf').textContent = (s.bedrijf_naam || s.bedrijf || 'Onbekend');
-  document.getElementById('info-adres').textContent = s.bedrijf_adres || '—';
+  document.getElementById('info-adres').textContent = s.stageplaats_adres || '—';
   document.getElementById('info-mentor').textContent = s.mentor_naam || '—';
   document.getElementById('info-mentor-email').textContent = s.mentor_email || '—';
   document.getElementById('info-periode').textContent = `${s.startdatum} – ${s.einddatum}`;
@@ -59,11 +83,6 @@ function renderDetail(s) {
 
   // Meldingen
   document.getElementById('meldingen-titel').textContent = `Actuele Meldingen & Rapporten (${(s.student_naam || s.naam || 'Onbekend').split(' ')[0]})`;
-  huidigeMeldingen = s.meldingen || [];
-  actieveMeldingFilter = 'alles';
-  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-  document.getElementById('filter-alles-count').classList.add('active');
-  renderMeldingen(huidigeMeldingen);
 }
 
 function renderTimeline(s) {
@@ -141,6 +160,7 @@ function filterStudents() {
   });
 }
 
+if (typeof requireAuth === 'function' && !requireAuth('docent')) throw new Error();
 laadStudenten();
 
 

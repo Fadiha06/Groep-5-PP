@@ -16,6 +16,8 @@ const TYPES = [{id: 'tussentijds', label: 'Tussentijdse Evaluatie'}, {id: 'finaa
 let lokaleWijzigingen = {};
 let lokaleCommentaren = {};
 let laatsteEvaluatieData = [];
+let huidigeAlgemeneFeedback = '';
+let lokaleAlgemeneFeedback = null;
 
 function updateSaveButton() {
   const s = studentenData.find(x => x.stage_id === actieveStageId);
@@ -64,6 +66,7 @@ function selectStudent(stageId) {
   actieveType = 'tussentijds';
   lokaleWijzigingen = {};
   lokaleCommentaren = {};
+  lokaleAlgemeneFeedback = null;
   beschikbareWeken = [];
   actieveWeek = null;
   renderStudentList();
@@ -103,6 +106,7 @@ function selectType(type) {
   actieveType = type;
   lokaleWijzigingen = {};
   lokaleCommentaren = {};
+  lokaleAlgemeneFeedback = null;
   renderTypeTabs();
   if (type === 'tussentijds') {
     document.getElementById('week-selector').style.display = '';
@@ -180,6 +184,7 @@ function selecteerWeek(week) {
   actieveWeek = week;
   lokaleWijzigingen = {};
   lokaleCommentaren = {};
+  lokaleAlgemeneFeedback = null;
   renderWeekTabs();
   laadEvaluatiePerWeek();
 }
@@ -242,8 +247,10 @@ async function laadEvaluatie() {
 
   try {
     const data = await apiFetch(`/docent/evaluatie?stage_id=${actieveStageId}&type=${actieveType}`);
-    laatsteEvaluatieData = data;
-    renderCompetenties(data);
+    laatsteEvaluatieData = data.competenties || [];
+    huidigeAlgemeneFeedback = data.feedback || '';
+    renderCompetenties(laatsteEvaluatieData);
+    renderAlgemeneFeedback();
   } catch (err) {
     console.error('Kon evaluatie niet laden:', err);
     container.innerHTML = `<div style="padding:30px;text-align:center;color:#9CA3AF;font-size:13px">Kon evaluatie niet laden.</div>`;
@@ -258,12 +265,24 @@ async function laadEvaluatiePerWeek() {
   try {
     const weekType = `week${actieveWeek}`;
     const data = await apiFetch(`/docent/evaluatie?stage_id=${actieveStageId}&type=${weekType}`);
-    laatsteEvaluatieData = data;
-    renderCompetenties(data);
+    laatsteEvaluatieData = data.competenties || [];
+    huidigeAlgemeneFeedback = data.feedback || '';
+    renderCompetenties(laatsteEvaluatieData);
+    renderAlgemeneFeedback();
   } catch (err) {
     console.error('Kon week-evaluatie niet laden:', err);
     container.innerHTML = `<div style="padding:30px;text-align:center;color:#9CA3AF;font-size:13px">Kon evaluatie niet laden.</div>`;
   }
+}
+
+function renderAlgemeneFeedback() {
+  const input = document.getElementById('algemene-feedback-input');
+  if (!input) return;
+  input.value = lokaleAlgemeneFeedback !== null ? lokaleAlgemeneFeedback : huidigeAlgemeneFeedback;
+}
+
+function updateAlgemeneFeedback(tekst) {
+  lokaleAlgemeneFeedback = tekst;
 }
 
 function renderCompetenties(data) {
@@ -382,13 +401,16 @@ async function opslaanScore() {
       return { competentie_id: c.competentie_id, score, commentaar };
     });
 
+    const feedback = lokaleAlgemeneFeedback !== null ? lokaleAlgemeneFeedback : huidigeAlgemeneFeedback;
+
     await apiFetch('/docent/evaluatie/opslaan', {
       method: 'POST',
-      body: JSON.stringify({ stage_id: actieveStageId, type: saveType, scores })
+      body: JSON.stringify({ stage_id: actieveStageId, type: saveType, scores, feedback })
     });
 
     lokaleWijzigingen = {};
     lokaleCommentaren = {};
+    lokaleAlgemeneFeedback = null;
     btn.textContent = 'Opgeslagen ✓';
     setTimeout(() => { btn.textContent = 'Opslaan score'; btn.disabled = false; }, 1500);
 

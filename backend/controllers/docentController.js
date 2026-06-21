@@ -284,11 +284,18 @@ const getEvaluatie = async (req, res) => {
                 score_student: s_score,
                 score_mentor: m_score,
                 score_docent: docentEval.score || null,
+                commentaar_docent: docentEval.commentaar || '',
                 feedback_student: studentEval ? (studentEval.commentaar || '') : '',
                 feedback_mentor: mentorEval ? (mentorEval.commentaar || '') : ''
             };
         });
-        res.json(result);
+
+        const [docentFeedbackRow] = await db.query(
+            `SELECT feedback FROM EVALUATIE WHERE stage_id = ? AND type = ? AND beoordelaar_rol = 'docent' LIMIT 1`,
+            [stage_id, type]
+        );
+
+        res.json({ competenties: result, feedback: docentFeedbackRow[0]?.feedback || '' });
     } catch (err) {
         console.error(err);
         res.status(500).json({ error: 'Serverfout bij ophalen evaluatie' });
@@ -297,7 +304,7 @@ const getEvaluatie = async (req, res) => {
 
 // POST /api/docenten/evaluatie/opslaan
 const slaEvaluatieOp = async (req, res) => {
-    const { stage_id, type, scores } = req.body;
+    const { stage_id, type, scores, feedback } = req.body;
     if (!stage_id || !type || !scores) return res.status(400).json({ error: 'stage_id, type en scores zijn verplicht' });
     try {
         const db = require('../config/db');
@@ -306,8 +313,11 @@ const slaEvaluatieOp = async (req, res) => {
         if (existing.length > 0) {
             evaluatieId = existing[0].evaluatie_id;
             await db.query('DELETE FROM EVALUATIE_COMPETENTIE WHERE evaluatie_id = ?', [evaluatieId]);
+            if (feedback !== undefined) {
+                await db.query('UPDATE EVALUATIE SET feedback = ? WHERE evaluatie_id = ?', [feedback || null, evaluatieId]);
+            }
         } else {
-            const [result] = await db.query('INSERT INTO EVALUATIE (stage_id, beoordelaar_id, type, beoordelaar_rol, datum) VALUES (?, ?, ?, ?, CURDATE())', [stage_id, req.user.id, type, 'docent']);
+            const [result] = await db.query('INSERT INTO EVALUATIE (stage_id, beoordelaar_id, type, beoordelaar_rol, datum, feedback) VALUES (?, ?, ?, ?, CURDATE(), ?)', [stage_id, req.user.id, type, 'docent', feedback || null]);
             evaluatieId = result.insertId;
         }
         if (scores && scores.length > 0) {

@@ -69,6 +69,14 @@
           <div style="padding:30px;text-align:center;color:#9CA3AF;font-size:13px">Laden...</div>
         </div>
 
+        <div>
+          <div style="font-size:12px;font-weight:600;color:#6B7280;text-transform:uppercase;letter-spacing:0.3px;margin-bottom:4px">Algemene feedback</div>
+          <textarea id="algemene-feedback-input" placeholder="Algemene feedback voor de student..."
+                    oninput="updateAlgemeneFeedback(this.value)"
+                    style="width:100%;border:1px solid #D0D8E8;border-radius:6px;padding:8px 10px;font-size:12px;font-family:inherit;resize:vertical;min-height:60px;background:#F8FAFC"
+          ></textarea>
+        </div>
+
         <div class="save-row">
           <button class="btn-opslaan" id="btn-opslaan" onclick="opslaanScore()">Opslaan score</button>
           <button class="btn-toon" id="btn-toon-student" onclick="toggleToonStudent()" style="display:none"></button>
