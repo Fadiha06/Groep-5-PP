@@ -182,13 +182,16 @@ exports.keurLogboekGoed = async (req, res) => {
         }
 
         const [check] = await db.query(`
-            SELECT lw.week_id FROM LOGBOEK_WEEK lw
+            SELECT lw.week_id, lw.status FROM LOGBOEK_WEEK lw
             JOIN STAGE s ON lw.stage_id = s.stage_id
             LEFT JOIN STAGEMENTOR sm ON s.mentor_id = sm.mentor_id
             LEFT JOIN DOCENT d ON s.leerkracht_id = d.docent_id
             WHERE lw.stage_id = ? AND lw.weeknummer = ? AND (sm.gebruiker_id = ? OR d.gebruiker_id = ?)
         `, [stage_id, weeknummer, gebruikerId, gebruikerId]);
         if (check.length === 0) return res.status(404).json({ error: 'Logboek niet gevonden of geen toegang' });
+        if (check[0].status === 'goedgekeurd') {
+            return res.status(409).json({ error: 'Dit logboek is al goedgekeurd en kan niet opnieuw goedgekeurd worden.' });
+        }
 
         await db.query(
             'UPDATE LOGBOEK_WEEK SET status = \'goedgekeurd\' WHERE stage_id = ? AND weeknummer = ?',

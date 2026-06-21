@@ -6,25 +6,14 @@
 let alleLogboeken     = [];
 let huidigLogboekIdx  = null;
 let huidigWeekIndex   = 0;
-let competentiesLijst = [];
 let huidigeTab = 'dagen';
 
 document.addEventListener('DOMContentLoaded', () => {
   if (typeof requireAuth === 'function') {
     if (!requireAuth(['mentor', 'stagementor', 'docent', 'administrator'])) return;
   }
-  laadCompetenties().then(() => laadLogboeken());
+  laadLogboeken();
 });
-
-// ── Laad competenties ──
-async function laadCompetenties() {
-  try {
-    const data = await apiFetch('/competenties');
-    competentiesLijst = Array.isArray(data?.competenties) ? data.competenties : (Array.isArray(data) ? data : []);
-  } catch (err) {
-    competentiesLijst = [];
-  }
-}
 
 // ── 1. Logboeken ophalen ────────────────────────────────────
 async function laadLogboeken() {
@@ -239,22 +228,6 @@ function toonWeek(weekIdx) {
 
   // Docent scores tonen
   toonDocentScores(week);
-
-  // Feedback inladen
-  const feedbackEl = document.getElementById('logboek-feedback');
-  if (feedbackEl) {
-    feedbackEl.value = week.mentor_feedback || '';
-    feedbackEl.disabled = week.status === 'goedgekeurd';
-  }
-
-  // Knop status
-  const approveBtn = document.querySelector('.btn--approve');
-  if (approveBtn) {
-    approveBtn.disabled = week.status === 'goedgekeurd';
-  }
-
-  // Laad competenties voor scoring
-  laadCompetentiesVoorScoring();
 }
 
 // ── Zelfbeoordeling tonen ──
@@ -318,59 +291,6 @@ function toonTab(tab) {
 
   document.getElementById('tab-dagen').style.display = tab === 'dagen' ? '' : 'none';
   document.getElementById('tab-zelfbeoordeling').style.display = tab === 'zelfbeoordeling' ? '' : 'none';
-  document.getElementById('tab-scoring').style.display = tab === 'scoring' ? '' : 'none';
-}
-
-// ── Laad competenties voor scoring ──
-async function laadCompetentiesVoorScoring() {
-  try {
-    // Haal competenties op via het stage-info van de student
-    const log = alleLogboeken[huidigLogboekIdx];
-    if (!log) return;
-
-    // Gebruik het logboeken endpoint om weken te krijgen met scores
-    const weken = log.weken || [];
-    const week = weken[huidigWeekIndex];
-    if (!week) return;
-
-    // Bestaande mentor scores
-    const mentorScores = {};
-    (week.mentor_scores || []).forEach(e => { mentorScores[e.competentie_id] = e.score; });
-
-    // Haal competenties op, gefilterd op opleiding van de student
-    const opleiding = log.opleiding || '';
-    const endpoint = opleiding ? `/competenties?opleiding=${encodeURIComponent(opleiding)}` : '/competenties';
-    const comps = await apiFetch(endpoint);
-    competentiesLijst = Array.isArray(comps?.competenties) ? comps.competenties : (Array.isArray(comps) ? comps : []);
-
-    const lijst = document.getElementById('scoring-lijst');
-    if (!lijst) return;
-
-    lijst.innerHTML = competentiesLijst.map(c => {
-      const huidig = mentorScores[c.competentie_id] || '';
-      return `
-        <div class="scoring-rij">
-          <span class="scoring-naam">${c.naam}</span>
-          <div class="scoring-knoppen">
-            ${[1,2,3,4,5].map(n => `
-              <button class="score-btn ${huidig === n ? 'score-btn--active' : ''}"
-                data-comp="${c.competentie_id}" data-score="${n}"
-                onclick="selecteerScore(this, ${c.competentie_id}, ${n})"
-              >${n}</button>
-            `).join('')}
-          </div>
-        </div>`;
-    }).join('');
-  } catch (err) {
-    console.error('Competenties laden mislukt:', err);
-  }
-}
-
-function selecteerScore(btn, compId, score) {
-  document.querySelectorAll(`.score-btn[data-comp="${compId}"]`).forEach(b => {
-    b.classList.remove('score-btn--active');
-  });
-  btn.classList.add('score-btn--active');
 }
 
 // ── 6. Week navigatie ──────────────────────────────────────
@@ -382,129 +302,6 @@ function volgendeWeek() {
   const log = alleLogboeken[huidigLogboekIdx];
   const weken = log?.weken || [];
   if (huidigWeekIndex < weken.length - 1) toonWeek(huidigWeekIndex + 1);
-}
-
-// ── 7. Scores opslaan ──────────────────────────────────────
-async function slaScoresOp() {
-  const log = alleLogboeken[huidigLogboekIdx];
-  if (!log || !log.weken) return;
-
-  const week = log.weken[huidigWeekIndex];
-  const scores = {};
-
-  document.querySelectorAll('.score-btn--active').forEach(btn => {
-    scores[btn.dataset.comp] = Number(btn.dataset.score);
-  });
-
-  if (Object.keys(scores).length === 0) {
-    alert('Selecteer eerst scores voor ten minste één competentie.');
-    return;
-  }
-
-  try {
-    await apiFetch('/mentor/logboek/evaluatie', {
-      method: 'POST',
-      body: JSON.stringify({
-        stage_id: log.logboek_id || log.id,
-        weeknummer: week.weeknummer || huidigWeekIndex + 1,
-        scores
-      })
-    });
-
-    // Update lokale data
-    week.mentor_scores = Object.entries(scores).map(([compId, score]) => ({
-      competentie_id: Number(compId),
-      score,
-      competentie_naam: competentiesLijst.find(c => c.competentie_id == compId)?.naam || ''
-    }));
-
-    toonWeek(huidigWeekIndex);
-    toonSucces('Scores opgeslagen.');
-  } catch (err) {
-    console.error('Scores opslaan mislukt:', err);
-    alert(`Fout: ${err.message}`);
-  }
-}
-
-// ── 8. Concept opslaan ─────────────────────────────────────
-async function slaConceptOp() {
-  const log = alleLogboeken[huidigLogboekIdx];
-  if (!log || !log.weken) return;
-
-  const week = log.weken[huidigWeekIndex];
-  const feedback = document.getElementById('logboek-feedback').value.trim();
-
-  try {
-    await apiFetch('/mentor/logboek/feedback', {
-      method: 'POST',
-      body: JSON.stringify({
-        stage_id: log.logboek_id || log.id,
-        weeknummer: week.weeknummer || huidigWeekIndex + 1,
-        feedback
-      })
-    });
-
-    week.mentor_feedback = feedback;
-    toonSucces('Feedback concept opgeslagen.');
-  } catch (err) {
-    console.error('Opslaan mislukt:', err);
-    alert(`Fout: ${err.message}`);
-  }
-}
-
-// ── 9. Goedkeuren ─────────────────────────────────────────
-async function keurGoed() {
-  const log = alleLogboeken[huidigLogboekIdx];
-  if (!log || !log.weken) return;
-
-  const week = log.weken[huidigWeekIndex];
-  const feedback = document.getElementById('logboek-feedback').value.trim();
-
-  try {
-    // Sla eerst feedback op
-    if (feedback) {
-      await apiFetch('/mentor/logboek/feedback', {
-        method: 'POST',
-        body: JSON.stringify({
-          stage_id: log.logboek_id || log.id,
-          weeknummer: week.weeknummer || huidigWeekIndex + 1,
-          feedback
-        })
-      });
-    }
-
-    // Keur dan goed
-    await apiFetch('/mentor/logboek/goedkeuren', {
-      method: 'POST',
-      body: JSON.stringify({
-        stage_id: log.logboek_id || log.id,
-        weeknummer: week.weeknummer || huidigWeekIndex + 1
-      })
-    });
-
-    // Status lokaal updaten
-    week.status = 'goedgekeurd';
-    week.mentor_feedback = feedback;
-
-    toonWeek(huidigWeekIndex);
-    toonSucces('Logboek goedgekeurd en feedback opgeslagen.');
-
-  } catch (err) {
-    console.error('Goedkeuren mislukt:', err);
-    alert(`Fout: ${err.message}`);
-  }
-}
-
-// ── Modal ──────────────────────────────────────────────────
-function toonSucces(bericht) {
-  stel('modal-msg', bericht);
-  const modal = document.getElementById('success-modal');
-  if (modal) modal.classList.remove('hidden');
-}
-
-function sluitModal() {
-  const modal = document.getElementById('success-modal');
-  if (modal) modal.classList.add('hidden');
 }
 
 // ── Hulpfuncties ──────────────────────────────────────────

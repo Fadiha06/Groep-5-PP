@@ -9,24 +9,6 @@
   <link href="src/CSS/shared.css" rel="stylesheet">
   <link href="src/CSS/mentor_logboeken.css" rel="stylesheet">
   <style>
-    .scoring-sectie{padding:20px 24px;border-top:1px solid #E2E8F0}
-    .scoring-titel{font-size:14px;font-weight:700;color:#1E293B;margin-bottom:12px}
-    .scoring-rij{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid #F1F5F9}
-    .scoring-rij:last-child{border-bottom:none}
-    .scoring-naam{font-size:13px;font-weight:500;color:#334155;flex:1}
-    .scoring-knoppen{display:flex;gap:4px}
-    .score-btn{width:34px;height:34px;border-radius:6px;border:1px solid #E2E8F0;background:white;color:#374151;font-size:13px;font-weight:600;cursor:pointer;transition:all 0.15s}
-    .score-btn:hover{background:#EFF6FF;border-color:#2563EB}
-    .score-btn--active{background:#2563EB;color:white;border-color:#2563EB}
-    .feedback-sectie{padding:20px 24px;border-top:1px solid #E2E8F0}
-    .feedback-label{font-size:14px;font-weight:700;color:#1E293B;margin-bottom:8px}
-    .feedback-textarea{width:100%;min-height:80px;padding:12px;border-radius:8px;border:1px solid #E2E8F0;font-family:inherit;font-size:13px;resize:vertical;box-sizing:border-box}
-    .feedback-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:10px}
-    .btn--ghost{padding:9px 20px;border-radius:8px;border:1px solid #E5E7EB;background:white;color:#374151;font-size:13px;font-weight:500;cursor:pointer}
-    .btn--ghost:hover{background:#F9FAFB}
-    .btn--approve{padding:9px 20px;border-radius:8px;border:none;background:#10B981;color:white;font-size:13px;font-weight:600;cursor:pointer}
-    .btn--approve:hover{background:#059669}
-    .btn--approve:disabled{opacity:0.5;cursor:not-allowed}
     .docent-feedback-box{background:#EFF6FF;border:1px solid #BFDBFE;border-radius:8px;padding:12px;margin:12px 24px}
     .docent-feedback-box__label{font-size:12px;font-weight:600;color:#1D4ED8;margin-bottom:4px}
     .docent-feedback-box__tekst{font-size:13px;color:#1E40AF;white-space:pre-wrap}
@@ -60,8 +42,8 @@
     <main class="main-content">
       <div class="main-header">
         <div>
-          <h1 class="header-title">Logboeken Beoordelen</h1>
-          <p class="header-subtitle">Controleer en keur de logboeken van je stagiairs goed</p>
+          <h1 class="header-title">Logboeken</h1>
+          <p class="header-subtitle">Bekijk de dagelijkse logboeken en zelfbeoordeling van je stagiairs</p>
         </div>
         <button class="logout-btn" onclick="logout()">Uitloggen</button>
       </div>
@@ -101,16 +83,15 @@
 
         <!-- Week navigatie -->
         <div class="week-nav" style="display:flex;align-items:center;gap:12px;padding:12px 24px;border-top:1px solid #E2E8F0">
-          <button id="btn-vorige" class="btn--ghost" onclick="vorigeWeek()">← Vorige week</button>
+          <button id="btn-vorige" class="btn btn--ghost" onclick="vorigeWeek()">← Vorige week</button>
           <span id="week-label" style="font-weight:600;color:#1E293B;flex:1;text-align:center">Week ?</span>
-          <button id="btn-volgende" class="btn--ghost" onclick="volgendeWeek()">Volgende week →</button>
+          <button id="btn-volgende" class="btn btn--ghost" onclick="volgendeWeek()">Volgende week →</button>
         </div>
 
         <!-- Tab bar -->
         <div class="tab-bar">
           <button class="tab-btn active" onclick="toonTab('dagen')">Dagoverzicht</button>
           <button class="tab-btn" onclick="toonTab('zelfbeoordeling')">Zelfbeoordeling</button>
-          <button class="tab-btn" onclick="toonTab('scoring')">Beoordelen</button>
         </div>
 
         <!-- Tab: Dagen -->
@@ -138,30 +119,6 @@
           <div id="zelfbeoordeling-inhoud"></div>
         </div>
 
-        <!-- Tab: Beoordelen (scoring + feedback) -->
-        <div id="tab-scoring" style="display:none">
-          <div class="scoring-sectie">
-            <div class="scoring-titel">Jouw beoordeling per competentie</div>
-            <div id="scoring-lijst"></div>
-            <div class="feedback-actions" style="margin-top:12px">
-              <button class="btn--ghost" onclick="slaScoresOp()">Scores opslaan</button>
-            </div>
-          </div>
-
-          <div class="feedback-sectie">
-            <div class="feedback-label">Jouw Feedback</div>
-            <textarea
-              id="logboek-feedback"
-              class="feedback-textarea"
-              placeholder="Voer je feedback in voor deze week. Wat ging goed? Wat kan beter?"
-            ></textarea>
-            <div class="feedback-actions">
-              <button class="btn--ghost" onclick="slaConceptOp()">Concept opslaan</button>
-              <button class="btn--approve" onclick="keurGoed()">Goedkeuren & Feedback Opslaan</button>
-            </div>
-          </div>
-        </div>
-
         <!-- Docent feedback tonen -->
         <div id="docent-feedback-box" class="docent-feedback-box" style="display:none">
           <div class="docent-feedback-box__label">💬 Feedback van docent:</div>
@@ -170,16 +127,6 @@
 
       </div><!-- /logboek-detail -->
     </main>
-  </div>
-
-  <!-- Success Modal -->
-  <div class="modal-overlay hidden" id="success-modal">
-    <div class="modal">
-      <div class="modal-icon">✓</div>
-      <h3 class="modal-title">Opgeslagen</h3>
-      <p class="modal-message" id="modal-msg">Je feedback is succesvol opgeslagen.</p>
-      <button class="modal-btn" onclick="sluitModal()">OK</button>
-    </div>
   </div>
 
   <script src="src/JS/api.js"></script>

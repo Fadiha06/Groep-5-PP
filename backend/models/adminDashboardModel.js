@@ -1,4 +1,5 @@
 const db = require('../config/db');
+const ContractModel = require('./contractModel');
 
 class AdminDashboardModel {
     static async getStats() {
@@ -259,6 +260,7 @@ class AdminDashboardModel {
             'UPDATE CONTRACT SET docent_getekend = 1, docent_handtekening = ?, docent_datum = NOW() WHERE contract_id = ?',
             [signature, contractId]
         );
+        await ContractModel.checkAllSigned(contractId);
     }
 }
 

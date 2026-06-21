@@ -195,6 +195,13 @@ async function autoMigreer() {
             await conn.query(`ALTER TABLE STAGE ADD COLUMN eval_getoond_finaal BOOLEAN DEFAULT FALSE`);
             console.log('  STAGE: eval_getoond_tussentijds + eval_getoond_finaal kolommen toegevoegd');
         }
+        // ── Migratie: eval_vanaf-planningskolommen op STAGE ──
+        const [stageVanafCols] = await conn.query(`SHOW COLUMNS FROM STAGE LIKE 'eval_tussentijds_vanaf'`);
+        if (stageVanafCols.length === 0) {
+            await conn.query(`ALTER TABLE STAGE ADD COLUMN eval_tussentijds_vanaf DATE NULL`);
+            await conn.query(`ALTER TABLE STAGE ADD COLUMN eval_finaal_vanaf DATE NULL`);
+            console.log('  STAGE: eval_tussentijds_vanaf + eval_finaal_vanaf kolommen toegevoegd');
+        }
 
         console.log('[auto-migratie] Logboek tabellen OK');
     } catch (err) {

@@ -1,13 +1,14 @@
 // ============================================================
 //  mentor_evaluaties.js
-//  Laadt stagiairs, competenties en slaat evaluaties op
+//  Laadt stagiairs, weken en slaat per-week competentiescores op
 // ============================================================
 
 let huidigStudent   = null;
 let scores          = {};
 let competenties    = [];
 let alleStudenten   = [];
-let evaluatieType   = 'tussentijds';
+let alleWeken       = [];
+let huidigWeekIndex = 0;
 
 // ── Init ────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
@@ -44,17 +45,16 @@ function toonStudentSelectie(lijst) {
 
   container.innerHTML = `
     <div style="padding: 16px; display: flex; flex-wrap: wrap; gap: 10px;">
-      ${lijst.map(s => {
+      ${lijst.map((s, idx) => {
         const naam    = s.studentnaam  || s.naam    || '—';
         const bedrijf = s.bedrijfsnaam || s.bedrijf || '—';
         const id      = s.stage_id     || s.id      || '';
-        const initiaal = naam.charAt(0).toUpperCase();
 
         return `
           <button
             class="student-select-btn"
             id="student-btn-${id}"
-            onclick="selecteerStudent(${JSON.stringify(s).replace(/"/g, '"')})"
+            onclick="selecteerStudent(${idx})"
           >
             <span class="student-select-btn__name">${naam}</span>
             <span class="student-select-btn__bedrijf">${bedrijf}</span>
@@ -66,7 +66,9 @@ function toonStudentSelectie(lijst) {
 }
 
 // ── 3. Student selecteren ─────────────────────────────────────
-async function selecteerStudent(student) {
+async function selecteerStudent(idx) {
+  const student = alleStudenten[idx];
+  if (!student) return;
   huidigStudent = student;
   scores        = {};
 
@@ -91,11 +93,72 @@ async function selecteerStudent(student) {
   const detail = document.getElementById('evaluatie-detail');
   if (detail) detail.classList.remove('hidden');
 
-  // Competenties laden
+  // Weken laden
+  await laadWeken();
+}
+
+// ── 4. Weken ophalen ────────────────────────────────────────
+async function laadWeken() {
+  const stageId = huidigStudent.stage_id || huidigStudent.id;
+  try {
+    const data = await apiFetch(`/logboek/${stageId}/weken`);
+    alleWeken = Array.isArray(data) ? data : [];
+    huidigWeekIndex = Math.max(0, alleWeken.length - 1);
+    await toonWeek(huidigWeekIndex);
+  } catch (err) {
+    alleWeken = [];
+    document.getElementById('competenties-container').innerHTML =
+      '<p class="empty-state">Geen logboekweken gevonden voor deze stagiair.</p>';
+    stel('week-label', 'Geen weken');
+  }
+}
+
+// ── 5. Week tonen ───────────────────────────────────────────
+async function toonWeek(weekIdx) {
+  huidigWeekIndex = weekIdx;
+  const week = alleWeken[weekIdx];
+
+  const btnVorige = document.getElementById('btn-vorige');
+  const btnVolgende = document.getElementById('btn-volgende');
+  if (btnVorige) btnVorige.disabled = weekIdx <= 0;
+  if (btnVolgende) btnVolgende.disabled = weekIdx >= alleWeken.length - 1;
+
+  if (!week) {
+    stel('week-label', 'Geen weken beschikbaar');
+    document.getElementById('competenties-container').innerHTML =
+      '<p class="empty-state">Geen logboekweken gevonden voor deze stagiair.</p>';
+    return;
+  }
+
+  stel('week-label', `Week ${week.weeknummer || weekIdx + 1} / ${alleWeken.length}`);
+
+  // Status badge
+  const badge = document.getElementById('status-badge');
+  if (badge) {
+    let badgeClass = 'status-badge--gray', badgeText = 'Concept';
+    if (week.status === 'ingediend') { badgeClass = 'status-badge--blue'; badgeText = 'Ingediend'; }
+    if (week.status === 'goedgekeurd') { badgeClass = 'status-badge--green'; badgeText = 'Goedgekeurd'; }
+    badge.className = `status-badge ${badgeClass}`;
+    badge.textContent = badgeText;
+  }
+
+  // Bestaande mentor-scores van deze week inladen
+  scores = {};
+  (week.mentor_scores || []).forEach(s => {
+    scores[s.competentie_id] = { score: s.score, feedback: '' };
+  });
+
+  // Feedback-veld
+  const feedbackEl = document.getElementById('week-feedback-input');
+  if (feedbackEl) feedbackEl.value = week.mentor_feedback || '';
+
+  const goedkeurenBtn = document.getElementById('btn-goedkeuren');
+  if (goedkeurenBtn) goedkeurenBtn.disabled = week.status === 'goedgekeurd';
+
   await laadCompetenties();
 }
 
-// ── 4. Competenties ophalen ────────────────────────────────────
+// ── 6. Competenties ophalen ────────────────────────────────────
 async function laadCompetenties() {
   const container = document.getElementById('competenties-container');
   if (!container) return;
@@ -108,24 +171,10 @@ async function laadCompetenties() {
   `;
 
   try {
-    const stageId = huidigStudent.stage_id || huidigStudent.id;
-    const data    = await apiFetch(`/evaluatie/competenties?stage_id=${stageId}&type=${evaluatieType}`);
-    competenties  = Array.isArray(data) ? data : [];
-
-    // Probeer bestaand concept laden
-    try {
-      const concept = await apiFetch(`/evaluatie/concept?stage_id=${stageId}&type=${evaluatieType}`);
-      if (concept && concept.scores) {
-        concept.scores.forEach(s => {
-          scores[s.competentie_id] = {
-            score:    s.score,
-            feedback: s.feedback || ''
-          };
-        });
-      }
-    } catch (_) {
-      // Geen concept – geen probleem
-    }
+    const opleiding = huidigStudent.opleiding || '';
+    const endpoint = opleiding ? `/competenties?opleiding=${encodeURIComponent(opleiding)}` : '/competenties';
+    const data = await apiFetch(endpoint);
+    competenties = Array.isArray(data?.competenties) ? data.competenties : (Array.isArray(data) ? data : []);
 
     toonCompetenties(competenties);
     updateTotaalScore();
@@ -138,7 +187,7 @@ async function laadCompetenties() {
   }
 }
 
-// ── 5. Competenties filteren ───────────────────────────────────
+// ── 7. Competenties filteren ───────────────────────────────────
 function filterCompetenties() {
   const zoekterm = (document.getElementById('competentie-zoeken')?.value || '').toLowerCase();
   const gefilterd = competenties.filter(c =>
@@ -148,12 +197,11 @@ function filterCompetenties() {
   toonCompetenties(gefilterd);
 }
 
-// ── 6. Competenties renderen ───────────────────────────────────
+// ── 8. Competenties renderen ───────────────────────────────────
 function toonCompetenties(lijst) {
   const container = document.getElementById('competenties-container');
   if (!container) return;
 
-  // Teller bijwerken
   const teller = document.getElementById('eval-count');
   if (teller) teller.textContent = `${lijst.length} competentie${lijst.length !== 1 ? 's' : ''}`;
 
@@ -166,69 +214,49 @@ function toonCompetenties(lijst) {
     const id      = comp.competentie_id || comp.id;
     const huidige = scores[id] || {};
 
-    const niveaus = comp.niveaus || [
-      { code: 'O',  label: 'Onvoldoende', score: 1, omschrijving: 'Student haalt het verwachte niveau niet.' },
-      { code: 'V',  label: 'Voldoende',   score: 2, omschrijving: 'Student haalt het minimale niveau.' },
-      { code: 'G',  label: 'Goed',        score: 3, omschrijving: 'Student presteert boven het minimum.' },
-      { code: 'ZG', label: 'Zeer goed',   score: 4, omschrijving: 'Student presteert ruim boven het minimum.' },
-      { code: 'P',  label: 'Perfect',     score: 5, omschrijving: 'Student overtreft alle verwachtingen.' }
-    ];
+    const niveaus = (comp.rubrieken || comp.niveaus || []).map(n => ({
+      label:        labelVoorPunten(n.punten),
+      score:        n.punten,
+      omschrijving: n.omschrijving
+    }));
 
     const huidigeScore = huidige.score || null;
-    const feedbackWaarde = huidige.feedback || '';
 
     return `
-      <div class="rubric-card" id="rubric-${id}">
+      <div class="comp-kaart" id="rubric-${id}">
 
         <!-- Kaart header -->
-        <div class="rubric-card__header">
+        <div class="comp-kaart__head">
           <div>
-            <p class="rubric-card__title">${comp.naam || comp.name || 'Competentie'}</p>
+            <span class="comp-kaart__naam">${comp.naam || comp.name || 'Competentie'} <span class="comp-kaart__max">(Max 5 ptn)</span></span>
             ${comp.beschrijving
-              ? `<p class="rubric-card__desc">${comp.beschrijving}</p>`
+              ? `<div class="comp-kaart__desc">${comp.beschrijving}</div>`
               : ''
             }
           </div>
           <span
-            class="rubric-card__score ${huidigeScore ? '' : 'rubric-card__score--low'}"
+            class="comp-kaart__score ${huidigeScore ? '' : 'comp-kaart__score--low'}"
             id="score-label-${id}"
           >
-            ${huidigeScore ? `Score: ${huidigeScore}` : 'Nog niet beoordeeld'}
+            Score: ${huidigeScore || '–'}/5
           </span>
         </div>
 
-        <!-- Niveauknoppen -->
-        <div class="rubric-options">
-          ${niveaus.map((n, idx) => {
-            const optId    = `opt-${id}-${n.score}`;
+        <!-- Niveauvakken -->
+        <div class="comp-kaart__niveaus">
+          ${niveaus.map(n => {
             const isGekozen = huidigeScore === n.score;
-            const extraClass = isGekozen
-              ? (n.score <= 1 ? 'rubric-option--selected-bad' : 'rubric-option--selected')
-              : '';
-
             return `
-              <button
-                class="rubric-option ${extraClass}"
-                id="${optId}"
-                onclick="kiesScore(${id}, ${n.score}, ${niveaus.length})"
+              <div
+                class="niveau-vak ${isGekozen ? (n.score <= 1 ? 'geselecteerd geselecteerd--bad' : 'geselecteerd') : ''}"
+                data-punten="${n.score}"
+                onclick="kiesScore(${id}, ${n.score})"
               >
-                <span class="rubric-option__code">${n.code}</span>
-                <span class="rubric-option__label">${n.label}</span>
-                <span class="rubric-option__desc">${n.omschrijving}</span>
-              </button>
+                <div class="niveau-vak__titel">${n.score} ptn – ${n.label}</div>
+                <div class="niveau-vak__desc">${n.omschrijving}</div>
+              </div>
             `;
           }).join('')}
-        </div>
-
-        <!-- Feedback textarea -->
-        <div class="rubric-feedback">
-          <label for="feedback-${id}">Feedback voor deze competentie</label>
-          <textarea
-            id="feedback-${id}"
-            placeholder="Optioneel: geef toelichting bij je beoordeling..."
-            onchange="slaFeedbackOp(${id})"
-            oninput="slaFeedbackOp(${id})"
-          >${feedbackWaarde}</textarea>
         </div>
 
       </div>
@@ -236,60 +264,33 @@ function toonCompetenties(lijst) {
   }).join('');
 }
 
-// ── 7. Evaluatietype wisselen ─────────────────────────────────
-async function wisselType(type, tabEl) {
-  if (type === evaluatieType) return;
-  evaluatieType = type;
-
-  // Tabs visueel bijwerken
-  document.querySelectorAll('.eval-tab').forEach(t => t.classList.remove('active'));
-  if (tabEl) tabEl.classList.add('active');
-
-  // Scores resetten en heropladen
-  scores = {};
-  if (huidigStudent) await laadCompetenties();
+function labelVoorPunten(p) {
+  if (p <= 1) return 'Onvoldoende';
+  if (p === 2) return 'Voldoende';
+  if (p === 3) return 'Goed';
+  if (p === 4) return 'Zeer goed';
+  return 'Perfect';
 }
 
-// ── 8. Score kiezen ───────────────────────────────────────────
-function kiesScore(compId, score, aantalNiveaus) {
+// ── 9. Score kiezen ───────────────────────────────────────────
+function kiesScore(compId, score) {
   if (!scores[compId]) scores[compId] = { score: null, feedback: '' };
   scores[compId].score = score;
 
-  // Alle opties resetten
-  for (let i = 1; i <= aantalNiveaus; i++) {
-    const opt = document.getElementById(`opt-${compId}-${i}`);
-    if (opt) {
-      opt.classList.remove('rubric-option--selected', 'rubric-option--selected-bad');
-    }
+  const kaart = document.getElementById(`rubric-${compId}`);
+  if (kaart) {
+    kaart.querySelectorAll('.niveau-vak').forEach(v => v.classList.remove('geselecteerd', 'geselecteerd--bad'));
+    const gekozen = kaart.querySelector(`.niveau-vak[data-punten="${score}"]`);
+    if (gekozen) gekozen.classList.add('geselecteerd', ...(score <= 1 ? ['geselecteerd--bad'] : []));
   }
 
-  // Gekozen optie markeren
-  const gekozen = document.getElementById(`opt-${compId}-${score}`);
-  if (gekozen) {
-    gekozen.classList.add(score <= 1
-      ? 'rubric-option--selected-bad'
-      : 'rubric-option--selected'
-    );
-  }
-
-  // Score label bijwerken
   const label = document.getElementById(`score-label-${compId}`);
   if (label) {
-    label.textContent = `Score: ${score}`;
-    label.className   = score <= 1
-      ? 'rubric-card__score rubric-card__score--low'
-      : 'rubric-card__score';
+    label.textContent = `Score: ${score}/5`;
+    label.className   = 'comp-kaart__score';
   }
 
   updateTotaalScore();
-}
-
-// ── 9. Feedback opslaan ───────────────────────────────────────
-function slaFeedbackOp(compId) {
-  const input = document.getElementById(`feedback-${compId}`);
-  if (!input) return;
-  if (!scores[compId]) scores[compId] = { score: null, feedback: '' };
-  scores[compId].feedback = input.value;
 }
 
 // ── 10. Totaalscore berekenen ─────────────────────────────────
@@ -302,56 +303,70 @@ function updateTotaalScore() {
   if (el) el.textContent = `Totaal: ${totaal} / ${max} ptn`;
 }
 
-// ── 11. Concept opslaan ───────────────────────────────────────
+// ── 11. Week navigatie ────────────────────────────────────────
+function vorigeWeek() {
+  if (huidigWeekIndex > 0) toonWeek(huidigWeekIndex - 1);
+}
+
+function volgendeWeek() {
+  if (huidigWeekIndex < alleWeken.length - 1) toonWeek(huidigWeekIndex + 1);
+}
+
+// ── 12. Scores + feedback opslaan (concept) ───────────────────
 async function slaConceptOp() {
   await verstuurEvaluatie(false);
 }
 
-// ── 12. Definitief indienen ────────────────────────────────────
-async function slaEvaluatieOp() {
-  const onbeoordeeld = competenties.filter(c => {
-    const id = c.competentie_id || c.id;
-    return !scores[id] || scores[id].score === null;
-  });
-
-  if (onbeoordeeld.length > 0) {
-    const namen = onbeoordeeld.map(c => c.naam || 'onbekend').join(', ');
-    alert(`Beoordeel eerst alle competenties:\n${namen}`);
-    return;
-  }
-
+// ── 13. Goedkeuren ─────────────────────────────────────────────
+async function keurGoed() {
   await verstuurEvaluatie(true);
 }
 
-// ── 13. API-call ──────────────────────────────────────────────
-async function verstuurEvaluatie(definitief) {
+// ── 14. API-calls ──────────────────────────────────────────────
+async function verstuurEvaluatie(goedkeuren) {
   if (!huidigStudent) return;
+  const week = alleWeken[huidigWeekIndex];
+  if (!week) return;
 
   const stageId = huidigStudent.stage_id || huidigStudent.id;
+  const weeknummer = week.weeknummer || huidigWeekIndex + 1;
+  const feedback = (document.getElementById('week-feedback-input')?.value || '').trim();
 
-  const payload = {
-    stage_id:   stageId,
-    type:       evaluatieType,
-    definitief: definitief,
-    scores:     Object.entries(scores).map(([compId, data]) => ({
-      competentie_id: Number(compId),
-      score:          data.score,
-      feedback:       data.feedback || ''
-    }))
-  };
+  const scoreMap = {};
+  Object.entries(scores).forEach(([compId, data]) => {
+    if (data.score != null) scoreMap[compId] = data.score;
+  });
 
   try {
-    await apiFetch('/evaluatie/opslaan', {
+    if (Object.keys(scoreMap).length > 0) {
+      await apiFetch('/mentor/logboek/evaluatie', {
+        method: 'POST',
+        body: JSON.stringify({ stage_id: stageId, weeknummer, scores: scoreMap })
+      });
+    }
+
+    await apiFetch('/mentor/logboek/feedback', {
       method: 'POST',
-      body:   JSON.stringify(payload)
+      body: JSON.stringify({ stage_id: stageId, weeknummer, feedback })
     });
 
-    toonSucces(
-      definitief
-        ? 'Evaluatie definitief opgeslagen en verzonden naar de docent.'
-        : 'Concept opgeslagen. Je kan verder aanvullen.'
-    );
+    if (goedkeuren) {
+      await apiFetch('/mentor/logboek/goedkeuren', {
+        method: 'POST',
+        body: JSON.stringify({ stage_id: stageId, weeknummer })
+      });
+      week.status = 'goedgekeurd';
+    }
 
+    week.mentor_feedback = feedback;
+    week.mentor_scores = Object.entries(scoreMap).map(([compId, score]) => ({
+      competentie_id: Number(compId),
+      score,
+      competentie_naam: competenties.find(c => c.competentie_id == compId)?.naam || ''
+    }));
+
+    toonWeek(huidigWeekIndex);
+    toonSucces(goedkeuren ? 'Logboek goedgekeurd en feedback opgeslagen.' : 'Concept opgeslagen.');
   } catch (err) {
     console.error('Opslaan mislukt:', err);
     alert(`Fout bij opslaan: ${err.message}`);

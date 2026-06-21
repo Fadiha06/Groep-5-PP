@@ -30,8 +30,8 @@
     <main class="main-content">
       <div class="main-header">
         <div>
-          <h1 class="header-title">Tussentijdse Evaluatie</h1>
-          <p class="header-subtitle">Beoordeel de competenties van je stagiairs</p>
+          <h1 class="header-title">Evaluatie per week</h1>
+          <p class="header-subtitle">Beoordeel de competenties van je stagiairs per logboekweek</p>
         </div>
         <button class="logout-btn" onclick="logout()">Uitloggen</button>
       </div>
@@ -64,19 +64,17 @@
             <h2 id="student-naam">Student Naam</h2>
             <p id="student-meta">Opleiding · Bedrijf</p>
           </div>
+          <div id="status-badge" class="status-badge status-badge--gray">Status onbekend</div>
           <div id="totaal-score" class="eval-totaal-score">
             Totaal: 0 / 0 ptn
           </div>
         </div>
 
-        <!-- Evaluatie type tabs -->
-        <div class="eval-tabs" id="eval-tabs">
-          <button class="eval-tab active" onclick="wisselType('tussentijds', this)">
-            📊 Tussentijds
-          </button>
-          <button class="eval-tab" onclick="wisselType('finaal', this)">
-            🎯 Eindevaluatie
-          </button>
+        <!-- Week navigatie -->
+        <div style="display:flex;align-items:center;gap:12px;padding:12px 0;border-top:1px solid var(--color-border);border-bottom:1px solid var(--color-border);margin-bottom:20px">
+          <button id="btn-vorige" class="btn btn--ghost" onclick="vorigeWeek()">← Vorige week</button>
+          <span id="week-label" style="font-weight:600;color:var(--color-text);flex:1;text-align:center">Week ?</span>
+          <button id="btn-volgende" class="btn btn--ghost" onclick="volgendeWeek()">Volgende week →</button>
         </div>
 
         <!-- Filter bar -->
@@ -99,13 +97,23 @@
           </div>
         </div>
 
+        <!-- Feedback voor deze week -->
+        <div style="margin-top:16px">
+          <label for="week-feedback-input" style="display:block;font-size:13px;font-weight:700;color:var(--color-text);margin-bottom:8px">Jouw feedback voor deze week</label>
+          <textarea
+            id="week-feedback-input"
+            placeholder="Wat ging goed? Wat kan beter?"
+            style="width:100%;min-height:80px;padding:12px;border:1px solid var(--color-border);border-radius:8px;font-family:inherit;font-size:13px;resize:vertical;box-sizing:border-box"
+          ></textarea>
+        </div>
+
         <!-- Actiebalk -->
         <div class="eval-actions">
           <button class="btn btn--ghost" onclick="slaConceptOp()">
             💾 Concept opslaan
           </button>
-          <button class="btn btn--submit" onclick="slaEvaluatieOp()">
-            ✅ Definitief indienen
+          <button class="btn btn--submit" id="btn-goedkeuren" onclick="keurGoed()">
+            ✅ Goedkeuren & feedback opslaan
           </button>
         </div>
 
