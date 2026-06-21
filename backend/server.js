@@ -94,6 +94,19 @@ async function autoMigreer() {
             await conn.query(`ALTER TABLE LOGBOEK_WEEK ADD COLUMN docent_goedgekeurd BOOLEAN DEFAULT FALSE AFTER docent_feedback`);
             console.log('  LOGBOEK_WEEK: docent_feedback + docent_goedgekeurd kolommen toegevoegd');
         }
+        // ── Migratie: verzonden_op kolom op CONTRACT ──
+        const [coCols] = await conn.query(`SHOW COLUMNS FROM CONTRACT LIKE 'verzonden_op'`);
+        if (coCols.length === 0) {
+            await conn.query(`ALTER TABLE CONTRACT ADD COLUMN verzonden_op DATETIME AFTER getekend_op`);
+            console.log('  CONTRACT: verzonden_op kolom toegevoegd');
+        }
+        // ── Migratie: controle_checklist + controle_opmerking op CONTRACT ──
+        const [ccCols] = await conn.query(`SHOW COLUMNS FROM CONTRACT LIKE 'controle_checklist'`);
+        if (ccCols.length === 0) {
+            await conn.query(`ALTER TABLE CONTRACT ADD COLUMN controle_checklist JSON AFTER verzonden_op`);
+            await conn.query(`ALTER TABLE CONTRACT ADD COLUMN controle_opmerking TEXT AFTER controle_checklist`);
+            console.log('  CONTRACT: controle_checklist + controle_opmerking kolommen toegevoegd');
+        }
         // ── Migratie: EVALUATIE.type van ENUM naar VARCHAR(50) ──
         const [evType] = await conn.query(`SHOW COLUMNS FROM EVALUATIE LIKE 'type'`);
         if (evType.length > 0 && evType[0].Type && evType[0].Type.includes('enum')) {
@@ -200,8 +213,13 @@ app.use('/api/mentors',      mentorRoutes);
 app.use('/api/studenten',    studentRoutes);
 
 // Start Server
-autoMigreer();
-
-app.listen(port, () => {
-    console.log(`Server running on http://localhost:${port}`);
+autoMigreer().then(() => {
+    app.listen(port, () => {
+        console.log(`Server running on http://localhost:${port}`);
+    });
+}).catch(err => {
+    console.error('[server] Fout bij auto-migratie, server start toch:', err.message);
+    app.listen(port, () => {
+        console.log(`Server running on http://localhost:${port} (zonder migraties)`);
+    });
 });

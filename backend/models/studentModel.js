@@ -43,32 +43,39 @@ class StudentModel {
         return rows[0];
     }
 
-    static async createDag(weekId, stageId, datum, uren, taken, reflectie, leerpunten) {
+    static async createDag(weekId, stageId, datum, uren, taken, leerpunten) {
         const [result] = await db.query(
             `INSERT INTO LOGBOEK_DAG
-            (week_id, stage_id, datum, uren, taken_beschrijving, reflectie, leerpunten)
-            VALUES (?, ?, ?, ?, ?, ?, ?)`,
-            [weekId, stageId, datum, uren, taken, reflectie, leerpunten]
+            (week_id, stage_id, datum, uren, taken_beschrijving, leerpunten)
+            VALUES (?, ?, ?, ?, ?, ?)`,
+            [weekId, stageId, datum, uren, taken, leerpunten]
         );
         return result.insertId;
     }
 
-    static async updateDag(dagId, uren, taken, reflectie, leerpunten) {
+    static async updateDag(dagId, uren, taken, leerpunten) {
         await db.query(
             `UPDATE LOGBOEK_DAG
-            SET uren = ?, taken_beschrijving = ?, reflectie = ?, leerpunten = ?
+            SET uren = ?, taken_beschrijving = ?, leerpunten = ?
             WHERE dag_id = ?`,
-            [uren, taken, reflectie, leerpunten, dagId]
+            [uren, taken, leerpunten, dagId]
         );
     }
 
     static async getDagenVanWeek(weekId) {
         const [rows] = await db.query(
-            `SELECT dag_id, datum, uren, taken_beschrijving, reflectie, leerpunten
+            `SELECT dag_id, datum, uren, taken_beschrijving, leerpunten, status
             FROM LOGBOEK_DAG WHERE week_id = ? ORDER BY datum ASC`,
             [weekId]
         );
         return rows;
+    }
+
+    static async dienDagIn(dagId) {
+        await db.query(
+            `UPDATE LOGBOEK_DAG SET status = 'ingediend' WHERE dag_id = ?`,
+            [dagId]
+        );
     }
 
     static async dienWeekIn(weekId) {
@@ -104,9 +111,21 @@ class StudentModel {
         return rows[0];
     }
 
-    static async getAlleCompetenties() {
-        const [comps] = await db.query(`SELECT competentie_id, naam FROM COMPETENTIE ORDER BY naam ASC`);
-        const [niveaus] = await db.query(`SELECT rubriek_id, competentie_id, punten, omschrijving FROM RUBRIEK ORDER BY punten ASC`);
+    static async getAlleCompetenties(opleiding) {
+        let comps;
+        if (opleiding) {
+            [comps] = await db.query(`SELECT competentie_id, naam FROM COMPETENTIE WHERE opleiding = ? ORDER BY naam ASC`, [opleiding]);
+        } else {
+            [comps] = await db.query(`SELECT competentie_id, naam FROM COMPETENTIE ORDER BY naam ASC`);
+        }
+        if (comps.length === 0) {
+            [comps] = await db.query(`SELECT competentie_id, naam FROM COMPETENTIE ORDER BY naam ASC`);
+        }
+        const compIds = comps.map(c => c.competentie_id);
+        let niveaus = [];
+        if (compIds.length > 0) {
+            [niveaus] = await db.query(`SELECT rubriek_id, competentie_id, punten, omschrijving FROM RUBRIEK WHERE competentie_id IN (?) ORDER BY punten ASC`, [compIds]);
+        }
         return comps.map(c => ({
             competentie_id: c.competentie_id,
             naam: c.naam,
@@ -136,7 +155,7 @@ class StudentModel {
     }
 
     // Compatibiliteitslaag voor oude POST /logboek/dag route
-    static async saveLogboekDag(gebruikerId, datum, taken_beschrijving, reflectie, leerpunten, uren) {
+    static async saveLogboekDag(gebruikerId, datum, taken_beschrijving, leerpunten, uren) {
         const info = await StudentModel.getStudentMetStage(gebruikerId);
         if (!info) return null;
 
@@ -153,10 +172,10 @@ class StudentModel {
         const bestaand = await StudentModel.findDag(info.stage_id, datum);
         let dagId, actie;
         if (bestaand) {
-            await StudentModel.updateDag(bestaand.dag_id, uren, taken_beschrijving, reflectie, leerpunten);
+            await StudentModel.updateDag(bestaand.dag_id, uren, taken_beschrijving, leerpunten);
             dagId = bestaand.dag_id; actie = 'bijgewerkt';
         } else {
-            dagId = await StudentModel.createDag(weekId, info.stage_id, datum, uren, taken_beschrijving, reflectie, leerpunten);
+            dagId = await StudentModel.createDag(weekId, info.stage_id, datum, uren, taken_beschrijving, leerpunten);
             actie = 'aangemaakt';
         }
         return { dag_id: dagId, weeknummer, actie };
@@ -315,7 +334,7 @@ class StudentModel {
         if (!weken.length) return null;
         const week = weken[0];
         const [dagen] = await db.query(
-            `SELECT dag_id, datum, uren, taken_beschrijving, reflectie FROM LOGBOEK_DAG WHERE week_id = ? ORDER BY datum ASC`,
+            `SELECT dag_id, datum, uren, taken_beschrijving FROM LOGBOEK_DAG WHERE week_id = ? ORDER BY datum ASC`,
             [week.week_id]
         );
         return { ...week, dagen };

@@ -52,7 +52,7 @@ class StudentController {
     }
 
     static async saveLogboekDag(req, res) {
-        const { datum, taken_beschrijving, reflectie, leerpunten, uren } = req.body;
+        const { datum, taken_beschrijving, leerpunten, uren } = req.body;
 
         if (!datum || !taken_beschrijving) {
             return res.status(400).json({ error: 'Datum en taken zijn verplicht' });
@@ -60,7 +60,7 @@ class StudentController {
 
         try {
             const result = await StudentModel.saveLogboekDag(
-                req.user.id, datum, taken_beschrijving, reflectie, leerpunten, uren
+                req.user.id, datum, taken_beschrijving, leerpunten, uren
             );
 
             if (!result) {
@@ -106,7 +106,6 @@ class StudentController {
     static async vulDagIn(req, res) {
         const { datum, taken_beschrijving, competenties } = req.body;
         const uren = req.body.uren ?? null;
-        const reflectie = req.body.reflectie ?? null;
         const leerpunten = req.body.leerpunten ?? null;
         if (!datum || !taken_beschrijving) return res.status(400).json({ error: 'Datum en taken zijn verplicht' });
         try {
@@ -120,19 +119,20 @@ class StudentController {
                 return res.status(400).json({ error: 'Datum valt ná het einde van de stage' });
             }
 
-            let week = await StudentModel.findWeek(info.stage_id, weeknummer);
-            if (week && week.status === 'ingediend') {
-                return res.status(403).json({ error: 'Deze week is al ingediend en kan niet meer bewerkt worden' });
+            const bestaandeDag = await StudentModel.findDag(info.stage_id, datum);
+            if (bestaandeDag && bestaandeDag.status === 'ingediend') {
+                return res.status(403).json({ error: 'Deze dag is al ingediend en kan niet meer bewerkt worden' });
             }
+
+            let week = await StudentModel.findWeek(info.stage_id, weeknummer);
             const weekId = week ? week.week_id : await StudentModel.createWeek(info.stage_id, weeknummer);
 
-            const bestaandeDag = await StudentModel.findDag(info.stage_id, datum);
             let dagId, nieuw;
             if (bestaandeDag) {
-                await StudentModel.updateDag(bestaandeDag.dag_id, uren, taken_beschrijving, reflectie, leerpunten);
+                await StudentModel.updateDag(bestaandeDag.dag_id, uren, taken_beschrijving, leerpunten);
                 dagId = bestaandeDag.dag_id; nieuw = false;
             } else {
-                dagId = await StudentModel.createDag(weekId, info.stage_id, datum, uren, taken_beschrijving, reflectie, leerpunten);
+                dagId = await StudentModel.createDag(weekId, info.stage_id, datum, uren, taken_beschrijving, leerpunten);
                 nieuw = true;
             }
 
@@ -144,6 +144,28 @@ class StudentController {
         } catch (err) {
             console.error('[vulDagIn]', err.message, err.code);
             res.status(500).json({ error: 'Serverfout bij invullen logboek', detail: err.message });
+        }
+    }
+
+    static async dienDagIn(req, res) {
+        const dagId = Number(req.params.dagId);
+        try {
+            const info = await StudentModel.getStudentMetStage(req.user.id);
+            if (!info) return res.status(404).json({ error: 'Geen student of stage gevonden' });
+
+            const db = require('../config/db');
+            const [rows] = await db.query(
+                `SELECT * FROM LOGBOEK_DAG WHERE dag_id = ? AND stage_id = ?`,
+                [dagId, info.stage_id]
+            );
+            if (!rows.length) return res.status(404).json({ error: 'Dag niet gevonden' });
+            if (rows[0].status === 'ingediend') return res.status(409).json({ error: 'Deze dag is al ingediend' });
+
+            await StudentModel.dienDagIn(dagId);
+            res.json({ message: 'Dag ingediend' });
+        } catch (err) {
+            console.error(err);
+            res.status(500).json({ error: 'Serverfout bij indienen dag' });
         }
     }
 
@@ -211,7 +233,12 @@ class StudentController {
 
     static async getCompetenties(req, res) {
         try {
-            const lijst = await StudentModel.getAlleCompetenties();
+            const db = require('../config/db');
+            const [studentRows] = await db.query(
+                'SELECT opleiding FROM STUDENT WHERE gebruiker_id = ?', [req.user.id]
+            );
+            const opleiding = studentRows.length > 0 ? studentRows[0].opleiding : null;
+            const lijst = await StudentModel.getAlleCompetenties(opleiding);
             res.json(lijst);
         } catch (err) {
             console.error(err);

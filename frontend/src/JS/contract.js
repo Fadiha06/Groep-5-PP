@@ -16,7 +16,7 @@ async function laadContract() {
     document.getElementById('sign-student-naam').textContent = stage.student_naam;
     document.getElementById('sign-mentor-naam').textContent = stage.mentor_naam || '—';
     // De derde handtekening is die van de stagecommissie als instelling (niet van één specifieke docent).
-    document.getElementById('sign-docent-naam').textContent = 'Stagecommissie';
+    document.getElementById('sign-docent-naam').textContent = 'Administrator';
 
     if (foutEl) foutEl.style.display = 'none';
 
@@ -62,7 +62,7 @@ function updateSignGrid(stage) {
       statusEls[0].textContent = 'Getekend';
       statusEls[0].style.color = '#15803D';
     } else if (stage.student_getekend) {
-      statusEls[0].textContent = 'Wacht op handtekening mentor';
+      statusEls[0].textContent = 'Wacht op handtekening mentor bedrijf';
       statusEls[0].style.color = '#92400E';
     } else {
       statusEls[0].textContent = 'Wacht op handtekening student';
@@ -73,10 +73,10 @@ function updateSignGrid(stage) {
       statusEls[1].textContent = 'Getekend';
       statusEls[1].style.color = '#15803D';
     } else if (stage.mentor_getekend) {
-      statusEls[1].textContent = 'Wacht op handtekening stagecommissie';
+      statusEls[1].textContent = 'Wacht op handtekening admin';
       statusEls[1].style.color = '#92400E';
     } else {
-      statusEls[1].textContent = 'Wacht op handtekening mentor';
+      statusEls[1].textContent = 'Wacht op handtekening mentor bedrijf';
     }
   }
 }
@@ -129,8 +129,8 @@ async function toonStatusPanel(stage) {
       '<div style="font-size:12px;font-weight:700;color:#6B7280;text-transform:uppercase;letter-spacing:.05em;margin-bottom:12px;">Status handtekeningen</div>' +
       '<div style="display:flex;gap:28px;font-size:14px;">' +
         '<div><span style="color:#64748B;font-size:12px;">Student</span><br>' + stStud + '</div>' +
-        '<div><span style="color:#64748B;font-size:12px;">Mentor</span><br>' + stMent + '</div>' +
-        '<div><span style="color:#64748B;font-size:12px;">Stagecommissie</span><br>' + stAdm + '</div>' +
+        '<div><span style="color:#64748B;font-size:12px;">Mentor bedrijf</span><br>' + stMent + '</div>' +
+        '<div><span style="color:#64748B;font-size:12px;">Admin</span><br>' + stAdm + '</div>' +
       '</div>' +
       mentorLinkHtml +
     '</div>';

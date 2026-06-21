@@ -51,6 +51,15 @@
 
         <div class="student-getekend" id="c-student-status"></div>
 
+        <div class="sectie">
+            <div class="sectie-titel">Contactgegevens stagebegeleider</div>
+            <p class="verplichting">Vul hier het emailadres in van de persoon die als stagebegeleider optreedt op dit bedrijf. Er wordt automatisch een e-mail gestuurd naar dit adres met een link om een wachtwoord in te stellen.</p>
+            <div style="margin-top:10px">
+                <label for="mentor-email" style="font-size:14px;font-weight:600;display:block;margin-bottom:6px">Emailadres mentor *</label>
+                <input type="email" id="mentor-email" required placeholder="mentor@bedrijf.be" style="width:100%;padding:10px 12px;border:1.5px solid #CBD5E1;border-radius:6px;font-size:14px;font-family:inherit;box-sizing:border-box">
+            </div>
+        </div>
+
         <div class="label">✎ Teken hieronder</div>
         <div class="canvas-wrap"><canvas id="sig-canvas"></canvas></div>
         <div class="actions">
@@ -58,7 +67,7 @@
             <button class="btn-primary" id="btn-teken">Ondertekenen</button>
         </div>
 
-        <div class="melding ok" id="melding-ok">✓ Bedankt! Het contract is door jou ondertekend.</div>
+        <div class="melding ok" id="melding-ok">✓ Bedankt! Het contract is door jou ondertekend. Er wordt automatisch een e-mail gestuurd naar de mentor met een link om een wachtwoord in te stellen.</div>
         <div class="melding fout" id="melding-fout"></div>
     </div>
 
@@ -133,12 +142,14 @@
             document.getElementById('melding-fout').style.display = 'none';
             if (!mentorToken) { toonFout('Ongeldige link (geen token).'); return; }
             if (!hasSig) { toonFout('Teken eerst je handtekening.'); return; }
+            const mentorEmail = document.getElementById('mentor-email').value.trim();
+            if (!mentorEmail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(mentorEmail)) { toonFout('Vul een geldig emailadres in voor de mentor.'); return; }
             const signatureBase64 = canvas.toDataURL('image/png');
             try {
                 const res = await fetch(`${API}/contracten/mentor-tekenen`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ token: mentorToken, signature: signatureBase64 })
+                    body: JSON.stringify({ token: mentorToken, signature: signatureBase64, mentorEmail })
                 });
                 const data = await res.json();
                 if (res.ok) {

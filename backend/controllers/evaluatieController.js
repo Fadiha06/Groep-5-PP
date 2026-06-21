@@ -3,8 +3,31 @@ const db = require('../config/db');
 // Get all competenties met rubrieken/niveaus
 exports.getCompetenties = async (req, res) => {
     try {
-        const [competenties] = await db.query('SELECT * FROM COMPETENTIE ORDER BY competentie_id ASC');
-        const [rubrieken] = await db.query('SELECT * FROM RUBRIEK ORDER BY competentie_id, punten ASC');
+        const { stage_id } = req.query;
+        let competenties;
+
+        if (stage_id) {
+            const [stageRows] = await db.query(
+                `SELECT st.opleiding FROM STUDENT st
+                 JOIN STAGE s ON s.student_id = st.student_id
+                 WHERE s.stage_id = ?`, [stage_id]
+            );
+            const opleiding = stageRows.length > 0 ? stageRows[0].opleiding : null;
+            if (opleiding) {
+                [competenties] = await db.query('SELECT * FROM COMPETENTIE WHERE opleiding = ? ORDER BY competentie_id ASC', [opleiding]);
+            } else {
+                [competenties] = await db.query('SELECT * FROM COMPETENTIE ORDER BY competentie_id ASC');
+            }
+        } else {
+            [competenties] = await db.query('SELECT * FROM COMPETENTIE ORDER BY competentie_id ASC');
+        }
+
+        const compIds = competenties.map(c => c.competentie_id);
+        let rubrieken = [];
+        if (compIds.length > 0) {
+            [rubrieken] = await db.query('SELECT * FROM RUBRIEK WHERE competentie_id IN (?) ORDER BY competentie_id, punten ASC', [compIds]);
+        }
+
         const result = competenties.map(comp => ({
             ...comp,
             niveaus: rubrieken

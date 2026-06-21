@@ -30,7 +30,7 @@ class UserModel {
         }));
     }
 
-    static async updateUser(id, rol, status) {
+    static async updateUser(id, rol) {
         const [result] = await db.query(
             'UPDATE GEBRUIKER SET rol = ? WHERE id = ?',
             [rol, id]
