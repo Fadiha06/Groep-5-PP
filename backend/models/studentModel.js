@@ -128,9 +128,6 @@ class StudentModel {
         } else {
             [comps] = await db.query(`SELECT competentie_id, naam FROM COMPETENTIE ORDER BY naam ASC`);
         }
-        if (comps.length === 0) {
-            [comps] = await db.query(`SELECT competentie_id, naam FROM COMPETENTIE ORDER BY naam ASC`);
-        }
         const compIds = comps.map(c => c.competentie_id);
         let niveaus = [];
         if (compIds.length > 0) {

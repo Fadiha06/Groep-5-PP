@@ -84,9 +84,8 @@ const getDossiers = async (docentId) => {
         JOIN STUDENT s ON s.student_id = st.student_id
         JOIN GEBRUIKER g ON g.id = s.gebruiker_id
         LEFT JOIN BEDRIJF b ON b.bedrijf_id = st.bedrijf_id
-           LEFT JOIN GEBRUIKER mg ON mg.id = st.mentor_id
         LEFT JOIN STAGEMENTOR m ON m.mentor_id = st.mentor_id
-        LEFT JOIN GEBRUIKER m_g ON m_g.id = m.gebruiker_id
+        LEFT JOIN GEBRUIKER mg ON mg.id = m.gebruiker_id
         WHERE st.leerkracht_id = ?`,
         [docentId]
     );
@@ -125,7 +124,8 @@ const getLogboeken = async (docentId) => {
         JOIN STUDENT s ON s.student_id = st.student_id
         JOIN GEBRUIKER g ON g.id = s.gebruiker_id
         LEFT JOIN BEDRIJF b ON b.bedrijf_id = st.bedrijf_id
-        LEFT JOIN GEBRUIKER mg ON mg.id = st.mentor_id
+        LEFT JOIN STAGEMENTOR m ON m.mentor_id = st.mentor_id
+        LEFT JOIN GEBRUIKER mg ON mg.id = m.gebruiker_id
         WHERE st.leerkracht_id = ?
         ORDER BY lw.ingediend_op DESC`,
         [docentId]
@@ -156,7 +156,7 @@ const goedkeurLogboek = async (weekId) => {
 // Sla feedback op voor logboek week
 const slaFeedbackOp = async (weekId, feedback) => {
     await pool.query(
-        `UPDATE LOGBOEK_WEEK SET mentor_feedback = ?, status = 'feedback' WHERE week_id = ?`,
+        `UPDATE LOGBOEK_WEEK SET docent_feedback = ? WHERE week_id = ?`,
         [feedback, weekId]
     );
 };
@@ -317,6 +317,14 @@ const setEvaluatiePlanning = async (stageId, tussentijds, finaal) => {
         [tussentijds || null, finaal || null, stageId]
     );
 };
+
+const isEigenStage = async (stageId, gebruikerId) => {
+    const [docent] = await pool.query('SELECT docent_id FROM DOCENT WHERE gebruiker_id = ?', [gebruikerId]);
+    if (docent.length === 0) return false;
+    const [stage] = await pool.query('SELECT stage_id FROM STAGE WHERE stage_id = ? AND leerkracht_id = ?', [stageId, docent[0].docent_id]);
+    return stage.length > 0;
+};
+
 module.exports = { getEvaluatieVergelijking, getEvaluatiePlanning, setEvaluatiePlanning,
     createProfile,
     getDocent,
@@ -334,7 +342,8 @@ module.exports = { getEvaluatieVergelijking, getEvaluatiePlanning, setEvaluatieP
     getEvaluaties,
     slaEvaluatieOp,
     getCompetentiesVoorDag,
-    getAggregatie
+    getAggregatie,
+    isEigenStage
 };
 
 

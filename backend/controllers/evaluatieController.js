@@ -1,11 +1,28 @@
 const db = require('../config/db');
 
-// Get all competenties (met rubriek-niveaus)
+// Get all competenties (met rubriek-niveaus), gefilterd op opleiding van de stage
 exports.getCompetenties = async (req, res) => {
     try {
-        const [comps] = await db.query(
-            'SELECT competentie_id, naam, omschrijving FROM COMPETENTIE ORDER BY naam ASC'
-        );
+        const { stage_id } = req.query;
+        let opleiding = null;
+        if (stage_id) {
+            const [stageRows] = await db.query(
+                `SELECT s.opleiding FROM STUDENT s JOIN STAGE st ON st.student_id = s.student_id WHERE st.stage_id = ?`, [stage_id]
+            );
+            if (stageRows.length > 0 && stageRows[0].opleiding) {
+                opleiding = stageRows[0].opleiding;
+            }
+        }
+
+        let query = 'SELECT competentie_id, naam, omschrijving FROM COMPETENTIE';
+        let params = [];
+        if (opleiding) {
+            query += ' WHERE opleiding = ?';
+            params.push(opleiding);
+        }
+        query += ' ORDER BY naam ASC';
+
+        const [comps] = await db.query(query, params);
         const [niveaus] = await db.query(
             'SELECT competentie_id, punten, omschrijving FROM RUBRIEK ORDER BY punten ASC'
         );
@@ -77,17 +94,25 @@ exports.saveEvaluatie = async (req, res) => {
         let beoordelaar_rol = req.user.rol;
         if (beoordelaar_rol === 'stagementor') beoordelaar_rol = 'mentor';
 
+        // Zelfevaluatie is niet meer beschikbaar
+        if (beoordelaar_rol === 'student') {
+            return res.status(403).json({ error: 'Zelfevaluatie is niet meer beschikbaar.' });
+        }
+
         const datum = new Date();
         const isDefinitief = definitief ? 1 : 0;
 
-        // Alleen open vanaf de door de docent ingestelde datum. Geen datum = dicht.
+        // Planning gate: als datum niet ingesteld, direct open
         const [stRows] = await db.query(
             'SELECT eval_tussentijds_vanaf, eval_finaal_vanaf FROM STAGE WHERE stage_id = ?',
             [stage_id]
         );
         const planning = stRows[0] || {};
-        const vanaf = type === 'finaal' ? planning.eval_finaal_vanaf : planning.eval_tussentijds_vanaf;
-        if (!vanaf || new Date(vanaf) > new Date()) {
+        let vanaf = type === 'finaal' ? planning.eval_finaal_vanaf : planning.eval_tussentijds_vanaf;
+        if (!vanaf) {
+            vanaf = new Date();
+        }
+        if (new Date(vanaf) > new Date()) {
             return res.status(403).json({
                 error: `De ${type === 'finaal' ? 'finale' : 'tussentijdse'} evaluatie is nog niet opengesteld door de docent.`
             });

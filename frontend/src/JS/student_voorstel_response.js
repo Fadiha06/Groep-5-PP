@@ -208,9 +208,15 @@ async function init() {
         } else {
           STEPPER_STEP = 4;
           try {
-            var evalData = await apiFetch("/evaluatie/concept?stage_id=" + s.stage_id + "&type=tussentijds");
-            if (evalData && evalData.evaluatie && evalData.evaluatie.definitief) {
+            var evalTussentijds = await apiFetch("/evaluatie/concept?stage_id=" + s.stage_id + "&type=tussentijds");
+            if (evalTussentijds && evalTussentijds.evaluatie && evalTussentijds.evaluatie.definitief) {
               STEPPER_STEP = 5;
+              try {
+                var evalFinaal = await apiFetch("/evaluatie/concept?stage_id=" + s.stage_id + "&type=finaal");
+                if (evalFinaal && evalFinaal.evaluatie && evalFinaal.evaluatie.definitief) {
+                  STEPPER_STEP = 5;
+                }
+              } catch (e2) {}
             }
           } catch (e) {}
         }

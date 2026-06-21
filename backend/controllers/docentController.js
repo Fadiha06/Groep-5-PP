@@ -217,7 +217,21 @@ const getEvaluatie = async (req, res) => {
     if (!stage_id || !type) return res.status(400).json({ error: 'stage_id en type zijn verplicht' });
     try {
         const db = require('../config/db');
-        const [competenties] = await db.query('SELECT * FROM COMPETENTIE ORDER BY competentie_id ASC');
+
+        const [stageOpleiding] = await db.query(
+            `SELECT s.opleiding FROM STUDENT s JOIN STAGE st ON st.student_id = s.student_id WHERE st.stage_id = ?`, [stage_id]
+        );
+        const opleiding = stageOpleiding.length > 0 && stageOpleiding[0].opleiding ? stageOpleiding[0].opleiding : null;
+
+        let compQuery = 'SELECT * FROM COMPETENTIE';
+        let compParams = [];
+        if (opleiding) {
+            compQuery += ' WHERE opleiding = ?';
+            compParams.push(opleiding);
+        }
+        compQuery += ' ORDER BY competentie_id ASC';
+
+        const [competenties] = await db.query(compQuery, compParams);
         const [rubrieken] = await db.query('SELECT * FROM RUBRIEK ORDER BY competentie_id, punten ASC');
         const [evaluaties] = await db.query('SELECT e.evaluatie_id, e.beoordelaar_rol, ec.competentie_id, ec.score, ec.commentaar FROM EVALUATIE e JOIN EVALUATIE_COMPETENTIE ec ON e.evaluatie_id = ec.evaluatie_id WHERE e.stage_id = ? AND e.type = ?', [stage_id, type]);
 
@@ -241,7 +255,7 @@ const getEvaluatie = async (req, res) => {
         const result = competenties.map(c => {
             const evals = evaluaties.filter(e => e.competentie_id === c.competentie_id);
             const studentEval = evals.find(e => e.beoordelaar_rol === 'student');
-            const mentorEval = evals.find(e => e.beoordelaar_rol === 'mentor');
+            const mentorEval = evals.find(e => e.beoordelaar_rol === 'mentor' || e.beoordelaar_rol === 'stagementor');
             const docentEval = evals.find(e => e.beoordelaar_rol === 'docent') || {};
             
             // Gebruik expliciete student evaluatie OF fallback naar logboek gemiddelde

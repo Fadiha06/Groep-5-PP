@@ -140,6 +140,12 @@ async function autoMigreer() {
             await conn.query(`ALTER TABLE EVALUATIE MODIFY COLUMN type VARCHAR(50) NOT NULL`);
             console.log('  EVALUATIE: type kolom aangepast van ENUM naar VARCHAR(50)');
         }
+        // ── Migratie: definitief kolom op EVALUATIE ──
+        const [evDef] = await conn.query(`SHOW COLUMNS FROM EVALUATIE LIKE 'definitief'`);
+        if (evDef.length === 0) {
+            await conn.query(`ALTER TABLE EVALUATIE ADD COLUMN definitief BOOLEAN DEFAULT FALSE AFTER feedback`);
+            console.log('  EVALUATIE: definitief kolom toegevoegd');
+        }
         // ── Migratie: fix stages zonder mentor_id/leerkracht_id ──
         const [fixStages] = await conn.query(`
             SELECT s.stage_id, s.bedrijf_id, b.email AS mentor_email
