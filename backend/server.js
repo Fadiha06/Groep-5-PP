@@ -30,6 +30,12 @@ async function autoMigreer() {
             FOREIGN KEY (week_id) REFERENCES LOGBOEK_WEEK(week_id) ON DELETE CASCADE,
             FOREIGN KEY (stage_id) REFERENCES STAGE(stage_id) ON DELETE CASCADE
         )`);
+        // ── Migratie: status kolom op LOGBOEK_DAG ──
+        const [ldCols] = await conn.query(`SHOW COLUMNS FROM LOGBOEK_DAG LIKE 'status'`);
+        if (ldCols.length === 0) {
+            await conn.query(`ALTER TABLE LOGBOEK_DAG ADD COLUMN status VARCHAR(50) DEFAULT 'open'`);
+            console.log('  LOGBOEK_DAG: status kolom toegevoegd');
+        }
         await conn.query(`CREATE TABLE IF NOT EXISTS LOGBOEK_COMPETENTIE (
             id INT AUTO_INCREMENT PRIMARY KEY,
             dag_id INT NOT NULL,

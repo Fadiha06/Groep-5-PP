@@ -106,12 +106,15 @@ class StudentModel {
 
     static async getStageHeader(gebruikerId) {
         const [rows] = await db.query(
-            `SELECT st.stage_id, st.titel, st.startdatum, st.einddatum, b.naam AS bedrijf_naam
-            FROM STUDENT s
-            JOIN STAGE st ON st.student_id = s.student_id
-            LEFT JOIN BEDRIJF b ON b.bedrijf_id = st.bedrijf_id
-            WHERE s.gebruiker_id = ?
-            ORDER BY st.startdatum DESC LIMIT 1`,
+            `SELECT st.stage_id, st.titel, st.startdatum, st.einddatum, b.naam AS bedrijf_naam,
+                    CONCAT(gm.voornaam, ' ', gm.achternaam) AS mentor_naam
+             FROM STUDENT s
+             JOIN STAGE st ON st.student_id = s.student_id
+             LEFT JOIN BEDRIJF b ON b.bedrijf_id = st.bedrijf_id
+             LEFT JOIN STAGEMENTOR sm ON st.mentor_id = sm.mentor_id
+             LEFT JOIN GEBRUIKER gm ON sm.gebruiker_id = gm.id
+             WHERE s.gebruiker_id = ?
+             ORDER BY st.startdatum DESC LIMIT 1`,
             [gebruikerId]
         );
         return rows[0];

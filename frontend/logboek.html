@@ -22,7 +22,12 @@
             <a href="contract.html" class="sb-item">Contract</a>
             <a href="evaluaties.html" class="sb-item">Evaluaties</a>
         </div>
-        <div class="sb-footer" id="sb-naam">Ingelogd als Student</div>
+        <div class="sb-footer">
+            <div class="sb-footer-row">
+                <span>Ingelogd als Student</span>
+                <button class="sb-logout" onclick="logout()">Uitloggen</button>
+            </div>
+        </div>
     </nav>
 
     <main class="main">
@@ -168,7 +173,7 @@
                 document.getElementById('stage-titel').textContent = `Stage bij ${stage.bedrijf_naam || '—'}`;
                 document.getElementById('stage-periode').textContent =
                     `${new Date(stage.startdatum).toLocaleDateString('nl-BE', opt)} – ${new Date(stage.einddatum).toLocaleDateString('nl-BE', opt)}`;
-                document.getElementById('stage-mentor').textContent = '—';
+                document.getElementById('stage-mentor').textContent = stage.mentor_naam || '—';
 
                 const start = new Date(stage.startdatum);
                 const eind = new Date(stage.einddatum);

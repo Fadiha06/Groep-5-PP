@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Mijn Stage — EhB StageTool</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="src/CSS/shared_sidebar.css">
 <link rel="stylesheet" href="src/CSS/student_voorstel_response.css">
 </head>
 <body>
@@ -22,7 +23,12 @@
       <a class="sb-item" href="contract.html">Contract</a>
       <a class="sb-item" href="evaluaties.html">Evaluaties</a>
     </div>
-    <div class="sb-footer" id="sb-naam">Ingelogd als Student</div>
+    <div class="sb-footer">
+      <div class="sb-footer-row">
+        <span id="sb-naam">Ingelogd als Student</span>
+        <button class="sb-logout" onclick="logout()">Uitloggen</button>
+      </div>
+    </div>
   </nav>
 
   <div class="main">
