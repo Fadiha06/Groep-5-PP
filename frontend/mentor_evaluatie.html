@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Evaluatie — EhB StageTool</title>
+    <link rel="stylesheet" href="src/CSS/shared_sidebar.css" />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link href="src/CSS/shared.css" rel="stylesheet">
   <link href="src/CSS/mentor_evaluaties.css" rel="stylesheet">
@@ -12,30 +13,24 @@
   <div class="app-container">
 
     <!-- Sidebar -->
-    <aside class="sidebar">
-      <div class="sb-logo">
-        <div class="sb-logo-title">EhB StageTool</div>
-        <div class="sb-logo-sub">Mentorportaal</div>
-      </div>
-      <div class="sb-nav">
-        <a href="mentor_dashboard.html" class="sb-item">
-          Dashboard
-        </a>
-        <a href="mentor_logboeken.html" class="sb-item">
-          Logboeken
-        </a>
-        <a href="mentor_evaluatie.html" class="sb-item active">
-          Evaluatie
-        </a>
-      </div>
-      <div class="sb-footer">Ingelogd als Mentor</div>
-    </aside>
+        <nav class="sidebar">
+        <div class="sb-logo">
+            <div class="sb-logo-title">EhB StageTool</div>
+            <div class="sb-logo-sub">Toegepaste Informatica</div>
+        </div>
+        <div class="sb-nav">
+            <a class="sb-item" href="mentor_dashboard.html">Dashboard</a>
+            <a class="sb-item" href="mentor_logboeken.html">Logboeken</a>
+            <a class="sb-item active" href="mentor_evaluatie.html">Evaluaties</a>
+        </div>
+        <div class="sb-footer">Ingelogd als Mentor</div>
+    </nav>
 
     <!-- Main Content -->
     <main class="main-content">
       <div class="main-header">
         <div>
-          <h1 class="header-title">Evaluatie</h1>
+          <h1 class="header-title">Tussentijdse Evaluatie</h1>
           <p class="header-subtitle">Beoordeel de competenties van je stagiairs</p>
         </div>
         <button class="logout-btn" onclick="logout()">Uitloggen</button>
@@ -79,7 +74,7 @@
           <button class="eval-tab active" onclick="wisselType('tussentijds', this)">
             📊 Tussentijds
           </button>
-          <button class="eval-tab" onclick="wisselType('finaal', this)">
+          <button class="eval-tab" onclick="wisselType('eindeval', this)">
             🎯 Eindevaluatie
           </button>
         </div>
@@ -132,3 +127,4 @@
   <script src="src/JS/mentor_evaluaties.js"></script>
 </body>
 </html>
+

@@ -3,58 +3,43 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Evaluaties — EhB StageTool</title>
+<title>Mijn zelfevaluatie — EhB StageTool</title>
+<link rel="stylesheet" href="src/CSS/shared_sidebar.css" />
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="src/CSS/student_evaluatie.css">
 </head>
 <body>
 <div class="root">
 
-  <nav class="sidebar">
+    <nav class="sidebar">
     <div class="sb-logo">
       <div class="sb-logo-title">EhB StageTool</div>
       <div class="sb-logo-sub">Toegepaste Informatica</div>
     </div>
     <div class="sb-nav">
       <a class="sb-item" href="student_dashboard.html">Dashboard</a>
+      <a class="sb-item" href="student_voorstel_response.html">Mijn stage</a>
       <a class="sb-item" href="logboek.html">Logboek</a>
+      <a class="sb-item" href="contract.html">Contract</a>
       <a class="sb-item active" href="evaluaties.html">Evaluaties</a>
     </div>
-    <div class="sb-footer" id="sidebar-naam">Ingelogd als Student</div>
+    <div class="sb-footer">Ingelogd als Student</div>
   </nav>
 
   <div class="main">
-    <div class="page-title">Evaluaties &amp; feedback</div>
-    <div class="page-sub">Vul je eigen zelfevaluatie in en bekijk de beoordelingen van je docent en stagementor.</div>
+    <div class="page-title">Mijn zelfevaluatie</div>
+    <div class="page-sub" id="stage-titel">Beoordeel jezelf per competentie. De docent vergelijkt dit later met de mentorscore.</div>
 
-    <div class="tabs">
-      <div class="tab active" id="tab-tussentijds" onclick="switchTab('tussentijds')">Tussentijdse evaluatie</div>
-      <div class="tab" id="tab-finaal" onclick="switchTab('finaal')">Finale evaluatie</div>
-    </div>
+    <div class="type-tabs" id="type-tabs"></div>
 
-    <!-- Mijn zelfevaluatie -->
-    <div class="self-card">
-      <div class="self-head">
-        <div>
-          <div class="self-title">Mijn zelfevaluatie</div>
-          <div class="self-sub" id="self-status">Laden...</div>
-        </div>
-        <button class="self-toggle" id="self-toggle" onclick="toggleForm()">Zelfevaluatie invullen</button>
-      </div>
-
-      <div class="self-form hidden" id="self-form">
-        <div id="self-competenties"></div>
-        <div class="self-actions">
-          <span class="self-totaal" id="self-totaal">Totaal: — / —</span>
-          <button class="btn btn-concept" onclick="opslaanZelf(false)">Concept opslaan</button>
-          <button class="btn btn-indienen" onclick="opslaanZelf(true)">Definitief indienen</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- Ontvangen evaluaties -->
-    <div id="ontvangen">
+    <div id="competenties-container">
       <div class="placeholder">Laden...</div>
+    </div>
+
+    <div class="save-row">
+      <button class="btn btn-concept" onclick="opslaan(false)">Concept opslaan</button>
+      <button class="btn btn-indienen" onclick="opslaan(true)">Definitief indienen</button>
+      <div class="totaal" id="totaal">Totaal: — / —</div>
     </div>
   </div>
 </div>
@@ -63,3 +48,4 @@
 <script src="src/JS/student_evaluatie.js"></script>
 </body>
 </html>
+

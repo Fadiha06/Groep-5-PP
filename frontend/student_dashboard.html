@@ -15,24 +15,28 @@
       <div class="sb-logo-sub">Toegepaste Informatica</div>
     </div>
     <div class="sb-nav">
-      <a class="sb-item active" href="stageaanvraag.html">Mijn stage</a>
+      <a class="sb-item active" href="student_dashboard.html">Dashboard</a>
+      <a class="sb-item" href="student_voorstel_response.html">Mijn stage</a>
+      <a class="sb-item" href="logboek.html">Logboek</a>
+      <a class="sb-item" href="contract.html">Contract</a>
+      <a class="sb-item" href="evaluaties.html">Evaluaties</a>
+      
     </div>
     <div class="sb-footer">Ingelogd als Student</div>
   </nav>
   <div class="main">
-    <div class="dash-header">
+    <div>
       <div class="page-title">Welkom, <span id="student-naam"></span>!</div>
-      <button class="logout-btn" onclick="logout()">Uitloggen</button>
+      <div class="page-sub">Je hebt nog geen stage ingediend. Volg de stappen hieronder om te starten.</div>
     </div>
-    <div class="page-sub" id="page-sub">Je hebt nog geen stage ingediend. Volg de stappen hieronder om te starten.</div>
-
-    <div class="empty-hero" id="empty-hero">
+    <div class="empty-hero">
       <div class="empty-icon">📋</div>
       <div class="empty-title">Nog geen stageaanvraag ingediend</div>
       <div class="empty-sub">Dien je stagevoorstel in via de knop hieronder. De stagecommissie beoordeelt je aanvraag en je ontvangt een melding zodra er een beslissing is.</div>
       <a href="stageaanvraag.html" class="btn-primary">+ Stage indienen</a>
+
     </div>
-    <div class="info-row" id="info-row">
+    <div class="info-row">
       <div class="info-card">
         <div class="info-card-icon ic-red">1</div>
         <div>
@@ -55,47 +59,12 @@
         </div>
       </div>
     </div>
-
-    <a class="actie-banner" id="actie-banner" href="logboek.html" style="display:none">
-      <div class="actie-banner__title" id="actie-titel"></div>
-      <div class="actie-banner__sub" id="actie-sub"></div>
-    </a>
-
-    <div class="stat-cards" id="stat-cards" style="display:none">
-      <div class="stat-card">
-        <div class="stat-card__label">Stagedagen</div>
-        <div class="stat-card__value" id="stat-dagen">-/-</div>
-        <div class="progress-bar"><div class="progress-bar__fill" id="bar-dagen" style="width:0%"></div></div>
-        <div class="stat-card__sub" id="stat-dagen-sub"></div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-card__label">Uren deze week</div>
-        <div class="stat-card__value" id="stat-uren">-/-</div>
-        <div class="progress-bar"><div class="progress-bar__fill progress-bar__fill--amber" id="bar-uren" style="width:0%"></div></div>
-        <div class="stat-card__sub" id="stat-uren-sub"></div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-card__label">Logboeken</div>
-        <div class="stat-card__value" id="stat-logboeken">-/-</div>
-        <div class="stat-card__sub">Weken ingediend</div>
-      </div>
-    </div>
-
-    <div class="dash-grid" id="dash-grid" style="display:none">
-      <div class="card">
-        <div class="card__title">Stageproces</div>
-        <div class="timeline" id="timeline"></div>
-      </div>
-      <div class="card">
-        <div class="card__title">Logboek deze week</div>
-        <div class="logboek-lijst" id="logboek-lijst"></div>
-      </div>
-    </div>
   </div>
 </div>
 
-<script src="/src/JS/api.js"></script>
-<script src="/src/JS/student_dashboard.js"></script>
+<script src="src/JS/api.js"></script>
+<script src="src/JS/student_dashboard.js"></script>
 
 </body>
 </html>
+

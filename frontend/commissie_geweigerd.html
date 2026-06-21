@@ -12,19 +12,26 @@
 
         <!-- Sidebar -->
         <aside class="sidebar">
-            <div class="sb-logo">
-                <div class="sb-logo-title">EhB StageTool</div>
-                <div class="sb-logo-sub">Stagecommissie</div>
+            <div class="sidebar__brand">
+                <span class="sidebar__app-name">EhB StageTool</span>
+                <span class="sidebar__app-sub">Stagecommissie</span>
             </div>
-            <div class="sb-nav">
-                <a href="commissie_aanvraag.html" class="sb-item active">
-                    Nieuwe aanvragen
-                    <span class="sb-badge">4</span>
-                </a>
-                <a href="commissie_dashboard.html" class="sb-item">Dashboard</a>
-                <a href="commissie_dossiers.html" class="sb-item">Alle dossiers</a>
-            </div>
-            <div class="sb-footer">Ingelogd als Commissie</div>
+            <nav class="sidebar__nav">
+                <ul class="sidebar__nav-list">
+                    <li>
+                        <a href="#" class="sidebar__nav-item sidebar__nav-item--active">
+                            <span>Nieuwe aanvragen</span>
+                            <span class="sidebar__badge">4</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="commissie_dashboard.html" class="sidebar__nav-item">Dashboard</a>
+                    </li>
+                    <li>
+                        <a href="commissie_dossiers.html" class="sidebar__nav-item">Alle dossiers</a>
+                    </li>
+                </ul>
+            </nav>
         </aside>
 
         <!-- Main Content -->

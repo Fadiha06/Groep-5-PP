@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Logboeken — EhB StageTool</title>
+    <link rel="stylesheet" href="src/CSS/shared_sidebar.css" />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link href="src/CSS/shared.css" rel="stylesheet">
   <link href="src/CSS/mentor_logboeken.css" rel="stylesheet">
@@ -42,24 +43,18 @@
   <div class="app-container">
 
     <!-- Sidebar -->
-    <aside class="sidebar">
-      <div class="sb-logo">
-        <div class="sb-logo-title">EhB StageTool</div>
-        <div class="sb-logo-sub">Mentorportaal</div>
-      </div>
-      <div class="sb-nav">
-        <a href="mentor_dashboard.html" class="sb-item">
-          Dashboard
-        </a>
-        <a href="mentor_logboeken.html" class="sb-item active">
-          Logboeken
-        </a>
-        <a href="mentor_evaluatie.html" class="sb-item">
-          Evaluatie
-        </a>
-      </div>
-      <div class="sb-footer">Ingelogd als Mentor</div>
-    </aside>
+        <nav class="sidebar">
+        <div class="sb-logo">
+            <div class="sb-logo-title">EhB StageTool</div>
+            <div class="sb-logo-sub">Toegepaste Informatica</div>
+        </div>
+        <div class="sb-nav">
+            <a class="sb-item" href="mentor_dashboard.html">Dashboard</a>
+            <a class="sb-item active" href="mentor_logboeken.html">Logboeken</a>
+            <a class="sb-item" href="mentor_evaluatie.html">Evaluaties</a>
+        </div>
+        <div class="sb-footer">Ingelogd als Mentor</div>
+    </nav>
 
     <!-- Main Content -->
     <main class="main-content">
@@ -191,3 +186,4 @@
   <script src="src/JS/mentor_logboeken.js"></script>
 </body>
 </html>
+
