@@ -4,7 +4,7 @@ const {
     getStudenten, stuurReminder, getMilestones, getDossiers, getMeldingen,
     getLogboeken, goedkeurLogboek, geefLogboekFeedback,
     getEvaluatieStudenten, getEvaluatie, slaEvaluatieOp, getLogboekEvaluatie,
-    getEvaluatieVergelijking, getEvaluatiePlanning, setEvaluatiePlanning
+    getAggregatie
 } = require('../controllers/docentController');
 const { verifyToken, requireRole } = require('../middleware/authMiddleware');
 
@@ -27,9 +27,7 @@ router.get('/evaluatie',                      ...auth, getEvaluatie);
 router.post('/evaluatie/opslaan',             ...auth, slaEvaluatieOp);
 router.get('/logboek/evaluatie',              ...auth, getLogboekEvaluatie);
 
-// Evaluaties — samenbrengen + planning
-router.get('/evaluatie-vergelijking',         ...auth, getEvaluatieVergelijking);
-router.get('/evaluatie-planning',             ...auth, getEvaluatiePlanning);
-router.put('/evaluatie-planning',             ...auth, setEvaluatiePlanning);
+// Aggregatie
+router.get('/aggregatie',                     ...auth, getAggregatie);
 
 module.exports = router;
