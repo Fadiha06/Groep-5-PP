@@ -2,13 +2,15 @@ const docentModel = require('../models/docentModel');
 
 // GET /api/docent/studenten?week=4 — lijst voor "Logboek Controle"
 const getStudenten = async (req, res) => {
-    const weeknummer = Number(req.query.week) || 1;
-
     try {
         const docent = await docentModel.getDocent(req.user.id);
         if (!docent) {
             return res.status(404).json({ error: 'Geen docent gevonden' });
         }
+
+        const db = require('../config/db');
+        const [wRows] = await db.query('SELECT MAX(weeknummer) as w FROM LOGBOEK_WEEK lw JOIN STAGE st ON st.stage_id = lw.stage_id WHERE st.leerkracht_id = ?', [docent.docent_id]);
+        const weeknummer = Number(req.query.week) || wRows[0].w || 1;
 
         const rijen = await docentModel.getStudentenMetLogboekStatus(docent.docent_id, weeknummer);
 
@@ -209,13 +211,70 @@ const getEvaluatieStudenten = async (req, res) => {
     }
 };
 
-// GET /api/docenten/evaluatie?stage_id=&week=
+// GET /api/docenten/evaluatie?stage_id=&type=
 const getEvaluatie = async (req, res) => {
-    const { stage_id, week } = req.query;
-    if (!stage_id || !week) return res.status(400).json({ error: 'stage_id en week zijn verplicht' });
+    const { stage_id, type } = req.query;
+    if (!stage_id || !type) return res.status(400).json({ error: 'stage_id en type zijn verplicht' });
     try {
-        const rijen = await docentModel.getEvaluaties(stage_id, week);
-        res.json(rijen);
+        const db = require('../config/db');
+        const [competenties] = await db.query('SELECT * FROM COMPETENTIE ORDER BY competentie_id ASC');
+        const [rubrieken] = await db.query('SELECT * FROM RUBRIEK ORDER BY competentie_id, punten ASC');
+        const [evaluaties] = await db.query('SELECT e.evaluatie_id, e.beoordelaar_rol, ec.competentie_id, ec.score, ec.commentaar FROM EVALUATIE e JOIN EVALUATIE_COMPETENTIE ec ON e.evaluatie_id = ec.evaluatie_id WHERE e.stage_id = ? AND e.type = ?', [stage_id, type]);
+
+       // Fallback: bereken logboek student gemiddelde als student niet ge�valueerd heeft
+        const [logboekAvg] = await db.query(`
+            SELECT competentie_id, ROUND(AVG(score)) as avg_score 
+            FROM LOGBOEK_COMPETENTIE 
+            WHERE student_id = (SELECT student_id FROM STAGE WHERE stage_id = ?)
+            GROUP BY competentie_id
+        `, [stage_id]);
+
+        // Fallback: bereken wekelijks mentor gemiddelde als mentor niet expliciet 'tussentijds' of 'finaal' indient
+        const [mentorAvg] = await db.query(`
+            SELECT ec.competentie_id, ROUND(AVG(ec.score)) as avg_score 
+            FROM EVALUATIE e 
+            JOIN EVALUATIE_COMPETENTIE ec ON e.evaluatie_id = ec.evaluatie_id 
+            WHERE e.stage_id = ? AND e.beoordelaar_rol = 'mentor'
+            GROUP BY ec.competentie_id
+        `, [stage_id]);
+
+        const result = competenties.map(c => {
+            const evals = evaluaties.filter(e => e.competentie_id === c.competentie_id);
+            const studentEval = evals.find(e => e.beoordelaar_rol === 'student');
+            const mentorEval = evals.find(e => e.beoordelaar_rol === 'mentor');
+            const docentEval = evals.find(e => e.beoordelaar_rol === 'docent') || {};
+            
+            // Gebruik expliciete student evaluatie OF fallback naar logboek gemiddelde
+            let s_score = studentEval ? studentEval.score : null;
+            if (s_score === null) {
+                const fallback = logboekAvg.find(l => l.competentie_id === c.competentie_id);
+                if (fallback) s_score = parseInt(fallback.avg_score);
+            }
+
+            // Gebruik expliciete mentor evaluatie OF fallback naar wekelijks mentor gemiddelde
+            let m_score = mentorEval ? mentorEval.score : null;
+            if (m_score === null) {
+                const m_fallback = mentorAvg.find(l => l.competentie_id === c.competentie_id);
+                if (m_fallback) m_score = parseInt(m_fallback.avg_score);
+            }
+
+            return {
+                competentie_id: c.competentie_id,
+                naam: c.naam,
+                domeinen: c.opleiding, // Using opleiding as domein
+                opties: rubrieken.filter(r => r.competentie_id === c.competentie_id).map(r => ({
+                    score: r.punten,
+                    label: r.punten <= 1 ? 'Onvoldoende' : r.punten <= 2 ? 'Voldoende' : r.punten <= 3 ? 'Goed' : 'Uitstekend',
+                    beschrijving: r.omschrijving || ''
+                })),
+                score_student: s_score,
+                score_mentor: m_score,
+                score_docent: docentEval.score || null,
+                feedback_student: studentEval ? (studentEval.commentaar || '') : '',
+                feedback_mentor: mentorEval ? (mentorEval.commentaar || '') : ''
+            };
+        });
+        res.json(result);
     } catch (err) {
         console.error(err);
         res.status(500).json({ error: 'Serverfout bij ophalen evaluatie' });
@@ -224,10 +283,23 @@ const getEvaluatie = async (req, res) => {
 
 // POST /api/docenten/evaluatie/opslaan
 const slaEvaluatieOp = async (req, res) => {
-    const { stage_id, week, scores } = req.body;
-    if (!stage_id || !week || !scores) return res.status(400).json({ error: 'stage_id, week en scores zijn verplicht' });
+    const { stage_id, type, scores } = req.body;
+    if (!stage_id || !type || !scores) return res.status(400).json({ error: 'stage_id, type en scores zijn verplicht' });
     try {
-        await docentModel.slaEvaluatieOp(stage_id, week, req.user.id, scores);
+        const db = require('../config/db');
+        const [existing] = await db.query('SELECT evaluatie_id FROM EVALUATIE WHERE stage_id = ? AND type = ? AND beoordelaar_id = ?', [stage_id, type, req.user.id]);
+        let evaluatieId;
+        if (existing.length > 0) {
+            evaluatieId = existing[0].evaluatie_id;
+            await db.query('DELETE FROM EVALUATIE_COMPETENTIE WHERE evaluatie_id = ?', [evaluatieId]);
+        } else {
+            const [result] = await db.query('INSERT INTO EVALUATIE (stage_id, beoordelaar_id, type, beoordelaar_rol, datum) VALUES (?, ?, ?, ?, CURDATE())', [stage_id, req.user.id, type, 'docent']);
+            evaluatieId = result.insertId;
+        }
+        if (scores && scores.length > 0) {
+            const values = scores.map(s => [evaluatieId, s.competentie_id, s.score]);
+            await db.query('INSERT INTO EVALUATIE_COMPETENTIE (evaluatie_id, competentie_id, score) VALUES ?', [values]);
+        }
         res.json({ message: 'Evaluatie opgeslagen' });
     } catch (err) {
         console.error(err);
@@ -257,4 +329,19 @@ const getLogboekEvaluatie = async (req, res) => {
     }
 };
 
-module.exports = { getStudenten, stuurReminder, getMilestones, getDossiers, getMeldingen, getLogboeken, goedkeurLogboek, geefLogboekFeedback, getEvaluatieStudenten, getEvaluatie, slaEvaluatieOp, getLogboekEvaluatie };
+const getAggregatie = async (req, res) => {
+    try {
+        const rows = await docentModel.getAggregatie(req.user.id);
+        res.json(rows);
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: 'Serverfout bij ophalen aggregatie' });
+    }
+};
+
+module.exports = { getStudenten, stuurReminder, getMilestones, getDossiers, getMeldingen, getLogboeken, goedkeurLogboek, geefLogboekFeedback, getEvaluatieStudenten, getEvaluatie, slaEvaluatieOp,
+    getAggregatie, getLogboekEvaluatie };
+
+
+
+
