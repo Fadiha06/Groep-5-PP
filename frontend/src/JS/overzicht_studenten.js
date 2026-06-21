@@ -9,7 +9,7 @@ async function laadStudenten() {
     // Response: [{ stage_id, naam, opleiding, bedrijf, email, telefoon,
     //              bedrijf_adres, mentor_naam, mentor_email,
     //              startdatum, einddatum, huidige_fase, meldingen: [...] }]
-    const resp = await apiFetch('/docenten/dossiers');
+    const resp = await apiFetch('/docent/dossiers');
     studentenData = Array.isArray(resp) ? resp : (resp.studenten || []);
 
     renderStudentList();

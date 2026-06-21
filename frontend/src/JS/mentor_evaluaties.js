@@ -22,7 +22,7 @@ async function laadStudenten() {
   verbergError();
 
   try {
-    const data = await apiFetch('/mentors/studenten');
+    const data = await apiFetch('/mentor/studenten');
     alleStudenten = Array.isArray(data) ? data : [];
     toonStudentSelectie(alleStudenten);
   } catch (err) {
@@ -109,12 +109,12 @@ async function laadCompetenties() {
 
   try {
     const stageId = huidigStudent.stage_id || huidigStudent.id;
-    const data    = await apiFetch(`/evaluaties/competenties?stage_id=${stageId}&type=${evaluatieType}`);
+    const data    = await apiFetch(`/evaluatie/competenties?stage_id=${stageId}&type=${evaluatieType}`);
     competenties  = Array.isArray(data) ? data : [];
 
     // Probeer bestaand concept laden
     try {
-      const concept = await apiFetch(`/evaluaties/concept?stage_id=${stageId}&type=${evaluatieType}`);
+      const concept = await apiFetch(`/evaluatie/concept?stage_id=${stageId}&type=${evaluatieType}`);
       if (concept && concept.scores) {
         concept.scores.forEach(s => {
           scores[s.competentie_id] = {
@@ -341,7 +341,7 @@ async function verstuurEvaluatie(definitief) {
   };
 
   try {
-    await apiFetch('/evaluaties/opslaan', {
+    await apiFetch('/evaluatie/opslaan', {
       method: 'POST',
       body:   JSON.stringify(payload)
     });

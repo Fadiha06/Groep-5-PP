@@ -93,6 +93,8 @@ CREATE TABLE STAGE (
     startdatum DATE,
     einddatum DATE,
     status VARCHAR(50) DEFAULT 'in_aanvraag',
+    eval_tussentijds_vanaf DATE,
+    eval_finaal_vanaf DATE,
     reden_weigering TEXT,
     feedback_commissie TEXT,
     goedkeuringsdatum DATE,

@@ -5,7 +5,7 @@ async function laad() {
     if (!requireAuth('docent')) return;
 
     try {
-        const data = await apiFetch('/docenten/dossiers');
+        const data = await apiFetch('/docent/dossiers');
         alle = data.studenten;
         renderLijst();
         if (alle.length > 0) selecteer(alle[0]);

@@ -41,7 +41,7 @@ async function laadLogboeken() {
   }
 
   try {
-    const data = await apiFetch('/mentors/logboeken');
+    const data = await apiFetch('/mentor/logboeken');
     alleLogboeken = Array.isArray(data) ? data : [];
     toonLogboekSelectie(alleLogboeken);
     await selecteerVanUrl();
@@ -154,7 +154,7 @@ async function laadLogboekWeken(log) {
   const logId = log.logboek_id || log.id;
 
   try {
-    const data = await apiFetch(`/logboeken/${logId}/weken`);
+    const data = await apiFetch(`/logboek/${logId}/weken`);
     const weken = Array.isArray(data) ? data : [];
 
     // Opslaan in huidge logboek
@@ -402,7 +402,7 @@ async function slaScoresOp() {
   }
 
   try {
-    await apiFetch('/mentors/logboek/evaluatie', {
+    await apiFetch('/mentor/logboek/evaluatie', {
       method: 'POST',
       body: JSON.stringify({
         stage_id: log.logboek_id || log.id,
@@ -435,7 +435,7 @@ async function slaConceptOp() {
   const feedback = document.getElementById('logboek-feedback').value.trim();
 
   try {
-    await apiFetch('/mentors/logboek/feedback', {
+    await apiFetch('/mentor/logboek/feedback', {
       method: 'POST',
       body: JSON.stringify({
         stage_id: log.logboek_id || log.id,
@@ -463,7 +463,7 @@ async function keurGoed() {
   try {
     // Sla eerst feedback op
     if (feedback) {
-      await apiFetch('/mentors/logboek/feedback', {
+      await apiFetch('/mentor/logboek/feedback', {
         method: 'POST',
         body: JSON.stringify({
           stage_id: log.logboek_id || log.id,
@@ -474,7 +474,7 @@ async function keurGoed() {
     }
 
     // Keur dan goed
-    await apiFetch('/mentors/logboek/goedkeuren', {
+    await apiFetch('/mentor/logboek/goedkeuren', {
       method: 'POST',
       body: JSON.stringify({
         stage_id: log.logboek_id || log.id,

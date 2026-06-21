@@ -23,10 +23,10 @@ async function laadDashboard() {
 
   try {
     const [studenten, logboeken, evaluaties, contracten] = await Promise.all([
-      apiFetch('/mentors/studenten'),
-      apiFetch('/mentors/logboeken/pending'),
-      apiFetch('/mentors/evaluaties/open'),
-      apiFetch('/mentors/contracten')
+      apiFetch('/mentor/studenten'),
+      apiFetch('/mentor/logboeken/pending'),
+      apiFetch('/mentor/evaluaties/open'),
+      apiFetch('/mentor/contracten')
     ]);
 
     alleStudenten = Array.isArray(studenten) ? studenten : [];

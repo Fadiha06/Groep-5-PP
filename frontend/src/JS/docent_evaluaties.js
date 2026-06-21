@@ -31,7 +31,7 @@ async function laadStudenten() {
   try {
     // Verwacht: GET /api/docent/evaluatie-studenten
     // Response: [{ stage_id, naam, klas, status: 'normaal' | 'te-laat', statustekst }]
-    studentenData = await apiFetch('/docenten/evaluatie-studenten');
+    studentenData = await apiFetch('/docent/evaluatie-studenten');
     renderStudentList();
 
     if (studentenData.length > 0) {
@@ -110,7 +110,7 @@ async function laadEvaluatie() {
     //   score_student, score_mentor, score_docent,
     //   feedback_mentor, feedback_student
     // }]
-    const data = await apiFetch(`/docenten/evaluatie?stage_id=${actieveStageId}&type=${actieveType}`);
+    const data = await apiFetch(`/docent/evaluatie?stage_id=${actieveStageId}&type=${actieveType}`);
     laatsteEvaluatieData = data;
     renderCompetenties(data);
   } catch (err) {
@@ -220,7 +220,7 @@ async function opslaanScore() {
       score
     }));
 
-    await apiFetch('/docenten/evaluatie/opslaan', {
+    await apiFetch('/docent/evaluatie/opslaan', {
       method: 'POST',
       body: JSON.stringify({ stage_id: actieveStageId, type: actieveType, scores })
     });
