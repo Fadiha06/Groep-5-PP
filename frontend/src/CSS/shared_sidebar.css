@@ -80,3 +80,6 @@
   color: #fff;
   border-color: #D1193E;
 }
+.sb-hidden {
+  display: none !important;
+}

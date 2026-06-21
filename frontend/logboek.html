@@ -149,6 +149,7 @@
         let totaalWeken = 1;
         let huidigeDagId = null;
         let huidigeDagStatus = 'open';
+        let studentOpleiding = '';
 
         function labelVoorPunten(p) {
             if (p <= 1) return 'Onvoldoende';
@@ -174,6 +175,7 @@
                 document.getElementById('stage-periode').textContent =
                     `${new Date(stage.startdatum).toLocaleDateString('nl-BE', opt)} – ${new Date(stage.einddatum).toLocaleDateString('nl-BE', opt)}`;
                 document.getElementById('stage-mentor').textContent = stage.mentor_naam || '—';
+                studentOpleiding = stage.opleiding || '';
 
                 const start = new Date(stage.startdatum);
                 const eind = new Date(stage.einddatum);
@@ -198,9 +200,10 @@
         async function laadCompetenties() {
             if (!token) return;
             try {
-                const res = await fetch(`${API}/competenties`, { headers: { 'Authorization': 'Bearer ' + token } });
+                const res = await fetch(`${API}/competenties${studentOpleiding ? '?opleiding=' + encodeURIComponent(studentOpleiding) : ''}`, { headers: { 'Authorization': 'Bearer ' + token } });
                 if (!res.ok) return;
-                const lijst = await res.json();
+                const data = await res.json();
+                const lijst = (data.competenties || data).map(c => ({ ...c, niveaus: c.rubrieken || c.niveaus || [] }));
                 const box = document.getElementById('competenties-lijst');
                 box.innerHTML = lijst.map(c => `
                     <div class="comp-kaart" data-comp="${c.competentie_id}">

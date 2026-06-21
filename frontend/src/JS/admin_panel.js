@@ -28,6 +28,7 @@ function renderTable(data) {
     const lowerRol = g.rol.toLowerCase();
     if (lowerRol === 'admin' || lowerRol === 'administrator') displayRol = 'Administrator';
     else if (lowerRol === 'stagecommissie' || lowerRol === 'commissie') displayRol = 'Stagecommissie';
+    else if (lowerRol === 'mentor' || lowerRol === 'stagementor') displayRol = 'Mentor';
 
     const rolOpties = ROLLEN.map(r => `<option${r === displayRol ? ' selected' : ''}>${r}</option>`).join('');
     

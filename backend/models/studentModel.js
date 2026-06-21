@@ -107,7 +107,8 @@ class StudentModel {
     static async getStageHeader(gebruikerId) {
         const [rows] = await db.query(
             `SELECT st.stage_id, st.titel, st.startdatum, st.einddatum, b.naam AS bedrijf_naam,
-                    CONCAT(gm.voornaam, ' ', gm.achternaam) AS mentor_naam
+                    CONCAT(gm.voornaam, ' ', gm.achternaam) AS mentor_naam,
+                    s.opleiding
              FROM STUDENT s
              JOIN STAGE st ON st.student_id = s.student_id
              LEFT JOIN BEDRIJF b ON b.bedrijf_id = st.bedrijf_id
