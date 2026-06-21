@@ -9,26 +9,21 @@
     <link rel="stylesheet" href="src/CSS/logboek.css" />
 </head>
 <body>
-
-    <aside class="sidebar">
+<div class="root">
+    <nav class="sidebar">
         <div class="sb-logo">
             <div class="sb-logo-title">EhB StageTool</div>
             <div class="sb-logo-sub">Toegepaste Informatica</div>
         </div>
         <div class="sb-nav">
             <a href="student_dashboard.html" class="sb-item">Dashboard</a>
-            <a href="contract.html" class="sb-item">Contract</a>
+            <a href="student_voorstel_response.html" class="sb-item">Mijn stage</a>
             <a href="logboek.html" class="sb-item active">Logboek</a>
+            <a href="contract.html" class="sb-item">Contract</a>
             <a href="evaluaties.html" class="sb-item">Evaluaties</a>
         </div>
-        <div class="sidebar__user">
-            <div class="sidebar__user-info">
-                <span class="sidebar__user-name" id="account-naam">—</span>
-                <span class="sidebar__user-mail" id="account-mail"></span>
-            </div>
-            <button class="sidebar__logout" onclick="uitloggen()">Uitloggen</button>
-        </div>
-    </aside>
+        <div class="sb-footer" id="sb-naam">Ingelogd als Student</div>
+    </nav>
 
     <main class="main">
 
@@ -131,6 +126,7 @@
 
         </div>
     </main>
+</div>
 
     <script src="src/JS/api.js"></script>
     <script>
@@ -160,24 +156,6 @@
         function berekenWeek(datum, start) {
             const d = new Date(datum), s = new Date(start);
             return Math.floor((d - s) / (1000 * 60 * 60 * 24 * 7)) + 1;
-        }
-
-        async function laadProfiel() {
-            if (!token) return;
-            try {
-                const res = await fetch(`${API}/profiel`, { headers: { 'Authorization': 'Bearer ' + token } });
-                if (!res.ok) return;
-                const u = await res.json();
-                document.getElementById('account-naam').textContent = u.naam || '—';
-                document.getElementById('account-mail').textContent = u.email || '';
-            } catch (err) {
-                console.error(err);
-            }
-        }
-
-        function uitloggen() {
-            localStorage.removeItem('token');
-            window.location.href = 'index.html';
         }
 
         async function laadStageHeader() {
@@ -558,14 +536,13 @@
             }
         }
 
-        laadProfiel();
         laadStageHeader();
         laadLaatste();
         laadCompetenties();
 
         document.getElementById('datum').addEventListener('change', (e) => laadDagVoorDatum(e.target.value));
     </script>
-
+</div>
 </body>
 </html>
 
