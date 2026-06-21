@@ -2,15 +2,22 @@ const db = require('../config/db');
 
 exports.getAllCompetenties = async (req, res) => {
     try {
-        const [competenties] = await db.query('SELECT * FROM COMPETENTIE');
+        const opleiding = req.query.opleiding;
+        let competenties;
+        if (opleiding) {
+            [competenties] = await db.query('SELECT * FROM COMPETENTIE WHERE opleiding = ?', [opleiding]);
+        } else {
+            [competenties] = await db.query('SELECT * FROM COMPETENTIE');
+        }
         
         for (let comp of competenties) {
             const [rubrieken] = await db.query('SELECT * FROM RUBRIEK WHERE competentie_id = ? ORDER BY punten ASC', [comp.competentie_id]);
             comp.rubrieken = rubrieken;
         }
 
-        // ponytail: map instellingen to expected dict format in one go
-        const [instRows] = await db.query('SELECT * FROM INSTELLINGEN');
+        const [instRows] = opleiding
+            ? await db.query('SELECT * FROM INSTELLINGEN WHERE opleiding = ?', [opleiding])
+            : await db.query('SELECT * FROM INSTELLINGEN');
         const instellingen = Object.fromEntries(instRows.map(r => [r.opleiding, { max_score: r.max_score, aantal_logboeken: r.aantal_logboeken, slaagdrempel: r.slaagdrempel }]));
 
         res.json({ competenties, instellingen });

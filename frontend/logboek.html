@@ -33,7 +33,7 @@
 
         <div class="page-header">
             <h1>Dagelijks Logboek</h1>
-            <p>Vul hier je dagelijkse reflecties en activiteiten in</p>
+            <p>Vul elke stagedag je activiteiten in en dien het direct in</p>
         </div>
 
         <div class="card">
@@ -69,11 +69,6 @@
                     </div>
 
                     <div class="form-group">
-                        <label for="reflectie">Reflectie <span class="required">*</span></label>
-                        <textarea id="reflectie" rows="3" placeholder="Wat heb je geleerd? Wat vond je moeilijk?" required></textarea>
-                    </div>
-
-                    <div class="form-group">
                         <label for="problemen">Problemen of uitdagingen <span class="required">*</span></label>
                         <textarea id="problemen" rows="2" placeholder="Meld eventuele problemen of vragen..." required></textarea>
                     </div>
@@ -89,9 +84,11 @@
                         <div id="competenties-lijst">Laden...</div>
                     </div>
 
+                    <div id="dag-status-box" style="display:none;margin-bottom:12px;"></div>
+
                     <div class="form-actions">
-                        <button class="btn btn-primary" onclick="slaOp()">Logboek opslaan</button>
-                        <button class="btn btn-secondary">Annuleren</button>
+                        <button class="btn btn-primary" id="indien-knop" onclick="dienDagIn()">Logboek indienen</button>
+                        <button class="btn btn-secondary" onclick="slaConceptOp()">Concept opslaan</button>
                     </div>
                     <div id="feedback-box" class="feedback-box" style="display:none;">
                         ✅ Logboek succesvol opgeslagen!
@@ -120,9 +117,6 @@
                     </div>
                     <div id="week-dagen">Laden...</div>
                     <div id="week-feedback-box" style="display:none"></div>
-                    <div class="form-actions" style="margin-top:14px;">
-                        <button class="btn btn-primary" id="indien-knop" onclick="dienWeekInUI()" style="width:100%;">Week indienen</button>
-                    </div>
                 </div>
 
                 <div class="status-banner" style="margin-top:0;">
@@ -146,11 +140,13 @@
         (async function() {
             if (!requireAuth('student')) return;
             const contract = await vereisContractGetekend();
-            if (!contract) return; // redirect al gedaan
+            if (!contract) return;
         })();
 
         let huidigeWeek = 1;
         let totaalWeken = 1;
+        let huidigeDagId = null;
+        let huidigeDagStatus = 'open';
 
         function labelVoorPunten(p) {
             if (p <= 1) return 'Onvoldoende';
@@ -276,7 +272,6 @@
 
                 document.getElementById('laatste-body').innerHTML = `
                     <div class="last-entry__row"><strong>Uitgevoerde taken</strong>${dag.taken_beschrijving || '—'}</div>
-                    <div class="last-entry__row"><strong>Reflectie</strong>${dag.reflectie || '—'}</div>
                     <div class="last-entry__row"><strong>Problemen</strong>${dag.leerpunten || '—'}</div>
                     <div class="last-entry__row"><strong>Gewerkte uren</strong>${dag.uren ?? 0} uur</div>
                     <div class="last-entry__row"><strong>Competenties</strong></div>
@@ -315,25 +310,63 @@
             updateTotaal();
         }
 
+        function blokkeerFormulier(geblokkeerd) {
+            const velden = ['datum', 'uren', 'taken', 'problemen'];
+            velden.forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.disabled = geblokkeerd;
+            });
+            const indienKnop = document.getElementById('indien-knop');
+            if (indienKnop) {
+                indienKnop.disabled = geblokkeerd;
+                indienKnop.style.opacity = geblokkeerd ? 0.5 : 1;
+            }
+            const conceptKnop = document.querySelector('.form-actions .btn-secondary');
+            if (conceptKnop) {
+                conceptKnop.disabled = geblokkeerd;
+                conceptKnop.style.opacity = geblokkeerd ? 0.5 : 1;
+            }
+            const rubriek = document.getElementById('competenties-lijst');
+            if (rubriek) rubriek.style.opacity = geblokkeerd ? 0.5 : 1;
+            if (geblokkeerd) {
+                rubriek?.querySelectorAll('.niveau-vak').forEach(v => v.style.pointerEvents = 'none');
+                rubriek?.querySelectorAll('.comp-feedback').forEach(f => f.disabled = true);
+            } else {
+                rubriek?.querySelectorAll('.niveau-vak').forEach(v => v.style.pointerEvents = '');
+                rubriek?.querySelectorAll('.comp-feedback').forEach(f => f.disabled = false);
+            }
+            const statusBox = document.getElementById('dag-status-box');
+            if (geblokkeerd && statusBox) {
+                statusBox.innerHTML = '<div style="background:#DCFCE7;border:1px solid #BBF7D0;border-radius:8px;padding:10px 14px;font-size:13px;color:#166534;font-weight:600">✓ Deze dag is al ingediend en kan niet meer worden bewerkt.</div>';
+                statusBox.style.display = 'block';
+            } else if (statusBox) {
+                statusBox.style.display = 'none';
+            }
+        }
+
         async function laadDagVoorDatum(datum) {
             if (!token || !datum) return;
+            huidigeDagId = null;
+            huidigeDagStatus = 'open';
             try {
                 const res = await fetch(`${API}/logboek/dag?datum=${datum}`, { headers: { 'Authorization': 'Bearer ' + token } });
                 if (res.status === 404) {
                     document.getElementById('taken').value = '';
-                    document.getElementById('reflectie').value = '';
                     document.getElementById('problemen').value = '';
                     document.getElementById('uren').value = '';
                     resetRubriek();
+                    blokkeerFormulier(false);
                     return;
                 }
                 if (!res.ok) return;
                 const dag = await res.json();
+                huidigeDagId = dag.dag_id;
+                huidigeDagStatus = dag.status || 'open';
                 document.getElementById('taken').value = dag.taken_beschrijving || '';
-                document.getElementById('reflectie').value = dag.reflectie || '';
                 document.getElementById('problemen').value = dag.leerpunten || '';
                 document.getElementById('uren').value = dag.uren ?? '';
                 vulRubriekIn(dag.competenties);
+                blokkeerFormulier(huidigeDagStatus === 'ingediend');
             } catch (err) {
                 console.error(err);
             }
@@ -345,44 +378,44 @@
             document.getElementById('week-teller').textContent = `Week ${nr} van ${totaalWeken}`;
             const box = document.getElementById('week-dagen');
             const pill = document.getElementById('week-status-pill');
-            const knop = document.getElementById('indien-knop');
             if (!token) return;
             try {
                 const res = await fetch(`${API}/logboek/week/${nr}`, { headers: { 'Authorization': 'Bearer ' + token } });
                 if (res.status === 404) {
                     box.innerHTML = '<div class="last-entry__row">Nog geen logboeken voor deze week.</div>';
                     pill.textContent = 'Open';
-                    knop.disabled = true;
-                    knop.style.opacity = 0.5;
-                    knop.textContent = 'Week indienen';
+                    pill.style.background = '';
+                    pill.style.color = '';
                     return;
                 }
                 const week = await res.json();
-                const ingediend = week.status === 'ingediend' || week.status === 'goedgekeurd';
-                pill.textContent = week.status === 'goedgekeurd' ? 'Goedgekeurd' : ingediend ? 'Ingediend' : 'Open';
-                pill.style.background = week.status === 'goedgekeurd' ? '#DCFCE7' : ingediend ? '#FEF3C7' : '';
-                pill.style.color = week.status === 'goedgekeurd' ? '#166534' : ingediend ? '#92400E' : '';
-                knop.disabled = ingediend;
-                knop.style.opacity = ingediend ? 0.5 : 1;
-                knop.textContent = ingediend ? 'Reeds ingediend' : 'Week indienen';
 
-                // Blokkeer formulier als week al ingediend is
-                blokkeerFormulier(ingediend);
-                if (!week.dagen.length) {
+                const dagen = week.dagen || [];
+                const alleIngediend = dagen.length > 0 && dagen.every(d => d.status === 'ingediend');
+                pill.textContent = alleIngediend ? 'Compleet' : `${dagen.filter(d => d.status === 'ingediend').length}/${dagen.length} ingediend`;
+                pill.style.background = alleIngediend ? '#DCFCE7' : '#FEF3C7';
+                pill.style.color = alleIngediend ? '#166534' : '#92400E';
+
+                if (!dagen.length) {
                     box.innerHTML = '<div class="last-entry__row">Nog geen dagen ingevuld deze week.</div>';
                 } else {
-                    box.innerHTML = week.dagen.map(d => `
-                        <div class="week-dag-rij">
+                    box.innerHTML = dagen.map(d => {
+                        const ingediend = d.status === 'ingediend';
+                        const icoon = ingediend ? '✓' : '○';
+                        const kleur = ingediend ? '#166534' : '#9CA3AF';
+                        return `
+                        <div class="week-dag-rij" style="cursor:pointer;opacity:${ingediend ? 0.8 : 1}" onclick="laadDagVoorDatum('${d.datum?.split('T')[0] || d.datum}')">
                             <div class="week-dag-rij__top">
+                                <span style="color:${kleur};font-weight:700;margin-right:6px">${icoon}</span>
                                 <span class="week-dag-rij__datum">${new Date(d.datum).toLocaleDateString('nl-BE', { weekday: 'short', day: 'numeric', month: 'short' })}</span>
                                 <span class="week-dag-rij__uren">${d.uren ?? 0} u</span>
                             </div>
                             <div class="week-dag-rij__taken">${d.taken_beschrijving || '—'}</div>
-                        </div>
-                    `).join('');
+                        </div>`;
+                    }).join('');
                 }
 
-                // Toon feedback van docent
+                // Toon feedback van docent/mentor
                 const feedbackBox = document.getElementById('week-feedback-box');
                 if (week.docent_feedback || week.mentor_feedback) {
                     let html = '';
@@ -416,61 +449,19 @@
             if (huidigeWeek < totaalWeken) laadWeek(huidigeWeek + 1);
         }
 
-        function blokkeerFormulier(geblokkeerd) {
-            const velden = ['datum', 'uren', 'taken', 'reflectie', 'problemen'];
-            velden.forEach(id => {
-                const el = document.getElementById(id);
-                if (el) el.disabled = geblokkeerd;
-            });
-            const opslaanKnop = document.querySelector('.form-actions .btn-primary');
-            if (opslaanKnop) {
-                opslaanKnop.disabled = geblokkeerd;
-                opslaanKnop.style.opacity = geblokkeerd ? 0.5 : 1;
-            }
-            const rubriek = document.getElementById('competenties-lijst');
-            if (rubriek) rubriek.style.opacity = geblokkeerd ? 0.5 : 1;
-            if (geblokkeerd) {
-                rubriek?.querySelectorAll('.niveau-vak').forEach(v => v.style.pointerEvents = 'none');
-                rubriek?.querySelectorAll('.comp-feedback').forEach(f => f.disabled = true);
-            } else {
-                rubriek?.querySelectorAll('.niveau-vak').forEach(v => v.style.pointerEvents = '');
-                rubriek?.querySelectorAll('.comp-feedback').forEach(f => f.disabled = false);
-            }
-        }
-
-        async function dienWeekInUI() {
-            if (!confirm(`Week ${huidigeWeek} indienen? Daarna kun je deze week niet meer bewerken.`)) return;
-            try {
-                const res = await fetch(`${API}/logboek/week/${huidigeWeek}/indienen`, {
-                    method: 'PUT',
-                    headers: { 'Authorization': 'Bearer ' + token }
-                });
-                const r = await res.json();
-                if (res.ok) {
-                    alert(r.message || 'Week ingediend');
-                    laadWeek(huidigeWeek);
-                } else {
-                    alert(r.error || 'Er ging iets mis');
-                }
-            } catch (err) {
-                alert('Kan geen verbinding maken met de server');
-            }
-        }
-
-        async function slaOp() {
+        function verzamelFormulier() {
             const datum = document.getElementById('datum');
             const taken = document.getElementById('taken');
-            const reflectie = document.getElementById('reflectie');
             const problemen = document.getElementById('problemen');
             const uren = document.getElementById('uren');
 
-            if (!datum.value || !taken.value || !reflectie.value || !problemen.value || !uren.value) {
+            if (!datum.value || !taken.value || !problemen.value || !uren.value) {
                 alert('Alle velden zijn verplicht! Vul aub alle velden in.');
-                return;
+                return null;
             }
             if (!token) {
                 alert('Je bent niet ingelogd.');
-                return;
+                return null;
             }
 
             const competenties = [...document.querySelectorAll('.comp-kaart')]
@@ -481,15 +472,18 @@
                     commentaar: k.querySelector('.comp-feedback').value
                 }));
 
-            const data = {
+            return {
                 datum: datum.value,
                 taken_beschrijving: taken.value,
-                reflectie: reflectie.value,
                 leerpunten: problemen.value,
                 uren: uren.value,
                 competenties
             };
+        }
 
+        async function slaConceptOp() {
+            const data = verzamelFormulier();
+            if (!data) return;
             try {
                 const res = await fetch(`${API}/logboek`, {
                     method: 'POST',
@@ -502,12 +496,61 @@
                 const result = await res.json();
                 if (res.ok) {
                     const fb = document.getElementById('feedback-box');
+                    fb.textContent = '✅ Concept opgeslagen!';
                     fb.style.display = 'block';
-                    setTimeout(() => fb.style.display = 'none', 3000);
+                    setTimeout(() => { fb.style.display = 'none'; fb.textContent = '✅ Logboek succesvol opgeslagen!'; }, 3000);
+                    huidigeDagId = result.dag_id;
                     laadLaatste();
                     laadWeek(huidigeWeek);
                 } else {
                     alert(result.error || 'Er ging iets mis');
+                }
+            } catch (err) {
+                alert('Kan geen verbinding maken met de server');
+            }
+        }
+
+        async function dienDagIn() {
+            const data = verzamelFormulier();
+            if (!data) return;
+
+            if (!confirm('Weet je zeker dat je deze dag wilt indienen? Daarna kan deze niet meer worden bewerkt.')) return;
+
+            try {
+                // Eerst opslaan
+                const saveRes = await fetch(`${API}/logboek`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + token
+                    },
+                    body: JSON.stringify(data)
+                });
+                const saveResult = await saveRes.json();
+                if (!saveRes.ok) {
+                    alert(saveResult.error || 'Er ging iets mis bij het opslaan');
+                    return;
+                }
+
+                // Dan indienen
+                const dagId = saveResult.dag_id;
+                const dienRes = await fetch(`${API}/logboek/dag/${dagId}/indienen`, {
+                    method: 'PUT',
+                    headers: { 'Authorization': 'Bearer ' + token }
+                });
+                const dienResult = await dienRes.json();
+                if (dienRes.ok) {
+                    huidigeDagId = dagId;
+                    huidigeDagStatus = 'ingediend';
+                    blokkeerFormulier(true);
+                    const fb = document.getElementById('feedback-box');
+                    fb.textContent = '✅ Dag ingediend!';
+                    fb.style.display = 'block';
+                    setTimeout(() => { fb.style.display = 'none'; fb.textContent = '✅ Logboek succesvol opgeslagen!'; }, 3000);
+                    laadLaatste();
+                    laadWeek(huidigeWeek);
+                } else {
+                    alert(dienResult.error || 'Er ging iets mis bij het indienen');
                 }
             } catch (err) {
                 alert('Kan geen verbinding maken met de server');

@@ -18,7 +18,7 @@ exports.getCompetenties = async (req, res) => {
         const [competenties] = await db.query('SELECT * FROM COMPETENTIE WHERE opleiding = ?', [opleiding]);
         for (const c of competenties) {
             const [rubrieken] = await db.query(
-                'SELECT rubriek_id, punten AS score, label, omschrijving FROM RUBRIEK WHERE competentie_id = ? ORDER BY punten ASC',
+                'SELECT rubriek_id, punten AS score, omschrijving FROM RUBRIEK WHERE competentie_id = ? ORDER BY punten ASC',
                 [c.competentie_id]
             );
             c.rubrieken = rubrieken;
@@ -71,8 +71,8 @@ exports.saveCompetenties = async (req, res) => {
             await connection.query('DELETE FROM RUBRIEK WHERE competentie_id = ?', [competentieId]);
             for (const r of c.rubrieken || []) {
                 await connection.query(
-                    'INSERT INTO RUBRIEK (competentie_id, punten, label, omschrijving) VALUES (?, ?, ?, ?)',
-                    [competentieId, r.score, r.label, r.omschrijving]
+                    'INSERT INTO RUBRIEK (competentie_id, punten, omschrijving) VALUES (?, ?, ?)',
+                    [competentieId, r.score, r.omschrijving]
                 );
             }
         }
@@ -225,7 +225,7 @@ exports.createMentor = async (req, res) => {
 
         await db.query('UPDATE STAGE SET mentor_id = ? WHERE stage_id = ?', [mentor_id, stage_id]);
 
-        const token = jwt.sign({ id: mentor_gebruiker_id, type: 'set_password' }, process.env.JWT_SECRET || 'supersecret', { expiresIn: '48h' });
+        const token = jwt.sign({ id: mentor_gebruiker_id, email: email, type: 'set_password' }, process.env.JWT_SECRET, { expiresIn: '48h' });
         const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
         const link = `${frontendUrl}/set_password.html?token=${token}`;
         
@@ -313,10 +313,39 @@ exports.getAdminRapporten = async (req, res) => {
 exports.exportRapporten = async (req, res) => {
     try {
         const { stage_ids } = req.body;
+        const db = require('../config/db');
+
+        let query = `
+            SELECT 
+                CONCAT(g.voornaam, ' ', g.achternaam) AS student,
+                b.naam AS bedrijf,
+                COALESCE(SUM(ec.score), 0) AS score
+            FROM STUDENT st
+            JOIN GEBRUIKER g ON st.gebruiker_id = g.id
+            JOIN STAGE s ON st.student_id = s.student_id
+            LEFT JOIN BEDRIJF b ON s.bedrijf_id = b.bedrijf_id
+            LEFT JOIN EVALUATIE e ON s.stage_id = e.stage_id
+            LEFT JOIN EVALUATIE_COMPETENTIE ec ON e.evaluatie_id = ec.evaluatie_id
+            WHERE g.rol = 'student'
+        `;
+        const params = [];
+        if (stage_ids && stage_ids.length > 0) {
+            query += ` AND s.stage_id IN (${stage_ids.map(() => '?').join(',')})`;
+            params.push(...stage_ids);
+        }
+        query += ' GROUP BY s.stage_id, student, bedrijf ORDER BY student ASC';
+
+        const [rows] = await db.query(query, params);
+
+        const csvHeader = 'Student,Bedrijf,Score';
+        const csvRows = rows.map(r => `${r.student},${r.bedrijf || 'Geen'},${r.score}`);
+        const csv = [csvHeader, ...csvRows].join('\n');
+
         res.setHeader('Content-Type', 'text/csv');
         res.setHeader('Content-Disposition', 'attachment; filename="rapporten_export.csv"');
-        res.send('Student,Bedrijf,Score\\nMock,Data,100'); // Mock CSV
+        res.send(csv);
     } catch (err) {
+        console.error(err);
         res.status(500).json({ error: 'Fout bij export' });
     }
 };
@@ -339,6 +368,142 @@ exports.getReports = async (req, res) => {
         res.json(reports);
     } catch (error) {
         res.status(500).json({ error: 'Fout bij het ophalen van rapporten' });
+    }
+};
+
+// ============================================================
+// ADMIN OVEREENKOMST — Contractcontrole
+// ============================================================
+
+const STANDAARD_CHECKLIST = [
+    { item_id: 1, label: 'Identiteitsbewijs student geldig?', verplicht: true },
+    { item_id: 2, label: 'Inschrijvingsbewijs EhB aanwezig?', verplicht: true },
+    { item_id: 3, label: 'Overeenkomst volledig ingevuld?', verplicht: true },
+    { item_id: 4, label: 'Handtekening student aanwezig?', verplicht: true },
+    { item_id: 5, label: 'Handtekening mentor/bedrijf aanwezig?', verplicht: true },
+    { item_id: 6, label: 'Verzekeringsattest bedrijf geldig?', verplicht: false },
+    { item_id: 7, label: 'Arbeidsovereenkomst of stageovereenkomst conform?', verplicht: true },
+    { item_id: 8, label: 'Aansprakelijkheidsverzekering in orde?', verplicht: false },
+];
+
+exports.getActieVereist = async (req, res) => {
+    try {
+        const items = await AdminDashboardModel.getActionRequired();
+        res.json(items);
+    } catch (err) {
+        console.error('getActieVereist:', err);
+        res.status(500).json({ error: 'Fout bij ophalen actie-vereist lijst' });
+    }
+};
+
+exports.getContractControle = async (req, res) => {
+    try {
+        const contract = await AdminDashboardModel.getContractControle(req.params.id);
+        if (!contract) return res.status(404).json({ error: 'Contract niet gevonden' });
+
+        const handtekeningen = {
+            student: {
+                naam: contract.student_volnaam || 'Student',
+                getekend_op: contract.student_getekend ? contract.getekend_op : null,
+                status: contract.student_getekend ? 'aanwezig' : 'ontbreekt'
+            },
+            mentor: {
+                naam: contract.mentor_naam || 'Mentor (bedrijf)',
+                getekend_op: contract.mentor_getekend ? contract.getekend_op : null,
+                status: contract.mentor_getekend ? 'aanwezig' : 'ontbreekt'
+            },
+            instelling: {
+                naam: contract.docent_naam || 'Administrator',
+                getekend_op: contract.docent_getekend ? contract.docent_datum : null,
+                status: contract.docent_getekend ? 'aanwezig' : 'ontbreekt'
+            }
+        };
+
+        let checklist = STANDAARD_CHECKLIST.map(item => ({ ...item, afgevinkt: false }));
+        if (contract.controle_checklist) {
+            try {
+                const saved = typeof contract.controle_checklist === 'string'
+                    ? JSON.parse(contract.controle_checklist)
+                    : contract.controle_checklist;
+                checklist = STANDAARD_CHECKLIST.map(item => {
+                    const savedItem = saved.find(s => s.item_id === item.item_id);
+                    return { ...item, afgevinkt: savedItem ? savedItem.afgevinkt : false };
+                });
+            } catch (e) {
+                console.error('Fout bij parse checklist:', e);
+            }
+        }
+
+        res.json({
+            contract_id: contract.contract_id,
+            bedrijf_naam: contract.bedrijf_naam,
+            student_naam: contract.student_volnaam,
+            opleiding: contract.opleiding,
+            periode_start: contract.periode_start,
+            periode_eind: contract.periode_eind,
+            status_contract: contract.status_contract,
+            ingediend_op: contract.aangemaakt_op,
+            handtekeningen,
+            checklist,
+            opmerking: contract.controle_opmerking || ''
+        });
+    } catch (err) {
+        console.error('getContractControle:', err);
+        res.status(500).json({ error: 'Fout bij ophalen contractcontrole' });
+    }
+};
+
+exports.saveContractControle = async (req, res) => {
+    try {
+        const { checklist, opmerking } = req.body;
+        await AdminDashboardModel.saveChecklistAndOpmerking(req.params.id, checklist, opmerking);
+        res.json({ message: 'Controle opgeslagen' });
+    } catch (err) {
+        console.error('saveContractControle:', err);
+        res.status(500).json({ error: 'Fout bij opslaan controle' });
+    }
+};
+
+exports.afwijsContract = async (req, res) => {
+    try {
+        const { opmerking } = req.body;
+        await AdminDashboardModel.rejectContract(req.params.id, opmerking);
+        res.json({ message: 'Contract afgewezen' });
+    } catch (err) {
+        console.error('afwijsContract:', err);
+        res.status(500).json({ error: 'Fout bij afwijzen contract' });
+    }
+};
+
+exports.goedkeurEnVerzend = async (req, res) => {
+    try {
+        const { checklist, opmerking, signature } = req.body;
+
+        if (checklist || opmerking !== undefined) {
+            await AdminDashboardModel.saveChecklistAndOpmerking(req.params.id, checklist, opmerking);
+        }
+
+        if (signature) {
+            await AdminDashboardModel.approveAndSignContract(req.params.id, signature);
+        }
+
+        const db = require('../config/db');
+        const [rows] = await db.query('SELECT stage_id FROM CONTRACT WHERE contract_id = ?', [req.params.id]);
+        if (rows.length > 0) {
+            const stageId = rows[0].stage_id;
+            await db.query(
+                `INSERT INTO NOTIFICATIE (gebruiker_id, stage_id, titel, bericht, type)
+                 SELECT st.gebruiker_id, s.stage_id, 'Contract goedgekeurd', 
+                        'Je stagecontract is goedgekeurd door de administrator. Je kan het nu raadplegen en ondertekenen.', 'contract'
+                 FROM STAGE s JOIN STUDENT st ON s.student_id = st.student_id WHERE s.stage_id = ?`,
+                [stageId]
+            );
+        }
+
+        res.json({ message: 'Contract goedgekeurd, getekend en verzonden' });
+    } catch (err) {
+        console.error('goedkeurEnVerzend:', err);
+        res.status(500).json({ error: 'Fout bij goedkeuren contract' });
     }
 };
 

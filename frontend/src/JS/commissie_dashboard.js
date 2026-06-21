@@ -1,43 +1,11 @@
 document.addEventListener('DOMContentLoaded', () => {
   if (!requireAuth(['stagecommissie', 'commissie', 'administrator'])) return;
   loadDashboard();
-  loadOvereenkomstenActieVereist();
 });
 
 // ============================================================
-// Overeenkomsten - Actie Vereist (juridische controle + ondertekening)
+// Dashboard laden
 // ============================================================
-async function loadOvereenkomstenActieVereist() {
-  const container = document.getElementById('overeenkomsten-actie-vereist');
-  const badge = document.getElementById('overeenkomsten-badge');
-
-  try {
-    // Verwacht: GET /api/commissie/dashboard/actie-vereist
-    // Response: [{ contract_id, bedrijf_naam, student_naam, ... }]
-    const items = await apiFetch('/commissie/dashboard/actie-vereist');
-
-    badge.textContent = `${items.length} wachtend`;
-
-    if (items.length === 0) {
-      container.innerHTML = '<p style="color:#888; padding:1rem 0;">Geen overeenkomsten die actie vereisen.</p>';
-      return;
-    }
-
-    container.innerHTML = items.map(item => `
-      <div class="contract-action-card">
-        <div class="contract-action-card__info">
-          <div class="contract-action-card__student">${item.student_naam}</div>
-          <div class="contract-action-card__bedrijf">${item.bedrijf_naam || 'Onbekend bedrijf'}</div>
-        </div>
-        <button class="contract-action-card__btn" onclick="window.location.href='commissie_overeenkomst.html?id=${item.contract_id}'">Controleer contract</button>
-      </div>
-    `).join('');
-  } catch (err) {
-    console.error('Fout bij ophalen overeenkomsten actie-vereist:', err);
-    container.innerHTML = '<p style="color:#888; padding:1rem 0;">Kon overeenkomsten niet laden.</p>';
-  }
-}
-
 async function loadDashboard() {
   try {
     const stages = await apiFetch('/stage/all');
@@ -146,9 +114,4 @@ async function loadDashboard() {
 function viewAllPoints(event) {
   event.preventDefault();
   window.location.href = 'commissie_dossiers.html';
-}
-
-function logout() {
-  localStorage.removeItem('token');
-  window.location.href = 'index.html';
 }

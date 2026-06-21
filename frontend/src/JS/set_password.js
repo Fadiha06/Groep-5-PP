@@ -52,6 +52,14 @@ document.addEventListener('DOMContentLoaded', () => {
         window.location.href = 'sessie_vervallen.html';
         return;
       }
+
+      // Toon email uit token als user badge
+      if (payload.email) {
+        document.getElementById('user-email').textContent = payload.email;
+        const initials = payload.email.substring(0, 2).toUpperCase();
+        document.getElementById('avatar-initials').textContent = initials;
+        document.getElementById('user-badge').style.display = 'flex';
+      }
     } catch (e) {
       console.error("Fout bij het lezen van token:", e);
     }

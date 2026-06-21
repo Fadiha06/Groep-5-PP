@@ -39,9 +39,9 @@ exports.createAccount = async (req, res) => {
 
         // Genereer reset token voor het nieuwe account
         const token = jwt.sign(
-            { id: gebruiker_id, type: 'set_password' },
+            { id: gebruiker_id, email: email, type: 'set_password' },
             process.env.JWT_SECRET,
-            { expiresIn: '10m' }
+            { expiresIn: '48h' }
         );
 
         // Link bouwen voor de frontend
@@ -96,14 +96,13 @@ exports.deleteUser = async (req, res) => {
 exports.updateUser = async (req, res) => {
     try {
         const userId = req.params.id;
-        const { rol, status } = req.body;
+        const { rol } = req.body;
         
         if (!rol) {
             return res.status(400).json({ error: 'Rol is verplicht bij updaten' });
         }
         
         const rolFormatted = rol.toLowerCase();
-        const updatedStatus = status || 'Actief';
         
         const users = await UserModel.findById(userId);
         if (!users || users.length === 0) {
@@ -129,7 +128,7 @@ exports.updateUser = async (req, res) => {
             }
         }
         
-        await UserModel.updateUser(userId, rolFormatted, updatedStatus);
+        await UserModel.updateUser(userId, rolFormatted);
         
         res.json({ message: 'Gebruiker succesvol bijgewerkt' });
     } catch (error) {

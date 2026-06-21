@@ -125,7 +125,7 @@ const getLogboeken = async (docentId) => {
             CONCAT(g.voornaam, ' ', g.achternaam) AS naam,
             s.opleiding,
             b.naam AS bedrijf,
-            CONCAT(st.startdatum, ' – ', st.einddatum) AS periode
+            CONCAT(st.startdatum, ' - ', st.einddatum) AS periode
         FROM LOGBOEK_WEEK lw
         JOIN STAGE st ON st.stage_id = lw.stage_id
         JOIN STUDENT s ON s.student_id = st.student_id
@@ -140,7 +140,7 @@ const getLogboeken = async (docentId) => {
 
 const getDagenVoorWeek = async (weekId) => {
     const [rows] = await pool.query(
-        `SELECT ld.dag_id, ld.datum, ld.uren, ld.taken_beschrijving AS taken, ld.reflectie, ld.leerpunten AS problemen
+        `SELECT ld.dag_id, ld.datum, ld.uren, ld.taken_beschrijving AS taken, ld.leerpunten AS problemen, ld.status
         FROM LOGBOEK_DAG ld
         WHERE ld.week_id = ?
         ORDER BY ld.datum`,

@@ -102,7 +102,6 @@ async function laadExpandContent(index) {
             </div>
             <div class="dag-body">
               ${dag.taken ? `<div class="dag-sectie"><div class="dag-label">Uitgevoerde taken:</div><div class="dag-tekst">${dag.taken}</div></div>` : ''}
-              ${dag.reflectie ? `<div class="dag-sectie"><div class="dag-label">Reflectie:</div><div class="dag-tekst">${dag.reflectie}</div></div>` : ''}
               ${dag.problemen ? `<div class="dag-sectie"><div class="dag-label">Problemen of uitdagingen:</div><div class="dag-tekst">${dag.problemen}</div></div>` : ''}
               ${dag.competenties && dag.competenties.length > 0 ? `
                 <div class="dag-sectie">

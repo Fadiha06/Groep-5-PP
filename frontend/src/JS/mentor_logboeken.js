@@ -230,7 +230,7 @@ function toonWeek(weekIdx) {
       <td>${formatDatum(dag.datum)}</td>
       <td style="text-align: center; font-weight: 600;">${dag.uren || 0}u</td>
       <td>${dag.taken_beschrijving || dag.taken || '—'}</td>
-      <td>${dag.reflectie || '—'}</td>
+      <td>${dag.leerpunten || '—'}</td>
     </tr>
   `).join('');
 
@@ -337,9 +337,11 @@ async function laadCompetentiesVoorScoring() {
     const mentorScores = {};
     (week.mentor_scores || []).forEach(e => { mentorScores[e.competentie_id] = e.score; });
 
-    // Haal competenties op
-    const comps = await apiFetch('/competenties');
-    competentiesLijst = Array.isArray(comps) ? comps : [];
+    // Haal competenties op, gefilterd op opleiding van de student
+    const opleiding = log.opleiding || '';
+    const endpoint = opleiding ? `/competenties?opleiding=${encodeURIComponent(opleiding)}` : '/competenties';
+    const comps = await apiFetch(endpoint);
+    competentiesLijst = Array.isArray(comps?.competenties) ? comps.competenties : (Array.isArray(comps) ? comps : []);
 
     const lijst = document.getElementById('scoring-lijst');
     if (!lijst) return;
