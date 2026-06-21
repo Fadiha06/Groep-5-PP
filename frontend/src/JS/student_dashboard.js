@@ -2,7 +2,7 @@ async function loadDashboard() {
   if (!requireAuth('student')) return;
 
   try {
-    const data = await apiFetch('/studenten/dashboard');
+    const data = await apiFetch('/student/dashboard');
     const naamEl = document.getElementById('student-naam');
     if (naamEl && data.student && data.student.naam) naamEl.textContent = data.student.naam.split(' ')[0];
 

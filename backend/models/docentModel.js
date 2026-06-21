@@ -259,7 +259,65 @@ const getAggregatie = async (docentId) => {
     return rows;
 };
 
-module.exports = {
+const getEvaluatieVergelijking = async (stageId, type) => {
+    const [competenties] = await pool.query(
+        'SELECT competentie_id, naam, omschrijving FROM COMPETENTIE ORDER BY naam ASC'
+    );
+    const [rubriek] = await pool.query(
+        'SELECT competentie_id, punten, omschrijving FROM RUBRIEK ORDER BY punten ASC'
+    );
+    const [scores] = await pool.query(
+        `SELECT e.beoordelaar_rol, ec.competentie_id, ec.score, ec.commentaar
+         FROM EVALUATIE e
+         JOIN EVALUATIE_COMPETENTIE ec ON ec.evaluatie_id = e.evaluatie_id
+         WHERE e.stage_id = ? AND e.type = ?`,
+        [stageId, type]
+    );
+
+    const vind = (rol, compId) => {
+        const rollen = rol === 'mentor' ? ['mentor', 'stagementor'] : [rol];
+        return scores.find(s => rollen.includes(s.beoordelaar_rol) && s.competentie_id === compId);
+    };
+
+    return competenties.map(c => {
+        const st = vind('student', c.competentie_id);
+        const me = vind('mentor', c.competentie_id);
+        const dc = vind('docent', c.competentie_id);
+        return {
+            competentie_id: c.competentie_id,
+            naam: c.naam,
+            omschrijving: c.omschrijving,
+            niveaus: rubriek
+                .filter(r => r.competentie_id === c.competentie_id)
+                .map(r => ({ punten: r.punten, omschrijving: r.omschrijving })),
+            score_student: st ? st.score : null,
+            commentaar_student: st ? st.commentaar : null,
+            score_mentor: me ? me.score : null,
+            commentaar_mentor: me ? me.commentaar : null,
+            score_docent: dc ? dc.score : null,
+            commentaar_docent: dc ? dc.commentaar : null
+        };
+    });
+};
+
+// Evaluatieplanning per stage (door de docent ingesteld)
+const getEvaluatiePlanning = async (stageId) => {
+    const [rows] = await pool.query(
+        `SELECT DATE_FORMAT(eval_tussentijds_vanaf, '%Y-%m-%d') AS tussentijds_vanaf,
+                DATE_FORMAT(eval_finaal_vanaf, '%Y-%m-%d') AS finaal_vanaf
+         FROM STAGE WHERE stage_id = ?`,
+        [stageId]
+    );
+    return rows[0] || { tussentijds_vanaf: null, finaal_vanaf: null };
+};
+
+const setEvaluatiePlanning = async (stageId, tussentijds, finaal) => {
+    await pool.query(
+        'UPDATE STAGE SET eval_tussentijds_vanaf = ?, eval_finaal_vanaf = ? WHERE stage_id = ?',
+        [tussentijds || null, finaal || null, stageId]
+    );
+};
+module.exports = { getEvaluatieVergelijking, getEvaluatiePlanning, setEvaluatiePlanning,
     createProfile,
     getDocent,
     getStudentenMetLogboekStatus,
@@ -278,6 +336,7 @@ module.exports = {
     getCompetentiesVoorDag,
     getAggregatie
 };
+
 
 
 
