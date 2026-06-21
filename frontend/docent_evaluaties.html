@@ -3,83 +3,70 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>EhB StageTool — Docent Dashboard</title>
+    <title>EhB StageTool — Evaluaties</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="src/CSS/docent_dashboard.css" />
+    <link rel="stylesheet" href="src/CSS/docent_evaluaties.css" />
 </head>
 <body>
+<div class="root">
 
     <aside class="sidebar">
         <div class="sb-logo">
             <div class="sb-logo-title">EhB StageTool</div>
             <div class="sb-logo-sub">Toegepaste Informatica</div>
         </div>
-        <nav>
-            <div class="sb-nav">
-                <a href="#" class="sb-item active">Docent Dashboard</a>
-                <a href="docent_studentendossiers.html" class="sb-item">Overzicht Studenten</a>
-                <a href="docent_logboeken.html" class="sb-item">Logboeken</a>
-                <a href="docent_evaluaties.html" class="sb-item">Evaluaties</a>
-            </div>
-        </nav>
+        <div class="sb-nav">
+            <a href="docent_dashboard.html" class="sb-item">Docent Dashboard</a>
+            <a href="docent_studentendossiers.html" class="sb-item">Overzicht Studenten</a>
+            <a href="docent_logboeken.html" class="sb-item">Logboeken</a>
+            <a href="#" class="sb-item active">Evaluaties</a>
+        </div>
         <div class="sb-footer">Ingelogd als Docent</div>
     </aside>
 
-      <!-- Evaluatie paneel -->
-      <div style="display:flex;flex-direction:column;gap:14px">
+    <main class="main">
+        <div class="eval-header-title" id="eval-titel">Evaluaties</div>
+        <div class="eval-header-sub">Beoordeel en score de competenties van je studenten per week.</div>
 
-        <div>
-          <div class="eval-header-title" id="eval-titel">Samengebrachte score</div>
-          <div class="eval-header-sub">Plan de evaluatiemomenten en breng student- en mentorscore samen.</div>
-        </div>
+        <div class="content-grid">
 
-        <!-- Planning -->
-        <div class="planning-card">
-          <div class="planning-title">📅 Evaluatiemomenten</div>
-          <div class="planning-sub" id="planning-sub">Selecteer een student om de planning te bekijken.</div>
-          <div class="planning-row">
-            <label class="planning-field">Tussentijdse evaluatie vanaf
-              <input type="date" id="plan-tussentijds">
-            </label>
-            <label class="planning-field">Eindevaluatie vanaf
-              <input type="date" id="plan-finaal">
-            </label>
-            <button class="btn-plan" onclick="opslaanPlanning()">Planning opslaan</button>
-          </div>
-        </div>
+            <!-- Student lijst -->
+            <div class="student-list-card">
+                <div class="student-list-search">
+                    <div class="student-list-label">Studenten</div>
+                    <input class="search" type="text" placeholder="Zoek student..." oninput="filterStudents()" />
+                </div>
+                <div class="student-items" id="student-items">
+                    <div style="padding:20px;text-align:center;color:#9CA3AF;font-size:12px">Laden...</div>
+                </div>
+            </div>
 
-        <div class="grid">
+            <!-- Evaluatie panel -->
             <div>
-                <div class="card">
-                    <div class="card-title">Logboek Controle — <span id="week-label">...</span></div>
-                    <div class="table-header">
-                        <div>Student</div>
-                        <div>Bedrijf</div>
-                        <div>Status Logboek</div>
-                        <div>Actie</div>
+                <div class="eval-toolbar">
+                    <div class="week-tabs" id="week-tabs"></div>
+                    <div class="legenda">
+                        <div class="legenda-item"><div class="legenda-dot dot-student"></div> Student</div>
+                        <div class="legenda-item"><div class="legenda-dot dot-mentor"></div> Mentor</div>
+                        <div class="totaal-badge" id="totaal-badge">Totaal: — / —</div>
                     </div>
-                    <div id="studenten-body">
-                        <div class="placeholder" style="padding:12px 0;">Laden...</div>
-                    </div>
+                </div>
+
+                <div id="competenties-container" style="margin-top:16px">
+                    <div style="padding:30px;text-align:center;color:#9CA3AF;font-size:13px">Selecteer een student om te beginnen.</div>
+                </div>
+
+                <div class="save-row" style="margin-top:16px">
+                    <button class="btn-opslaan" id="btn-opslaan" onclick="opslaanScore()">Opslaan score</button>
                 </div>
             </div>
 
-            <div class="card">
-                <div class="card-title">Voortgang &amp; Milestones</div>
-                <div id="milestones-body">
-                    <div class="placeholder">Laden...</div>
-                </div>
-            </div>
-        </div>
-
-        <div class="card">
-            <div class="card-title">Tussentijdse Punten Aggregatie (Competenties)</div>
-            <div class="placeholder">Beschikbaar zodra de evaluatie-feature klaar is.</div>
         </div>
     </main>
 
-    <script src="/src/JS/api.js"></script>
-    <script src="/src/JS/docent_dashboard.js"></script>
+</div>
 
+<script src="src/JS/api.js"></script>
+<script src="src/JS/docent_evaluaties.js"></script>
 </body>
 </html>

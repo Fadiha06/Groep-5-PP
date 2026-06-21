@@ -1,4 +1,12 @@
-const WEEK = 4;
+function berekenHuidigeWeek() {
+    const nu = new Date();
+    const start = new Date(nu.getFullYear(), 8, 1);
+    if (nu < start) start.setFullYear(start.getFullYear() - 1);
+    const verschilInDagen = Math.floor((nu - start) / (1000 * 60 * 60 * 24));
+    return Math.max(1, Math.floor(verschilInDagen / 7) + 1);
+}
+
+const WEEK = berekenHuidigeWeek();
 
 async function laadDashboard() {
     if (!requireAuth('docent')) return;
