@@ -311,8 +311,8 @@ const slaEvaluatieOp = async (req, res) => {
             evaluatieId = result.insertId;
         }
         if (scores && scores.length > 0) {
-            const values = scores.map(s => [evaluatieId, s.competentie_id, s.score]);
-            await db.query('INSERT INTO EVALUATIE_COMPETENTIE (evaluatie_id, competentie_id, score) VALUES ?', [values]);
+            const values = scores.map(s => [evaluatieId, s.competentie_id, s.score, s.commentaar || null]);
+            await db.query('INSERT INTO EVALUATIE_COMPETENTIE (evaluatie_id, competentie_id, score, commentaar) VALUES ?', [values]);
         }
         res.json({ message: 'Evaluatie opgeslagen' });
     } catch (err) {
@@ -360,7 +360,7 @@ const getEvaluatieVergelijking = async (req, res) => {
     try {
         const docent = await docentModel.getDocent(req.user.id);
         if (!docent) return res.status(404).json({ error: 'Geen docent gevonden' });
-        if (!(await docentModel.isEigenStage(docent.docent_id, stage_id))) {
+        if (!(await docentModel.isEigenStage(stage_id, req.user.id))) {
             return res.status(403).json({ error: 'Dit is niet jouw student' });
         }
         const data = await docentModel.getEvaluatieVergelijking(stage_id, type || 'tussentijds');
@@ -378,7 +378,7 @@ const getEvaluatiePlanning = async (req, res) => {
     try {
         const docent = await docentModel.getDocent(req.user.id);
         if (!docent) return res.status(404).json({ error: 'Geen docent gevonden' });
-        if (!(await docentModel.isEigenStage(docent.docent_id, stage_id))) {
+        if (!(await docentModel.isEigenStage(stage_id, req.user.id))) {
             return res.status(403).json({ error: 'Dit is niet jouw student' });
         }
         const planning = await docentModel.getEvaluatiePlanning(stage_id);
@@ -396,7 +396,7 @@ const setEvaluatiePlanning = async (req, res) => {
     try {
         const docent = await docentModel.getDocent(req.user.id);
         if (!docent) return res.status(404).json({ error: 'Geen docent gevonden' });
-        if (!(await docentModel.isEigenStage(docent.docent_id, stage_id))) {
+        if (!(await docentModel.isEigenStage(stage_id, req.user.id))) {
             return res.status(403).json({ error: 'Dit is niet jouw student' });
         }
         await docentModel.setEvaluatiePlanning(stage_id, tussentijds_vanaf, finaal_vanaf);
@@ -406,8 +406,111 @@ const setEvaluatiePlanning = async (req, res) => {
         res.status(500).json({ error: 'Serverfout bij opslaan planning' });
     }
 };
+// POST /api/docent/evaluatie/toon — toon/verberg evaluatie aan student
+const toggleEvaluatieGetoond = async (req, res) => {
+    const { stage_id, type } = req.body;
+    if (!stage_id || !type) return res.status(400).json({ error: 'stage_id en type zijn verplicht' });
+    if (!['tussentijds', 'finaal'].includes(type)) return res.status(400).json({ error: 'type moet tussentijds of finaal zijn' });
+    try {
+        const docent = await docentModel.getDocent(req.user.id);
+        if (!docent) return res.status(404).json({ error: 'Geen docent gevonden' });
+        if (!(await docentModel.isEigenStage(stage_id, req.user.id))) {
+            return res.status(403).json({ error: 'Dit is niet jouw student' });
+        }
+
+        const db = require('../config/db');
+        const kolom = type === 'tussentijds' ? 'eval_getoond_tussentijds' : 'eval_getoond_finaal';
+
+        const [rows] = await db.query(`SELECT ${kolom} AS huidig FROM STAGE WHERE stage_id = ?`, [stage_id]);
+        const nieuw = rows[0] ? !rows[0].huidig : false;
+        await db.query(`UPDATE STAGE SET ${kolom} = ? WHERE stage_id = ?`, [nieuw ? 1 : 0, stage_id]);
+
+        res.json({ message: nieuw ? 'Evaluatie getoond aan student' : 'Evaluatie verborgen voor student', getoond: nieuw });
+    } catch (err) {
+        console.error('Error toggling evaluatie visibility:', err);
+        res.status(500).json({ error: 'Serverfout bij wijzigen zichtbaarheid' });
+    }
+};
+
+// GET /api/docent/evaluatie/logboek-per-week?stage_id=X&week=Y
+const getLogboekPerWeek = async (req, res) => {
+    const { stage_id, week } = req.query;
+    if (!stage_id) return res.status(400).json({ error: 'stage_id is verplicht' });
+    try {
+        const docent = await docentModel.getDocent(req.user.id);
+        if (!docent) return res.status(404).json({ error: 'Geen docent gevonden' });
+        if (!(await docentModel.isEigenStage(stage_id, req.user.id))) {
+            return res.status(403).json({ error: 'Dit is niet jouw student' });
+        }
+
+        const db = require('../config/db');
+
+        const [weken] = await db.query(
+            'SELECT week_id, weeknummer, mentor_feedback FROM LOGBOEK_WEEK WHERE stage_id = ? ORDER BY weeknummer ASC',
+            [stage_id]
+        );
+
+        if (weken.length === 0) {
+            return res.json({ weken: [], competenties: [], scores: {} });
+        }
+
+        if (week) {
+            const selectedWeek = weken.find(w => w.weeknummer === Number(week));
+            if (!selectedWeek) {
+                return res.json({ weken: weken.map(w => w.weeknummer), competenties: [], scores: {}, mentor_feedback: null });
+            }
+
+            const [dagen] = await db.query(
+                'SELECT dag_id FROM LOGBOEK_DAG WHERE week_id = ?',
+                [selectedWeek.week_id]
+            );
+
+            if (dagen.length === 0) {
+                return res.json({ weken: weken.map(w => w.weeknummer), competenties: [], scores: {}, mentor_feedback: selectedWeek.mentor_feedback || null });
+            }
+
+            const dagIds = dagen.map(d => d.dag_id);
+            const dagPlaceholders = dagIds.map(() => '?').join(',');
+
+            const [competenties] = await db.query(
+                `SELECT DISTINCT c.competentie_id, c.naam
+                 FROM LOGBOEK_COMPETENTIE lc
+                 JOIN COMPETENTIE c ON c.competentie_id = lc.competentie_id
+                 WHERE lc.dag_id IN (${dagPlaceholders})`,
+                dagIds
+            );
+
+            const [scores] = await db.query(
+                `SELECT lc.competentie_id, ROUND(AVG(lc.score)) AS avg_score
+                 FROM LOGBOEK_COMPETENTIE lc
+                 WHERE lc.dag_id IN (${dagPlaceholders})
+                 GROUP BY lc.competentie_id`,
+                dagIds
+            );
+
+            const gemiddelden = {};
+            competenties.forEach(c => {
+                const avg = scores.find(s => s.competentie_id === c.competentie_id);
+                if (avg) gemiddelden[c.competentie_id] = parseInt(avg.avg_score);
+            });
+
+            return res.json({
+                weken: weken.map(w => w.weeknummer),
+                competenties: competenties.map(c => ({ id: c.competentie_id, naam: c.naam })),
+                scores: gemiddelden,
+                mentor_feedback: selectedWeek.mentor_feedback || null
+            });
+        }
+
+        res.json({ weken: weken.map(w => w.weeknummer), competenties: [], scores: {} });
+    } catch (err) {
+        console.error('Error fetching logboek per week:', err);
+        res.status(500).json({ error: 'Serverfout bij ophalen logboek per week' });
+    }
+};
+
 module.exports = { getEvaluatieVergelijking, getEvaluatiePlanning, setEvaluatiePlanning, getStudenten, stuurReminder, getMilestones, getDossiers, getMeldingen, getLogboeken, goedkeurLogboek, geefLogboekFeedback, getEvaluatieStudenten, getEvaluatie, slaEvaluatieOp,
-    getAggregatie, getLogboekEvaluatie };
+    getAggregatie, getLogboekEvaluatie, toggleEvaluatieGetoond, getLogboekPerWeek };
 
 
 

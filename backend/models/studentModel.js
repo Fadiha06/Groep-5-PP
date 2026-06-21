@@ -201,27 +201,79 @@ class StudentModel {
         if (!stages.length) return null;
         const { stage_id } = stages[0];
 
-        const [evaluaties] = await db.query(
-            `SELECT e.evaluatie_id, e.datum, e.feedback, e.beoordelaar_rol,
-                    CONCAT(g.voornaam, ' ', g.achternaam) AS beoordelaar_naam
-             FROM EVALUATIE e
-             JOIN GEBRUIKER g ON e.beoordelaar_id = g.id
-             WHERE e.stage_id = ? AND e.type = 'tussentijds'`,
+        const [stageInfo] = await db.query(
+            `SELECT eval_getoond_tussentijds FROM STAGE WHERE stage_id = ?`,
             [stage_id]
         );
+        if (!stageInfo.length || !stageInfo[0].eval_getoond_tussentijds) {
+            return { evaluaties: [], competenties: [], aantalWeken: 0 };
+        }
 
-        const [competenties] = await db.query(
-            `SELECT ec.score, ec.commentaar,
-                    c.naam AS competentie_naam,
-                    e.beoordelaar_rol
+        const [student] = await db.query(
+            `SELECT opleiding FROM STUDENT WHERE student_id = ?`,
+            [student_id]
+        );
+        const opleiding = student[0]?.opleiding || null;
+
+        const [aantalWeken] = await db.query(
+            `SELECT COUNT(DISTINCT e.type) AS cnt
              FROM EVALUATIE e
-             JOIN EVALUATIE_COMPETENTIE ec ON e.evaluatie_id = ec.evaluatie_id
-             JOIN COMPETENTIE c ON ec.competentie_id = c.competentie_id
-             WHERE e.stage_id = ? AND e.type = 'tussentijds'`,
+             WHERE e.stage_id = ? AND e.type LIKE 'week%'
+               AND e.beoordelaar_rol = 'docent'`,
             [stage_id]
         );
+        const weken = aantalWeken[0]?.cnt || 0;
 
-        return { evaluaties, competenties };
+        let competenties;
+        if (opleiding) {
+            [competenties] = await db.query(
+                `SELECT c.naam AS competentie_naam,
+                        c.omschrijving AS competentie_omschrijving,
+                        ROUND(AVG(wk.score), 1) AS score,
+                        COUNT(DISTINCT wk.wk_type) AS aantalWeken
+                 FROM COMPETENTIE c
+                 LEFT JOIN (
+                     SELECT ec.competentie_id, ec.score, e.type AS wk_type
+                     FROM EVALUATIE e
+                     JOIN EVALUATIE_COMPETENTIE ec ON ec.evaluatie_id = e.evaluatie_id
+                     WHERE e.stage_id = ? AND e.type LIKE 'week%'
+                       AND e.beoordelaar_rol = 'docent' AND ec.score IS NOT NULL
+                 ) wk ON wk.competentie_id = c.competentie_id
+                 WHERE c.opleiding = ?
+                 GROUP BY c.competentie_id, c.naam, c.omschrijving
+                 ORDER BY c.naam ASC`,
+                [stage_id, opleiding]
+            );
+        } else {
+            [competenties] = await db.query(
+                `SELECT c.naam AS competentie_naam,
+                        c.omschrijving AS competentie_omschrijving,
+                        ROUND(AVG(wk.score), 1) AS score,
+                        COUNT(DISTINCT wk.wk_type) AS aantalWeken
+                 FROM COMPETENTIE c
+                 LEFT JOIN (
+                     SELECT ec.competentie_id, ec.score, e.type AS wk_type
+                     FROM EVALUATIE e
+                     JOIN EVALUATIE_COMPETENTIE ec ON ec.evaluatie_id = e.evaluatie_id
+                     WHERE e.stage_id = ? AND e.type LIKE 'week%'
+                       AND e.beoordelaar_rol = 'docent' AND ec.score IS NOT NULL
+                 ) wk ON wk.competentie_id = c.competentie_id
+                 GROUP BY c.competentie_id, c.naam, c.omschrijving
+                 ORDER BY c.naam ASC`,
+                [stage_id]
+            );
+        }
+
+        const [rubrieken] = await db.query(
+            `SELECT r.competentie_id, r.punten, r.omschrijving
+             FROM RUBRIEK r
+             JOIN COMPETENTIE c ON c.competentie_id = r.competentie_id
+             WHERE ${opleiding ? 'c.opleiding = ?' : '1=1'}
+             ORDER BY r.competentie_id, r.punten ASC`,
+            opleiding ? [opleiding] : []
+        );
+
+        return { evaluaties: [], competenties, rubrieken, aantalWeken: weken };
     }
 
     static async getFinaleEvaluatie(student_id) {
@@ -232,6 +284,20 @@ class StudentModel {
         if (!stages.length) return null;
         const { stage_id } = stages[0];
 
+        const [stageInfo] = await db.query(
+            `SELECT eval_getoond_finaal FROM STAGE WHERE stage_id = ?`,
+            [stage_id]
+        );
+        if (!stageInfo.length || !stageInfo[0].eval_getoond_finaal) {
+            return { evaluaties: [], competenties: [] };
+        }
+
+        const [student] = await db.query(
+            `SELECT opleiding FROM STUDENT WHERE student_id = ?`,
+            [student_id]
+        );
+        const opleiding = student[0]?.opleiding || null;
+
         const [evaluaties] = await db.query(
             `SELECT e.evaluatie_id, e.datum, e.feedback, e.beoordelaar_rol,
                     CONCAT(g.voornaam, ' ', g.achternaam) AS beoordelaar_naam
@@ -241,18 +307,52 @@ class StudentModel {
             [stage_id]
         );
 
-        const [competenties] = await db.query(
-            `SELECT ec.score, ec.commentaar,
-                    c.naam AS competentie_naam,
-                    e.beoordelaar_rol
-             FROM EVALUATIE e
-             JOIN EVALUATIE_COMPETENTIE ec ON e.evaluatie_id = ec.evaluatie_id
-             JOIN COMPETENTIE c ON ec.competentie_id = c.competentie_id
-             WHERE e.stage_id = ? AND e.type = 'finaal'`,
-            [stage_id]
+        let competenties;
+        if (opleiding) {
+            [competenties] = await db.query(
+                `SELECT c.naam AS competentie_naam,
+                        c.omschrijving AS competentie_omschrijving,
+                        ec.score,
+                        ec.commentaar
+                 FROM COMPETENTIE c
+                 LEFT JOIN (
+                     SELECT ev2.stage_id, ec2.competentie_id, ec2.score, ec2.commentaar
+                     FROM EVALUATIE ev2
+                     JOIN EVALUATIE_COMPETENTIE ec2 ON ec2.evaluatie_id = ev2.evaluatie_id
+                     WHERE ev2.stage_id = ? AND ev2.type = 'finaal'
+                 ) ec ON ec.competentie_id = c.competentie_id AND ec.stage_id = ${stage_id}
+                 WHERE c.opleiding = ?
+                 ORDER BY c.naam ASC`,
+                [stage_id, opleiding]
+            );
+        } else {
+            [competenties] = await db.query(
+                `SELECT c.naam AS competentie_naam,
+                        c.omschrijving AS competentie_omschrijving,
+                        ec.score,
+                        ec.commentaar
+                 FROM COMPETENTIE c
+                 LEFT JOIN (
+                     SELECT ev2.stage_id, ec2.competentie_id, ec2.score, ec2.commentaar
+                     FROM EVALUATIE ev2
+                     JOIN EVALUATIE_COMPETENTIE ec2 ON ec2.evaluatie_id = ev2.evaluatie_id
+                     WHERE ev2.stage_id = ? AND ev2.type = 'finaal'
+                 ) ec ON ec.competentie_id = c.competentie_id AND ec.stage_id = ${stage_id}
+                 ORDER BY c.naam ASC`,
+                [stage_id]
+            );
+        }
+
+        const [rubrieken] = await db.query(
+            `SELECT r.competentie_id, r.punten, r.omschrijving
+             FROM RUBRIEK r
+             JOIN COMPETENTIE c ON c.competentie_id = r.competentie_id
+             WHERE ${opleiding ? 'c.opleiding = ?' : '1=1'}
+             ORDER BY r.competentie_id, r.punten ASC`,
+            opleiding ? [opleiding] : []
         );
 
-        return { evaluaties, competenties };
+        return { evaluaties, competenties, rubrieken };
     }
     // Haal student op via gebruikerId
     static async getStudentByGebruikerId(gebruikerId) {

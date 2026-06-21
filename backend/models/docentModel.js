@@ -170,7 +170,9 @@ const getEvaluatieStudenten = async (docentId) => {
             s.opleiding AS klas,
             'normaal' AS status,
             (CURDATE() >= DATE_ADD(st.startdatum, INTERVAL DATEDIFF(st.einddatum, st.startdatum)/2 DAY)) AS mag_tussentijds,
-            (CURDATE() >= st.einddatum) AS mag_finaal
+            (CURDATE() >= st.einddatum) AS mag_finaal,
+            st.eval_getoond_tussentijds,
+            st.eval_getoond_finaal
         FROM STAGE st
         JOIN STUDENT s ON s.student_id = st.student_id
         JOIN GEBRUIKER g ON g.id = s.gebruiker_id
@@ -260,11 +262,28 @@ const getAggregatie = async (docentId) => {
 };
 
 const getEvaluatieVergelijking = async (stageId, type) => {
-    const [competenties] = await pool.query(
-        'SELECT competentie_id, naam, omschrijving FROM COMPETENTIE ORDER BY naam ASC'
+    const [stage] = await pool.query(
+        `SELECT s.opleiding FROM STAGE st JOIN STUDENT s ON s.student_id = st.student_id WHERE st.stage_id = ?`,
+        [stageId]
     );
+    const opleiding = stage[0]?.opleiding || null;
+
+    let competenties;
+    if (opleiding) {
+        [competenties] = await pool.query(
+            'SELECT competentie_id, naam, omschrijving FROM COMPETENTIE WHERE opleiding = ? ORDER BY naam ASC',
+            [opleiding]
+        );
+    } else {
+        [competenties] = await pool.query(
+            'SELECT competentie_id, naam, omschrijving FROM COMPETENTIE ORDER BY naam ASC'
+        );
+    }
+    const compIds = competenties.map(c => c.competentie_id);
+
     const [rubriek] = await pool.query(
-        'SELECT competentie_id, punten, omschrijving FROM RUBRIEK ORDER BY punten ASC'
+        'SELECT competentie_id, punten, omschrijving FROM RUBRIEK WHERE competentie_id IN (?) ORDER BY punten ASC',
+        [compIds.length ? compIds : [0]]
     );
     const [scores] = await pool.query(
         `SELECT e.beoordelaar_rol, ec.competentie_id, ec.score, ec.commentaar

@@ -188,6 +188,14 @@ async function autoMigreer() {
             }
             console.log(`[auto-migratie] ${fixStages.length} stages gefixed met mentor_id`);
         }
+        // ── Migratie: eval_getoond kolommen op STAGE ──
+        const [stageGetoondCols] = await conn.query(`SHOW COLUMNS FROM STAGE LIKE 'eval_getoond_tussentijds'`);
+        if (stageGetoondCols.length === 0) {
+            await conn.query(`ALTER TABLE STAGE ADD COLUMN eval_getoond_tussentijds BOOLEAN DEFAULT FALSE`);
+            await conn.query(`ALTER TABLE STAGE ADD COLUMN eval_getoond_finaal BOOLEAN DEFAULT FALSE`);
+            console.log('  STAGE: eval_getoond_tussentijds + eval_getoond_finaal kolommen toegevoegd');
+        }
+
         console.log('[auto-migratie] Logboek tabellen OK');
     } catch (err) {
         console.error('[auto-migratie] FOUT:', err.message);

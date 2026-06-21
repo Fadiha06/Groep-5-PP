@@ -69,3 +69,23 @@ body{font-family:'Inter',system-ui,sans-serif;background:#F9FAFB;min-height:100v
 .wacht-icon{font-size:30px;flex-shrink:0}
 .wacht-titel{font-size:15px;font-weight:600;color:#1A3C6E}
 .wacht-sub{font-size:13px;color:#5A6A7E;margin-top:4px;line-height:1.6}
+
+/* Competentie evaluatie lijst */
+.comp-eval-lijst{display:flex;flex-direction:column;gap:4px}
+.comp-eval-blok{padding:10px 14px;border-radius:8px;transition:background 0.15s}
+.comp-eval-blok:hover{background:#F8FAFC}
+.comp-eval-rij{display:flex;align-items:center;gap:14px}
+.comp-eval-naam{font-size:14px;font-weight:600;color:#1A3C6E;min-width:180px;flex-shrink:0}
+.comp-eval-bar-wrap{flex:1;height:8px;background:#E5E7EB;border-radius:4px;overflow:hidden}
+.comp-eval-bar{height:8px;border-radius:4px;transition:width 0.3s}
+.comp-eval-score{font-size:18px;font-weight:700;min-width:50px;text-align:right;flex-shrink:0}
+.comp-eval-max{font-size:12px;font-weight:500;color:#9CA3AF}
+.comp-eval-niveau{font-size:12px;font-weight:600;margin-top:4px 0 0 194px;font-style:italic}
+.comp-eval-comment{font-size:12px;color:#5A6A7E;margin-top:2px 0 0 194px;line-height:1.5}
+.comp-eval-totaal{display:flex;align-items:center;justify-content:space-between;padding:16px 0;border-top:2px solid #E5E7EB;margin-top:8px;font-size:16px;font-weight:700;color:#1A3C6E}
+.comp-eval-totaal-score{font-size:22px;font-weight:700;color:#D1193E}
+
+/* Feedback sectie */
+.feedback-sectie{padding:14px 18px;background:#F8FAFC;border-radius:8px;border:0.8px solid #E5E7EB}
+.feedback-sectie-titel{font-size:11px;font-weight:700;color:#5A6A7E;text-transform:uppercase;letter-spacing:0.4px;margin-bottom:6px}
+.feedback-sectie-tekst{font-size:13px;color:#1A3C6E;line-height:1.6}
