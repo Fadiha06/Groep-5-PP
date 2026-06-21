@@ -7,6 +7,6 @@ router.use(verifyToken);
 
 router.get('/competenties', evaluatieController.getCompetenties);
 router.get('/concept', evaluatieController.getConcept);
-router.post('/opslaan', requireRole(['docent', 'administrator', 'admin']), evaluatieController.saveEvaluatie);
+router.post('/opslaan', requireRole(['docent', 'mentor', 'stagementor', 'administrator', 'admin']), evaluatieController.saveEvaluatie);
 
 module.exports = router;

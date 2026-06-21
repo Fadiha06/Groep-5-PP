@@ -81,7 +81,11 @@ exports.saveEvaluatie = async (req, res) => {
     try {
         const { stage_id, type, definitief, scores } = req.body;
         const beoordelaar_id = req.user.id;
-        const beoordelaar_rol = req.user.rol;
+
+        // Mentor/stagementor slaat altijd 'mentor' op zodat de docent dit kan vinden
+        let beoordelaar_rol = req.user.rol;
+        if (beoordelaar_rol === 'stagementor') beoordelaar_rol = 'mentor';
+
         const datum = new Date();
 
         // Check if evaluatie already exists

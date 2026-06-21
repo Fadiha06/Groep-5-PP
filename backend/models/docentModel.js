@@ -182,7 +182,9 @@ const getEvaluatieStudenten = async (docentId) => {
             st.stage_id,
             CONCAT(g.voornaam, ' ', g.achternaam) AS naam,
             s.opleiding AS klas,
-            'normaal' AS status
+            'normaal' AS status,
+            st.startdatum,
+            st.einddatum
         FROM STAGE st
         JOIN STUDENT s ON s.student_id = st.student_id
         JOIN GEBRUIKER g ON g.id = s.gebruiker_id
@@ -192,18 +194,162 @@ const getEvaluatieStudenten = async (docentId) => {
     return rows;
 };
 
-// Haal evaluaties op voor stage + week
+// Haal evaluaties op voor stage + week — gestructureerd per competentie
 const getEvaluaties = async (stageId, weeknummer) => {
-    const [rows] = await pool.query(
-        `SELECT e.evaluatie_id, e.type, e.feedback,
-                ec.competentie_id, c.naam AS competentie_naam, ec.score
-        FROM EVALUATIE e
-        JOIN EVALUATIE_COMPETENTIE ec ON ec.evaluatie_id = e.evaluatie_id
-        JOIN COMPETENTIE c ON c.competentie_id = ec.competentie_id
-        WHERE e.stage_id = ? AND e.type = ?`,
-        [stageId, `week${weeknummer}`]
+    const type = `week${weeknummer}`;
+
+    // 1. Haal de opleiding van de student op
+    const [stageRows] = await pool.query(
+        `SELECT s.opleiding FROM STAGE st
+         JOIN STUDENT s ON s.student_id = st.student_id
+         WHERE st.stage_id = ?`,
+        [stageId]
     );
-    return rows;
+    if (stageRows.length === 0) return [];
+    const opleiding = stageRows[0].opleiding;
+
+    // 2. Haal alle competenties voor deze opleiding
+    const [competenties] = await pool.query(
+        `SELECT competentie_id, naam, omschrijving FROM COMPETENTIE WHERE opleiding = ?`,
+        [opleiding]
+    );
+    if (competenties.length === 0) return [];
+
+    const competentieIds = competenties.map(c => c.competentie_id);
+
+    // 3. Haal alle rubriek-opties op voor deze competenties
+    const [rubrieken] = await pool.query(
+        `SELECT competentie_id, punten, omschrijving FROM RUBRIEK
+         WHERE competentie_id IN (?) ORDER BY competentie_id, punten`,
+        [competentieIds]
+    );
+
+    // Groepeer opties per competentie
+    const optiesPerCompetentie = {};
+    rubrieken.forEach(r => {
+        if (!optiesPerCompetentie[r.competentie_id]) optiesPerCompetentie[r.competentie_id] = [];
+        optiesPerCompetentie[r.competentie_id].push({
+            score: r.punten,
+            label: `${r.punten} ptn`,
+            beschrijving: r.omschrijving || ''
+        });
+    });
+
+    // 4. Haal student zelfbeoordeling op (geagereerd per competentie over alle dagen van de week)
+    const [logboekWeken] = await pool.query(
+        `SELECT week_id FROM LOGBOEK_WEEK WHERE stage_id = ? AND weeknummer = ?`,
+        [stageId, weeknummer]
+    );
+
+    let studentScores = {};
+    let feedbackStudent = '';
+    if (logboekWeken.length > 0) {
+        const weekId = logboekWeken[0].week_id;
+        const [dagIds] = await pool.query(
+            `SELECT dag_id FROM LOGBOEK_DAG WHERE week_id = ?`,
+            [weekId]
+        );
+        if (dagIds.length > 0) {
+            const ids = dagIds.map(d => d.dag_id);
+            const [studentScoresRows] = await pool.query(
+                `SELECT competentie_id, AVG(score) AS gem_score
+                 FROM LOGBOEK_COMPETENTIE
+                 WHERE dag_id IN (?)
+                 GROUP BY competentie_id`,
+                [ids]
+            );
+            studentScoresRows.forEach(s => {
+                studentScores[s.competentie_id] = Math.round(s.gem_score * 10) / 10;
+            });
+        }
+
+        // Haal mentor feedback op uit LOGBOEK_WEEK
+        const [weekData] = await pool.query(
+            `SELECT mentor_feedback FROM LOGBOEK_WEEK WHERE week_id = ?`,
+            [weekId]
+        );
+        if (weekData.length > 0) feedbackStudent = weekData[0].mentor_feedback || '';
+    }
+
+    // 5. Haal mentor evaluatie op (week-based)
+    let mentorScores = {};
+    let feedbackMentor = '';
+    const [mentorEval] = await pool.query(
+        `SELECT ec.competentie_id, ec.score, e.feedback
+         FROM EVALUATIE e
+         JOIN EVALUATIE_COMPETENTIE ec ON ec.evaluatie_id = e.evaluatie_id
+         WHERE e.stage_id = ? AND e.type = ? AND e.beoordelaar_rol = 'mentor'`,
+        [stageId, type]
+    );
+    mentorEval.forEach(m => {
+        mentorScores[m.competentie_id] = m.score;
+        if (m.feedback) feedbackMentor = m.feedback;
+    });
+
+    // 6. Haal ook tussentijdse/finaale mentor evaluaties op
+    let mentorTussentijds = null;
+    let mentorFinaal = null;
+    const [tussentijdsEval] = await pool.query(
+        `SELECT e.feedback,
+                JSON_ARRAYAGG(JSON_OBJECT('competentie_id', ec.competentie_id, 'score', ec.score)) AS scores
+         FROM EVALUATIE e
+         JOIN EVALUATIE_COMPETENTIE ec ON ec.evaluatie_id = e.evaluatie_id
+         WHERE e.stage_id = ? AND e.type = 'tussentijds' AND e.beoordelaar_rol = 'mentor'
+         GROUP BY e.evaluatie_id`,
+        [stageId]
+    );
+    if (tussentijdsEval.length > 0) {
+        mentorTussentijds = {
+            feedback: tussentijdsEval[0].feedback,
+            scores: JSON.parse(tussentijdsEval[0].scores || '[]')
+        };
+    }
+
+    const [finaalEval] = await pool.query(
+        `SELECT e.feedback,
+                JSON_ARRAYAGG(JSON_OBJECT('competentie_id', ec.competentie_id, 'score', ec.score)) AS scores
+         FROM EVALUATIE e
+         JOIN EVALUATIE_COMPETENTIE ec ON ec.evaluatie_id = e.evaluatie_id
+         WHERE e.stage_id = ? AND e.type = 'finaal' AND e.beoordelaar_rol = 'mentor'
+         GROUP BY e.evaluatie_id`,
+        [stageId]
+    );
+    if (finaalEval.length > 0) {
+        mentorFinaal = {
+            feedback: finaalEval[0].feedback,
+            scores: JSON.parse(finaalEval[0].scores || '[]')
+        };
+    }
+
+    // 7. Haal docent evaluatie op
+    let docentScores = {};
+    const [docentEval] = await pool.query(
+        `SELECT ec.competentie_id, ec.score
+         FROM EVALUATIE e
+         JOIN EVALUATIE_COMPETENTIE ec ON ec.evaluatie_id = e.evaluatie_id
+         WHERE e.stage_id = ? AND e.type = ? AND e.beoordelaar_rol = 'docent'`,
+        [stageId, type]
+    );
+    docentEval.forEach(d => {
+        docentScores[d.competentie_id] = d.score;
+    });
+
+    // 8. Bouw de gestructureerde response op
+    return {
+        competenties: competenties.map(c => ({
+            competentie_id: c.competentie_id,
+            naam: c.naam,
+            domeinen: c.omschrijving || '',
+            opties: optiesPerCompetentie[c.competentie_id] || [],
+            score_student: studentScores[c.competentie_id] ?? null,
+            score_mentor: mentorScores[c.competentie_id] ?? null,
+            score_docent: docentScores[c.competentie_id] ?? null,
+            feedback_mentor: feedbackMentor,
+            feedback_student: feedbackStudent
+        })),
+        mentor_tussentijds: mentorTussentijds,
+        mentor_finaal: mentorFinaal
+    };
 };
 
 // Sla evaluatiescores op
