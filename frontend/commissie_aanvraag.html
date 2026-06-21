@@ -11,35 +11,19 @@
 
   <!-- ===== SIDEBAR ===== -->
   <aside class="sidebar" role="navigation" aria-label="Hoofdnavigatie">
-    <div class="sidebar__brand">
-      <span class="sidebar__app-name">EhB StageTool</span>
-      <span class="sidebar__app-sub">Toegepaste Informatica</span>
+    <div class="sb-logo">
+      <div class="sb-logo-title">EhB StageTool</div>
+      <div class="sb-logo-sub">Toegepaste Informatica</div>
     </div>
-
-    <nav class="sidebar__nav">
-      <ul class="sidebar__nav-list">
-        <li>
-          <a href="commissie_dashboard.html" class="sidebar__nav-item" data-page="dashboard">
-            <span class="sidebar__nav-icon"></span>
-            Dashboard
-          </a>
-        </li>
-        <li>
-          <a href="#" class="sidebar__nav-item sidebar__nav-item--active" data-page="nieuwe-aanvragen">
-            <span class="sidebar__nav-icon"></span>
-            Nieuwe aanvragen
-            <span class="sidebar__badge" id="badge-nieuwe-aanvragen">—</span>
-          </a>
-        </li>
-        <li>
-          <a href="commissie_dossiers.html" class="sidebar__nav-item" data-page="alle-dossiers">
-            <span class="sidebar__nav-icon"></span>
-            Alle dossiers
-          </a>
-        </li>
-        
-      </ul>
-    </nav>
+    <div class="sb-nav">
+      <a href="commissie_dashboard.html" class="sb-item">Dashboard</a>
+      <a href="#" class="sb-item active">
+        Nieuwe aanvragen
+        <span class="sb-badge" id="badge-nieuwe-aanvragen">—</span>
+      </a>
+      <a href="commissie_dossiers.html" class="sb-item">Alle dossiers</a>
+    </div>
+    <div class="sb-footer">Ingelogd als Commissie</div>
   </aside>
 
   <!-- ===== MAIN CONTENT ===== -->
