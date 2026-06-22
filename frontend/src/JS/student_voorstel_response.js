@@ -41,6 +41,7 @@ const STEPPER_CONFIG = {
 
 var STATUS = "in_behandeling";
 var STEPPER_STEP = 1;
+var STAP5_VOLTOOID = false;
 
 function formatDatum(d) {
   if (!d) return "-";
@@ -73,9 +74,15 @@ function getStepperConfig() {
       config.labels.push("done");
       config.badges.push({ text: "Voltooid", cls: "badge-voltooid" });
     } else if (i === STEPPER_STEP) {
-      config.dots.push("active-blue");
-      config.labels.push("active");
-      config.badges.push({ text: "In proces", cls: "badge-in-proces" });
+      if (i === 5 && STAP5_VOLTOOID) {
+        config.dots.push("done");
+        config.labels.push("done");
+        config.badges.push({ text: "Voltooid", cls: "badge-voltooid" });
+      } else {
+        config.dots.push("active-blue");
+        config.labels.push("active");
+        config.badges.push({ text: "In proces", cls: "badge-in-proces" });
+      }
     } else {
       config.dots.push(null);
       config.labels.push(null);
@@ -198,6 +205,7 @@ async function init() {
 
       // Bepaal STEPPER_STEP op basis van contract- en evaluatiestatus
       STEPPER_STEP = 3;
+      STAP5_VOLTOOID = false;
 
       try {
         var contractInfo = await apiFetch("/contracten/mijn");
@@ -207,18 +215,12 @@ async function init() {
           STEPPER_STEP = 3;
         } else {
           STEPPER_STEP = 4;
-          try {
-            var evalTussentijds = await apiFetch("/evaluatie/concept?stage_id=" + s.stage_id + "&type=tussentijds");
-            if (evalTussentijds && evalTussentijds.evaluatie && evalTussentijds.evaluatie.definitief) {
-              STEPPER_STEP = 5;
-              try {
-                var evalFinaal = await apiFetch("/evaluatie/concept?stage_id=" + s.stage_id + "&type=finaal");
-                if (evalFinaal && evalFinaal.evaluatie && evalFinaal.evaluatie.definitief) {
-                  STEPPER_STEP = 5;
-                }
-              } catch (e2) {}
-            }
-          } catch (e) {}
+
+          if (s.eval_getoond_tussentijds) {
+            STEPPER_STEP = 5;
+          }
+
+          STAP5_VOLTOOID = !!s.eval_getoond_finaal;
         }
       } catch (e) {
         STEPPER_STEP = 3;

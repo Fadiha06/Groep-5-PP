@@ -123,6 +123,7 @@ exports.getMyStage = async (req, res) => {
         const [stageRows] = await db.query(`
             SELECT s.stage_id, s.titel, s.status, s.startdatum, s.einddatum,
                    s.omschrijving, s.leerdoelen, s.uren_per_week, s.reden_weigering,
+                   s.eval_getoond_tussentijds, s.eval_getoond_finaal,
                    b.naam as bedrijfsnaam, b.adres as bedrijf_adres, b.sector as bedrijf_sector,
                    st.studentnummer, st.opleiding,
                    CONCAT(m_u.voornaam, ' ', m_u.achternaam) as mentorNaam,
