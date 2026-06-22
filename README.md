@@ -14,6 +14,9 @@ Belangrijke functionaliteiten zijn onder andere:
 * /documentatie - Bevat ondersteunende documenten, waaronder het ERD (Entity Relationship Diagram) en ontwerpschema's.
 
 ## Gebruikte Bronnen en Tools
+* AI
+* FileZilla voor SFTP
+* PuTTy voor SSH connectie
 
 ### Projectmanagement
 * Trello, GitHub, MS Teams
@@ -32,8 +35,3 @@ Belangrijke functionaliteiten zijn onder andere:
 
 ### Hosting & Infrastructuur
 * Hosting: Schoolservers VPS
-* Webserver: Nginx (gehost op de schoolserver, selfhosting of via externe partijen zoals Cloudflare en Combell)
-
-### Overige Functionaliteiten & Protocollen
-* E-sign: SignServer (https://www.signserver.org/)
-* Data Requests: Zelfgecodeerde XHR voor de backend
