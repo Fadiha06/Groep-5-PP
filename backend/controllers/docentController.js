@@ -36,9 +36,9 @@ const getStudenten = async (req, res) => {
     }
 };
 
-// POST /api/docent/reminder — stuur een logboek-herinnering naar een student
+// POST /api/docent/reminder — stuur een herinnering naar een student
 const stuurReminder = async (req, res) => {
-    const { stage_id, weeknummer } = req.body;
+    const { stage_id, weeknummer, type } = req.body;
 
     if (!stage_id) {
         return res.status(400).json({ error: 'stage_id is verplicht' });
@@ -60,10 +60,16 @@ const stuurReminder = async (req, res) => {
             return res.status(403).json({ error: 'Dit is niet jouw student' });
         }
 
-        const titel = 'Logboek herinnering';
-        const bericht = weeknummer
-            ? `Vergeet je logboek van week ${weeknummer} niet in te vullen.`
-            : 'Vergeet je logboek niet in te vullen.';
+        let titel, bericht;
+        if (type === 'contract') {
+            titel = 'Contract herinnering';
+            bericht = 'Vergeet je stagecontract niet te ondertekenen.';
+        } else {
+            titel = 'Logboek herinnering';
+            bericht = weeknummer
+                ? `Vergeet je logboek van week ${weeknummer} niet in te vullen.`
+                : 'Vergeet je logboek niet in te vullen.';
+        }
 
         await docentModel.maakNotificatie(stage.student_gebruiker_id, stage_id, titel, bericht, 'reminder');
 

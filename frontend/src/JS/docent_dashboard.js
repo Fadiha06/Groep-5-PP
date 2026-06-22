@@ -21,13 +21,6 @@ async function laadDashboard() {
     } catch (err) {
         console.error('Milestones fout:', err);
     }
-
-    try {
-        const aggr = await apiFetch('/docent/aggregatie');
-        vulAggregatie(aggr);
-    } catch (err) {
-        console.error('Aggregatie fout:', err);
-    }
 }
 
 function vulStudenten(studenten) {
@@ -41,8 +34,8 @@ function vulStudenten(studenten) {
     studenten.forEach(s => {
         const badge = s.ingevuld ? 'badge-ok' : 'badge-missing';
         const actie = s.ingevuld
-            ? '<span class="link">Bekijk details</span>'
-            : `<button class="reminder-btn" onclick="stuurReminder(${s.stage_id})">Stuur reminder</button>`;
+            ? '<a class="link" href="docent_logboeken.html">Bekijk details</a>'
+            : '<span class="badge badge-missing">Nog niet ingevuld</span>';
         const rij = document.createElement('div');
         rij.className = 'table-row';
         rij.innerHTML = `
@@ -72,7 +65,7 @@ function vulMilestones(milestones) {
         if (m.docent_getekend) {
             actie = '<span style="font-size:12px;color:#15803D;font-weight:600;">&#10003; Volledig getekend</span>';
         } else {
-            actie = '<span style="font-size:12px;color:#9CA3AF;">Wacht op stagecommissie</span>';
+            actie = '<span style="font-size:12px;color:#9CA3AF;">Wacht op handtekening</span>';
         }
 
         div.innerHTML = '<div class="milestone-naam">' + m.student + '</div>' +
@@ -82,47 +75,4 @@ function vulMilestones(milestones) {
     });
 }
 
-async function stuurReminder(stageId) {
-    try {
-        const data = await apiFetch('/docent/reminder', {
-            method: 'POST',
-            body: JSON.stringify({ stage_id: stageId, weeknummer: WEEK })
-        });
-        alert(data.message);
-    } catch (err) {
-        alert(err.message || 'Kan geen verbinding maken met de server');
-    }
-}
-
 laadDashboard();
-
-
-
-function vulAggregatie(aggr) {
-    const container = document.querySelector('.card:last-child .placeholder');
-    if (!container) return;
-    if (!aggr || aggr.length === 0) {
-        container.innerHTML = 'Nog geen tussentijdse evaluaties ingevuld.';
-        return;
-    }
-    
-    let html = '<div style="display:flex; flex-direction:column; gap:8px; margin-top:10px;">';
-    aggr.forEach(a => {
-        const perc = Math.round((a.gemiddelde / 5) * 100);
-        html += `
-            <div style="display:flex; justify-content:space-between; align-items:center; font-size:13px; color:#374151;">
-                <span>${a.competentie}</span>
-                <span style="font-weight:600;">${Number(a.gemiddelde).toFixed(1)} / 5</span>
-            </div>
-            <div style="background:#E5E7EB; border-radius:4px; height:6px; width:100%; overflow:hidden;">
-                <div style="background:#10B981; height:100%; width:${perc}%"></div>
-            </div>
-        `;
-    });
-    html += '</div>';
-    
-    container.parentElement.innerHTML = `
-        <div class="card-title">Tussentijdse Punten Aggregatie (Competenties)</div>
-        ${html}
-    `;
-}
