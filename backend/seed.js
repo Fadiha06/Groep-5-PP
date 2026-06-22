@@ -42,7 +42,7 @@ async function seed() {
         console.log('Schema setup completed.');
 
         // 3. Add default Admin user
-        const hashedPassword = await argon2.hash('admin123');
+        const hashedPassword = await argon2.hash('Het1sGeenAdm2n_1738!');
         
         // Check if admin already exists
         const [rows] = await connection.query('SELECT * FROM GEBRUIKER WHERE email = ?', ['admin@ehb.be']);
@@ -56,7 +56,7 @@ async function seed() {
                 'INSERT INTO ADMINISTRATIE (gebruiker_id, bevoegdheidsniveau) VALUES (?, ?)',
                 [result.insertId, 'hoofdadmin']
             );
-            console.log('Test Admin created: admin@ehb.be / admin123');
+            console.log('Test Admin created: admin@ehb.be / Het1sGeenAdm2n_1738!');
         } else {
             console.log('Test Admin already exists.');
         }

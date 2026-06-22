@@ -1,18 +1,14 @@
 const nodemailer = require('nodemailer');
 
-let transporter;
-nodemailer.createTestAccount().then(account => {
-    transporter = nodemailer.createTransport({
-        host: process.env.SMTP_HOST && process.env.SMTP_HOST !== '127.0.0.1' ? process.env.SMTP_HOST : 'smtp.ethereal.email',
-        port: process.env.SMTP_PORT && process.env.SMTP_HOST !== '127.0.0.1' ? Number(process.env.SMTP_PORT) : 587,
-        secure: false,
-        auth: {
-            user: process.env.SMTP_USER || account.user,
-            pass: process.env.SMTP_PASS || account.pass
-        }
-    });
-    console.log('Nodemailer initialized. Using ' + (process.env.SMTP_HOST || 'Ethereal test mail'));
-}).catch(console.error);
+const transporter = nodemailer.createTransport({
+    host: process.env.SMTP_HOST, 
+    port: process.env.SMTP_PORT, 
+    secure: false, 
+    auth: {
+        user: process.env.SMTP_USER,
+        pass: process.env.SMTP_PASS
+    }
+});
 
 const stuurWachtwoordLink = async (naarEmail, link, type = 'account') => {
     console.log(`Verzenden wachtwoord link naar: ${naarEmail}`);
@@ -54,7 +50,6 @@ const stuurWachtwoordLink = async (naarEmail, link, type = 'account') => {
             html
         });
         console.log('Wachtwoord mail succesvol verzonden.');
-        console.log('Mail preview URL: ' + nodemailer.getTestMessageUrl(info));
     } catch (err) {
         console.error('Fout bij verzenden wachtwoord mail:', err);
     }
@@ -79,7 +74,6 @@ const stuurContractLink = async (naarEmail, link) => {
             `
         });
         console.log('Contract mail succesvol verzonden.');
-        console.log('Mail preview URL: ' + nodemailer.getTestMessageUrl(info));
     } catch (err) {
         console.error('Fout bij verzenden contract mail:', err);
     }
